@@ -1,4 +1,4 @@
-﻿app_name = "document_management"
+app_name = "document_management"
 app_title = "Document Management"
 app_publisher = "Administrator"
 app_description = "Standalone Document Management module for Frappe"

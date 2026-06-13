@@ -1,0 +1,43 @@
+<div class="document-chat-wrapper">
+    <aside class="chat-sidebar">
+        <div class="sidebar-header">
+            <strong>{{ __("Conversations") }}</strong>
+            <button class="btn btn-xs btn-primary" id="new-chat">
+                <i class="fa fa-plus"></i>
+            </button>
+        </div>
+        <div class="session-list" id="session-list"></div>
+    </aside>
+    <section class="chat-container">
+        <header class="chat-header">
+            <div>
+                <h4 class="chat-title" id="chat-title">{{ __("Document Chat") }}</h4>
+                <p class="chat-subtitle">{{ __("Answers use only permitted document evidence.") }}</p>
+            </div>
+            <div class="chat-actions">
+                <button class="btn btn-sm btn-default" id="chat-filters">
+                    <i class="fa fa-filter"></i> {{ __("Filters") }}
+                </button>
+                <button class="btn btn-sm btn-default" id="rename-chat">
+                    <i class="fa fa-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-default text-danger" id="delete-chat">
+                    <i class="fa fa-trash"></i>
+                </button>
+            </div>
+        </header>
+        <div class="active-filters" id="active-filters"></div>
+        <div class="chat-body" id="chat-messages"></div>
+        <footer class="chat-footer">
+            <div class="chat-input-container">
+                <textarea id="chat-input" rows="1" placeholder="{{ __("Ask about your documents...") }}"></textarea>
+                <button class="btn-cancel hidden" id="btn-cancel-chat" title="{{ __("Cancel") }}">
+                    <i class="fa fa-stop"></i>
+                </button>
+                <button class="btn-send" id="btn-send-chat" title="{{ __("Send") }}">
+                    <i class="fa fa-paper-plane"></i>
+                </button>
+            </div>
+        </footer>
+    </section>
+</div>

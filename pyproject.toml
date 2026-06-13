@@ -1,0 +1,10 @@
+﻿[project]
+name = "document_management"
+version = "0.0.1"
+description = "Standalone Document Management module for Frappe"
+authors = [
+    { name = "Administrator", email = "admin@example.com"}
+]
+dependencies = [
+    "frappe~=15.0.0"
+]

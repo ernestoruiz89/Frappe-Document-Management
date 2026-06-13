@@ -1,0 +1,327 @@
+{
+ "actions": [],
+ "creation": "2026-06-12 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enable_full_text_search",
+  "enable_semantic_search",
+  "provider_guide_section",
+  "provider_guide_html",
+  "ocr_section",
+  "ocr_mode",
+  "ocr_archive_generation",
+  "ocr_language",
+  "ocr_min_text_chars",
+  "enable_openai_for_ocr",
+  "openai_ocr_model",
+  "chat_section",
+  "chat_provider",
+  "chat_endpoint",
+  "rag_model",
+  "rag_context_size",
+  "rag_timeout",
+  "chat_rate_limit_per_minute",
+  "embedding_section",
+  "embedding_provider",
+  "embedding_endpoint",
+  "embedding_model",
+  "enable_rag_reranker",
+  "rag_reranker_model",
+  "credentials_section",
+  "openai_api_key",
+  "openai_compatible_api_key",
+  "allow_internal_ai_endpoints",
+  "retrieval_section",
+  "rag_chunk_size",
+  "rag_chunk_overlap",
+  "rag_top_k",
+  "rag_min_semantic_score",
+  "index_path",
+  "indexed_doctypes",
+  "legacy_section",
+  "semantic_model_type",
+  "openai_model",
+  "ai_endpoint"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "fieldname": "enable_full_text_search",
+   "fieldtype": "Check",
+   "label": "Enable Full Text Search (Tantivy)"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_semantic_search",
+   "fieldtype": "Check",
+   "label": "Enable Semantic Search (AI/FAISS)"
+  },
+  {
+   "default": "Local (sentence-transformers)",
+   "hidden": 1,
+   "fieldname": "semantic_model_type",
+   "fieldtype": "Select",
+   "label": "Semantic Model Execution",
+   "options": "Local (sentence-transformers)\nOpenAI API",
+   "depends_on": "eval:doc.enable_semantic_search"
+  },
+  {
+   "fieldname": "provider_guide_section",
+   "fieldtype": "Section Break",
+   "label": "Active AI Providers"
+  },
+  {
+   "fieldname": "provider_guide_html",
+   "fieldtype": "HTML",
+   "label": "Provider Summary"
+  },
+  {
+   "fieldname": "ocr_section",
+   "fieldtype": "Section Break",
+   "label": "Document OCR"
+  },
+  {
+   "default": "Auto",
+   "description": "Auto extracts text directly from digital PDFs and runs OCR only for scanned or mixed documents.",
+   "fieldname": "ocr_mode",
+   "fieldtype": "Select",
+   "label": "OCR Mode",
+   "options": "Auto\nRedo\nForce\nOff"
+  },
+  {
+   "default": "Auto",
+   "description": "Auto stores a searchable PDF only for scanned PDFs and images.",
+   "fieldname": "ocr_archive_generation",
+   "fieldtype": "Select",
+   "label": "Searchable PDF Generation",
+   "options": "Auto\nAlways\nNever"
+  },
+  {
+   "default": "spa+eng",
+   "fieldname": "ocr_language",
+   "fieldtype": "Data",
+   "label": "OCR Languages"
+  },
+  {
+   "default": "80",
+   "description": "Minimum non-whitespace characters used to identify a PDF as digital text.",
+   "fieldname": "ocr_min_text_chars",
+   "fieldtype": "Int",
+   "label": "Digital PDF Text Threshold"
+  },
+  {
+   "default": "1",
+   "description": "Optional fallback only for pages where local OCR produced no text. It does not answer Document Chat questions.",
+   "fieldname": "enable_openai_for_ocr",
+   "fieldtype": "Check",
+   "label": "Use OpenAI Vision as OCR Fallback"
+  },
+  {
+   "default": "text-embedding-3-small",
+   "hidden": 1,
+   "fieldname": "openai_model",
+   "fieldtype": "Data",
+   "label": "OpenAI Embedding Model",
+   "depends_on": "eval:doc.semantic_model_type=='OpenAI API'"
+  },
+  {
+   "default": "gpt-5-mini",
+   "description": "Used only when OpenAI Vision OCR fallback is enabled and local OCR leaves a page without text.",
+   "fieldname": "openai_ocr_model",
+   "fieldtype": "Data",
+   "label": "OpenAI Vision Model",
+   "depends_on": "eval:doc.enable_openai_for_ocr"
+  },
+  {
+   "default": "gpt-5-mini",
+   "description": "Model used to rewrite follow-up questions and generate Document Chat answers. For LM Studio use an identifier returned by /v1/models.",
+   "fieldname": "rag_model",
+   "fieldtype": "Data",
+   "label": "RAG Chat Model",
+   "depends_on": "eval:doc.chat_provider"
+  },
+  {
+   "fieldname": "chat_section",
+   "fieldtype": "Section Break",
+   "label": "1. Chat Answer Provider"
+  },
+  {
+   "default": "OpenAI",
+   "description": "OpenAI calls the official OpenAI API. OpenAI Compatible calls another remote API endpoint. Ollama uses its native API. LM Studio uses its local OpenAI-compatible server.",
+   "fieldname": "chat_provider",
+   "fieldtype": "Select",
+   "label": "Chat Provider",
+   "options": "OpenAI\nOpenAI Compatible\nOllama\nLM Studio"
+  },
+  {
+   "description": "OpenAI-compatible base URL, Ollama server URL, or LM Studio URL. LM Studio defaults to http://localhost:1234/v1.",
+   "fieldname": "chat_endpoint",
+   "fieldtype": "Data",
+   "label": "Chat Endpoint",
+   "depends_on": "eval:doc.chat_provider=='Ollama' || doc.chat_provider=='OpenAI Compatible' || doc.chat_provider=='LM Studio'"
+  },
+  {
+   "fieldname": "embedding_section",
+   "fieldtype": "Section Break",
+   "label": "2. Document Embedding Provider"
+  },
+  {
+   "default": "Local (sentence-transformers)",
+   "description": "Local runs Sentence Transformers on the worker. OpenAI calls the official OpenAI API. OpenAI Compatible and LM Studio send document chunks and queries to an embeddings API.",
+   "fieldname": "embedding_provider",
+   "fieldtype": "Select",
+   "label": "Embedding Provider",
+   "options": "Local (sentence-transformers)\nOpenAI\nOpenAI Compatible\nLM Studio"
+  },
+  {
+   "description": "Base URL for the embeddings API. Required for OpenAI Compatible. LM Studio defaults to http://localhost:1234/v1.",
+   "fieldname": "embedding_endpoint",
+   "fieldtype": "Data",
+   "label": "Embedding Endpoint",
+   "depends_on": "eval:doc.embedding_provider=='OpenAI Compatible' || doc.embedding_provider=='LM Studio'"
+  },
+  {
+   "default": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+   "description": "Use a multilingual Sentence Transformers model for Local, an official OpenAI embedding model for OpenAI, an API model for OpenAI Compatible, or an LM Studio model identifier. Rebuild the RAG index after changing this value.",
+   "fieldname": "embedding_model",
+   "fieldtype": "Data",
+   "label": "Embedding Model"
+  },
+  {
+   "default": "8192",
+   "fieldname": "rag_context_size",
+   "fieldtype": "Int",
+   "label": "Context Size"
+  },
+  {
+   "default": "650",
+   "fieldname": "rag_chunk_size",
+   "fieldtype": "Int",
+   "label": "Chunk Size (Approx. Tokens)"
+  },
+  {
+   "default": "120",
+   "fieldname": "rag_chunk_overlap",
+   "fieldtype": "Int",
+   "label": "Chunk Overlap"
+  },
+  {
+   "default": "8",
+   "fieldname": "rag_top_k",
+   "fieldtype": "Int",
+   "label": "Retrieved Chunks"
+  },
+  {
+   "default": "0.25",
+   "description": "Minimum cosine similarity required for semantic-only evidence. Lexical matches are not affected.",
+   "fieldname": "rag_min_semantic_score",
+   "fieldtype": "Float",
+   "label": "Minimum Semantic Score"
+  },
+  {
+   "default": "1",
+   "description": "Runs locally after hybrid retrieval. It does not call OpenAI or Ollama.",
+   "fieldname": "enable_rag_reranker",
+   "fieldtype": "Check",
+   "label": "Enable Local Reranker"
+  },
+  {
+   "fieldname": "credentials_section",
+   "fieldtype": "Section Break",
+   "label": "3. API Credentials and Network"
+  },
+  {
+   "description": "Required when chat, embeddings, or OCR fallback uses official OpenAI services.",
+   "fieldname": "openai_api_key",
+   "fieldtype": "Password",
+   "label": "OpenAI API Key",
+   "depends_on": "eval:doc.embedding_provider=='OpenAI' || doc.chat_provider=='OpenAI' || doc.enable_openai_for_ocr"
+  },
+  {
+   "description": "Required when chat or embeddings use an OpenAI Compatible provider with authentication.",
+   "fieldname": "openai_compatible_api_key",
+   "fieldtype": "Password",
+   "label": "OpenAI Compatible API Key",
+   "depends_on": "eval:doc.embedding_provider=='OpenAI Compatible' || doc.chat_provider=='OpenAI Compatible'"
+  },
+  {
+   "default": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+   "depends_on": "eval:doc.enable_rag_reranker",
+   "fieldname": "rag_reranker_model",
+   "fieldtype": "Data",
+   "label": "Reranker Model"
+  },
+  {
+   "default": "120",
+   "fieldname": "rag_timeout",
+   "fieldtype": "Int",
+   "label": "Provider Timeout (Seconds)"
+  },
+  {
+   "default": "10",
+   "fieldname": "chat_rate_limit_per_minute",
+   "fieldtype": "Int",
+   "label": "Questions per User per Minute"
+  },
+  {
+   "default": "0",
+   "description": "Allow generic OpenAI-compatible endpoints that resolve to private or local IP addresses. Ollama and LM Studio local endpoints are always allowed.",
+   "fieldname": "allow_internal_ai_endpoints",
+   "fieldtype": "Check",
+   "label": "Allow Internal AI Endpoints"
+  },
+  {
+   "fieldname": "retrieval_section",
+   "fieldtype": "Section Break",
+   "label": "Retrieval and Indexing"
+  },
+  {
+   "default": "search_index",
+   "fieldname": "index_path",
+   "fieldtype": "Data",
+   "label": "Index Path (Relative to site private files)"
+  },
+  {
+   "fieldname": "legacy_section",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Legacy Provider Settings"
+  },
+  {
+   "fieldname": "ai_endpoint",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Legacy Shared AI Endpoint"
+  },
+  {
+   "description": "Operational DocTypes indexed in Tantivy for fast full-text lookup. Document records use the separate semantic RAG index. Rebuild Unified Search after changing this list.",
+   "fieldname": "indexed_doctypes",
+   "fieldtype": "Table",
+   "label": "Operational Indexed DocTypes",
+   "options": "Indexed DocType"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-06-12 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Document Management",
+ "name": "Document Management Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

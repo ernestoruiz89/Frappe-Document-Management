@@ -1,0 +1,109 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"docmanag1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Document Management</span>\",\"col\":12}},{\"id\":\"docmanag2\",\"type\":\"card\",\"data\":{\"card_name\":\"Documents\",\"col\":4}}]",
+ "creation": "2026-06-11 12:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "folder-normal",
+ "idx": 17,
+ "indicator_color": "blue",
+ "is_hidden": 0,
+ "label": "Document Management",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Documents",
+   "link_count": 6,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Document Management Console",
+   "link_count": 0,
+   "link_to": "document-management-console",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Document",
+   "link_count": 0,
+   "link_to": "Document",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Document Category",
+   "link_count": 0,
+   "link_to": "Document Category",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Document Tag",
+   "link_count": 0,
+   "link_to": "Document Tag",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Document Management Settings",
+   "link_count": 0,
+   "link_to": "Document Management Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Unified Search",
+   "link_count": 0,
+   "link_to": "unified-search",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Document Chat",
+   "link_count": 0,
+   "link_to": "document-chat",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-06-12 14:31:00.000000",
+ "modified_by": "Administrator",
+ "module": "Document Management",
+ "name": "Document Management",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 2.0,
+ "shortcuts": [],
+ "title": "Document Management"
+}

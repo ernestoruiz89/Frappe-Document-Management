@@ -1,0 +1,54 @@
+{
+ "actions": [],
+ "creation": "2026-06-12 19:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "view_name",
+  "user",
+  "filters_json"
+ ],
+ "fields": [
+  {
+   "fieldname": "view_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "View Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "filters_json",
+   "fieldtype": "Code",
+   "label": "Filters JSON",
+   "options": "JSON",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-06-12 19:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Document Management",
+ "name": "Document Saved View",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "All",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

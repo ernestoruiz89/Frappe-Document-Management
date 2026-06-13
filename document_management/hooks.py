@@ -1,8 +1,8 @@
 app_name = "document_management"
 app_title = "Document Management"
-app_publisher = "Administrator"
+app_publisher = "Ernesto Ruiz Escorcia"
 app_description = "Standalone Document Management module for Frappe"
-app_email = "admin@example.com"
+app_email = "eruiz@wbapps.com"
 app_license = "mit"
 
 permission_query_conditions = {

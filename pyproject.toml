@@ -3,7 +3,7 @@ name = "document_management"
 version = "0.0.1"
 description = "Standalone Document Management module for Frappe"
 authors = [
-    { name = "Administrator", email = "admin@example.com"}
+    { name = "Ernesto Ruiz Escorcia", email = "eruiz@wbapps.com"}
 ]
 dependencies = [
     "frappe~=15.0.0"

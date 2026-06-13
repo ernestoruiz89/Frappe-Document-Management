@@ -27,9 +27,7 @@ sudo apt-get install ocrmypdf tesseract-ocr
 Download the app into your bench directory:
 ```bash
 cd /path/to/your/frappe-bench
-bench get-app /path/to/document_management
-# or via git repository once published
-# bench get-app https://github.com/your-username/document_management.git
+bench get-app https://github.com/ernestoruiz89/Frappe-Document-Management.git
 ```
 
 ### 3. Install on a Site

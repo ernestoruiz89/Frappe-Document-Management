@@ -29,7 +29,7 @@ class DocumentManagementConsole {
             return;
         }
         frappe.require(
-            "/assets/loan_manager/js/pdf_search_viewer.v5_7_284_7.js",
+            "/assets/document_management/js/pdf_search_viewer.v5_7_284_7.js",
             () => this.init_vue(),
         );
     }

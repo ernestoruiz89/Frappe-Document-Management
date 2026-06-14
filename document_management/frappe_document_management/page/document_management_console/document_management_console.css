@@ -281,7 +281,7 @@
 /* --- Grid View (Small Cards) --- */
 .paperless-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 14px;
     align-content: start;
 }
@@ -296,11 +296,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     text-align: center;
     position: relative;
     overflow: hidden;
     animation: cardFadeIn 0.3s ease forwards;
     opacity: 0;
+    aspect-ratio: 1;
 }
 
 .paperless-card::before {
@@ -966,7 +968,7 @@
 /* --- Loading Skeleton --- */
 .skeleton-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 14px;
 }
 
@@ -978,6 +980,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
 }
 
 .skeleton-item {

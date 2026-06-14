@@ -1,5 +1,7 @@
 import frappe
 
+from werkzeug.routing import RequestRedirect
+
 def preserve_guest_redirect_parameters():
     # Only run for Guest users
     if frappe.session.user == "Guest":
@@ -19,5 +21,4 @@ def preserve_guest_redirect_parameters():
                         from urllib.parse import quote
                         login_url = f"/login?redirect-to={quote(redirect_to, safe='')}"
                         
-                        frappe.local.flags.redirect_location = login_url
-                        raise frappe.Redirect
+                        raise RequestRedirect(login_url)

@@ -1,5 +1,6 @@
 import unittest
 import frappe
+from werkzeug.routing import RequestRedirect
 from document_management.frappe_document_management.utils.auth import preserve_guest_redirect_parameters
 
 class TestAuthRedirect(unittest.TestCase):
@@ -7,13 +8,11 @@ class TestAuthRedirect(unittest.TestCase):
         # Cache original request and session user
         self.original_user = frappe.session.user
         self.original_request = getattr(frappe.local, "request", None)
-        self.original_redirect_location = getattr(frappe.local.flags, "redirect_location", None)
 
     def tearDown(self):
         # Restore original request and session user
         frappe.session.user = self.original_user
         frappe.local.request = self.original_request
-        frappe.local.flags.redirect_location = self.original_redirect_location
 
     def test_redirect_for_guest_with_params(self):
         # Mock guest user
@@ -26,11 +25,11 @@ class TestAuthRedirect(unittest.TestCase):
             
         frappe.local.request = MockRequest()
         
-        with self.assertRaises(frappe.Redirect):
+        with self.assertRaises(RequestRedirect) as context:
             preserve_guest_redirect_parameters()
             
         self.assertEqual(
-            frappe.local.flags.redirect_location,
+            context.exception.new_url,
             "/login?redirect-to=%2Fapp%2Fdocument-management-console%3FDoc%3DDOC-2026-0004"
         )
 

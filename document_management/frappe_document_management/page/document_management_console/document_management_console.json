@@ -1,0 +1,18 @@
+{
+ "creation": "2026-06-11 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Page",
+ "modified": "2026-06-11 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Frappe Document Management",
+ "name": "document-management-console",
+ "owner": "Administrator",
+ "page_name": "document-management-console",
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "standard": "Yes",
+ "title": "Document Management Console"
+}

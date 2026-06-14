@@ -1,0 +1,91 @@
+{
+ "actions": [],
+ "autoname": "field:tag_name",
+ "creation": "2026-06-12 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "tag_name",
+  "color",
+  "is_active",
+  "matching_algorithm",
+  "match_pattern"
+ ],
+ "fields": [
+  {
+   "fieldname": "tag_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Tag Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "#e2e8f0",
+   "fieldname": "color",
+   "fieldtype": "Color",
+   "in_list_view": 1,
+   "label": "Color"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Is Active"
+  },
+  {
+   "default": "None",
+   "fieldname": "matching_algorithm",
+   "fieldtype": "Select",
+   "label": "Matching Algorithm",
+   "options": "None\nAny word\nAll words\nExact match\nRegular expression\nAuto (Machine Learning)"
+  },
+  {
+   "depends_on": "eval:doc.matching_algorithm !== 'None' && doc.matching_algorithm !== 'Auto (Machine Learning)'",
+   "fieldname": "match_pattern",
+   "fieldtype": "Small Text",
+   "label": "Match Pattern"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-06-12 12:24:00.000000",
+ "modified_by": "Administrator",
+ "module": "Frappe Document Management",
+ "name": "Document Tag",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "All"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

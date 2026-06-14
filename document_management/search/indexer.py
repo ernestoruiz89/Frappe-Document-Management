@@ -336,7 +336,7 @@ def rebuild_index():
 
     rag_result = None
     if settings.enable_semantic_search:
-        from document_management.document_management.rag.index import rebuild_index as rebuild_rag
+        from document_management.frappe_document_management.rag.index import rebuild_index as rebuild_rag
 
         rag_result = rebuild_rag()
 
@@ -351,7 +351,7 @@ def extract_and_index_ocr(doc_type, doc_name):
     doc = frappe.get_doc(doc_type, doc_name)
     doc.check_permission("write")
     if doc_type == "Document":
-        from document_management.document_management.page.document_management_console.document_management_console import (
+        from document_management.frappe_document_management.page.document_management_console.document_management_console import (
             reprocess_ocr,
         )
 

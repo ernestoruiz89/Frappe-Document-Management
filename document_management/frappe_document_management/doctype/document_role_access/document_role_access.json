@@ -1,0 +1,30 @@
+{
+ "actions": [],
+ "creation": "2026-06-11 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "role"
+ ],
+ "fields": [
+  {
+   "fieldname": "role",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Role",
+   "options": "Role",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-06-11 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Frappe Document Management",
+ "name": "Document Role Access",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

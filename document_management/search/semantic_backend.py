@@ -1,6 +1,6 @@
 import frappe
 
-from document_management.document_management.rag.index import (
+from document_management.frappe_document_management.rag.index import (
     IndexRebuildRequired,
     index_document as index_rag_document,
     remove_document as remove_rag_document,
@@ -10,7 +10,7 @@ from document_management.search.query import make_excerpt
 
 
 def generate_embedding(text):
-    from document_management.document_management.rag.providers import embed_texts
+    from document_management.frappe_document_management.rag.providers import embed_texts
 
     return embed_texts([text])[0].tolist()
 

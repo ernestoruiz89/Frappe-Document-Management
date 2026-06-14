@@ -1,0 +1,244 @@
+{
+ "actions": [],
+ "creation": "2026-06-11 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "document_code",
+  "title",
+  "status",
+  "category",
+  "folder",
+  "department",
+  "party_type",
+  "party_name",
+  "current_version",
+  "attachment",
+  "preview_attachment",
+  "sb_details",
+  "tags",
+  "ocr_status",
+  "ocr_content",
+  "description",
+  "is_deleted",
+  "deleted_at",
+  "deleted_by",
+  "sb_versions",
+  "versions",
+  "sb_permissions",
+  "only_me",
+  "roles_with_access"
+ ],
+ "fields": [
+  {
+   "fieldname": "document_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Document Code",
+   "unique": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Draft\nPublished\nObsolete"
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Category",
+   "options": "Document Category",
+   "reqd": 1
+  },
+  {
+   "fieldname": "folder",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Folder",
+   "options": "File"
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Department"
+  },
+  {
+   "fieldname": "party_type",
+   "fieldtype": "Link",
+   "label": "Party Type",
+   "options": "DocType"
+  },
+  {
+   "depends_on": "eval:doc.party_type",
+   "fieldname": "party_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Party Name",
+   "options": "party_type"
+  },
+  {
+   "fieldname": "current_version",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Current Version",
+   "read_only": 1
+  },
+  {
+   "fieldname": "attachment",
+   "fieldtype": "Attach",
+   "hidden": 1,
+   "label": "Dummy Attachment"
+  },
+  {
+   "fieldname": "preview_attachment",
+   "fieldtype": "Attach",
+   "hidden": 1,
+   "label": "Dummy Preview Attachment"
+  },
+  {
+   "fieldname": "sb_details",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "tags",
+   "fieldtype": "Table MultiSelect",
+   "label": "Tags",
+   "options": "Document Tag Link"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "ocr_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "OCR Status",
+   "options": "Pending\nProcessing\nCompleted\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ocr_content",
+   "fieldtype": "Long Text",
+   "hidden": 1,
+   "label": "OCR Content"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "in_global_search": 1,
+   "label": "Description"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_deleted",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "In Trash",
+   "read_only": 1
+  },
+  {
+   "fieldname": "deleted_at",
+   "fieldtype": "Datetime",
+   "hidden": 1,
+   "label": "Deleted At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "deleted_by",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Deleted By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sb_versions",
+   "fieldtype": "Section Break",
+   "label": "Versions"
+  },
+  {
+   "fieldname": "versions",
+   "fieldtype": "Table",
+   "label": "Versions",
+   "options": "Document Version"
+  },
+  {
+   "fieldname": "sb_permissions",
+   "fieldtype": "Tab Break",
+   "label": "Permissions"
+  },
+  {
+   "fieldname": "only_me",
+   "fieldtype": "Check",
+   "label": "Only Me",
+   "description": "If checked, only the creator can view this document."
+  },
+  {
+   "fieldname": "roles_with_access",
+   "fieldtype": "Table MultiSelect",
+   "label": "Roles with Access",
+   "options": "Document Role Access"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Document Page",
+   "link_fieldname": "document"
+  }
+ ],
+ "modified": "2026-06-12 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Frappe Document Management",
+ "name": "Document",
+ "naming_rule": "By script",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Loan Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "All",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

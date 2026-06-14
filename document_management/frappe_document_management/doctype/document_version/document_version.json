@@ -1,0 +1,114 @@
+{
+ "actions": [],
+ "creation": "2026-06-11 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "version_number",
+  "release_date",
+  "attachment",
+  "file_checksum",
+  "file_size",
+  "preview_attachment",
+  "preview_status",
+  "preview_error",
+  "ocr_status",
+  "ocr_content",
+  "change_log"
+ ],
+ "fields": [
+  {
+   "fieldname": "version_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Version Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "release_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Release Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "attachment",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "label": "Attachment",
+   "reqd": 1
+  },
+  {
+   "fieldname": "file_checksum",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "File SHA-256",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "file_size",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "File Size",
+   "read_only": 1
+  },
+  {
+   "fieldname": "preview_attachment",
+   "fieldtype": "Attach",
+   "hidden": 1,
+   "label": "Preview Attachment (PDF)",
+   "read_only": 1
+  },
+  {
+   "default": "Pending",
+   "fieldname": "preview_status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Preview Status",
+   "options": "Pending\nQueued\nProcessing\nCompleted\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "preview_error",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Preview Error",
+   "read_only": 1
+  },
+  {
+   "default": "Pending",
+   "fieldname": "ocr_status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "OCR Status",
+   "options": "Pending\nProcessing\nCompleted\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ocr_content",
+   "fieldtype": "Long Text",
+   "hidden": 1,
+   "label": "OCR Content",
+   "read_only": 1
+  },
+  {
+   "fieldname": "change_log",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Change Log / Notes"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-06-11 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Frappe Document Management",
+ "name": "Document Version",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

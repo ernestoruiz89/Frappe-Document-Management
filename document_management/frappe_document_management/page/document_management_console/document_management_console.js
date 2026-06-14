@@ -540,7 +540,7 @@ class DocumentManagementConsole {
         const app = createApp({
             setup() {
                 const route_params = new URLSearchParams(window.location.search);
-                let requested_document = route_params.get('document');
+                let requested_document = route_params.get('document') || route_params.get('Doc') || route_params.get('doc');
                 const requested_query = (route_params.get('query') || '').trim();
                 const requested_page = Number(route_params.get('page')) || null;
                 const documents = ref([]);
@@ -720,8 +720,32 @@ class DocumentManagementConsole {
                                         requested.search_page = requested_page;
                                     }
                                     selected_doc.value = requested;
+                                    is_fullscreen.value = true;
+                                    requested_document = null;
+                                } else {
+                                    frappe.call({
+                                        method: 'document_management.frappe_document_management.page.document_management_console.document_management_console.get_documents',
+                                        args: { search_text: requested_document },
+                                        callback: (res) => {
+                                            const req_doc = res.message && res.message[0];
+                                            if (req_doc && req_doc.name === requested_document) {
+                                                if (requested_page) {
+                                                    req_doc.search_page = requested_page;
+                                                }
+                                                documents.value.unshift(req_doc);
+                                                selected_doc.value = req_doc;
+                                                is_fullscreen.value = true;
+                                            }
+                                            requested_document = null;
+                                            loading.value = false;
+                                        },
+                                        error: () => {
+                                            requested_document = null;
+                                            loading.value = false;
+                                        }
+                                    });
+                                    return;
                                 }
-                                requested_document = null;
                             }
                             if (selected_doc.value &&
                                 !documents.value.some((doc) => doc.name === selected_doc.value.name)) {

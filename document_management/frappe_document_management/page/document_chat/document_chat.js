@@ -295,7 +295,7 @@ class DocumentChatController {
                         {
                             fieldname: 'pdf_viewer_container',
                             fieldtype: 'HTML',
-                            options: '<div id="modal-pdf-viewer-app" style="height: 75vh; width: 100%;"></div>'
+                            options: '<div class="modal-pdf-viewer-app" style="height: 75vh; width: 100%;"></div>'
                         }
                     ]
                 });
@@ -306,6 +306,9 @@ class DocumentChatController {
 
                 dialog.on_page_show = () => {
                     setTimeout(() => {
+                        const container = dialog.$wrapper.find('.modal-pdf-viewer-app')[0];
+                        if (!container) return;
+
                         app = Vue.createApp({
                             template: `
                                 <div style="height: 100%; width: 100%;">
@@ -328,7 +331,7 @@ class DocumentChatController {
                             'loan-pdf-viewer',
                             window.LoanManagerPdfSearchViewer.createVueComponent(Vue)
                         );
-                        app.mount('#modal-pdf-viewer-app');
+                        app.mount(container);
                     }, 200);
                 };
 
@@ -336,6 +339,7 @@ class DocumentChatController {
                     if (app) {
                         app.unmount();
                     }
+                    dialog.$wrapper.remove();
                 };
 
                 dialog.show();

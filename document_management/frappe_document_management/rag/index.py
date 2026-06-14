@@ -227,10 +227,10 @@ def _add_tantivy_document(writer, row, title):
     import tantivy
 
     document = tantivy.Document()
-    document.add_text("chunk_name", row["name"])
-    document.add_text("document", row["document"])
-    document.add_text("title", title or "")
-    document.add_text("content", row["content"])
+    document.add_text("chunk_name", str(row["name"]))
+    document.add_text("document", str(row["document"]))
+    document.add_text("title", str(title or ""))
+    document.add_text("content", str(row["content"] or ""))
     writer.add_document(document)
 
 

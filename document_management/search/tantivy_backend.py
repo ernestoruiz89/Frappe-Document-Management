@@ -44,6 +44,13 @@ def get_index():
 
 def index_document(doc_type, doc_name, title, content):
     import tantivy
+    
+    # Ensure all values are strings for Tantivy compatibility
+    doc_type = str(doc_type) if doc_type is not None else ""
+    doc_name = str(doc_name) if doc_name is not None else ""
+    title = str(title) if title is not None else ""
+    content = str(content) if content is not None else ""
+    
     index = get_index()
     writer = index.writer()
     
@@ -55,13 +62,15 @@ def index_document(doc_type, doc_name, title, content):
     doc.add_text("record_key", record_key)
     doc.add_text("doc_type", doc_type)
     doc.add_text("doc_name", doc_name)
-    doc.add_text("title", title or "")
-    doc.add_text("content", content or "")
+    doc.add_text("title", title)
+    doc.add_text("content", content)
     
     writer.add_document(doc)
     writer.commit()
 
 def remove_document(doc_type, doc_name):
+    doc_type = str(doc_type) if doc_type is not None else ""
+    doc_name = str(doc_name) if doc_name is not None else ""
     index = get_index()
     writer = index.writer()
     writer.delete_documents("record_key", f"{doc_type}:{doc_name}")

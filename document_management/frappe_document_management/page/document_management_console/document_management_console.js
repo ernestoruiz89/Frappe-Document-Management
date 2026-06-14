@@ -1137,6 +1137,9 @@ class DocumentManagementConsole {
                     const link = event.target.closest('a[href^="#"]');
                     if (!link || !event.currentTarget.contains(link)) return;
 
+                    event.preventDefault();
+                    event.stopPropagation();
+
                     let target_id;
                     try {
                         target_id = decodeURIComponent(link.getAttribute('href').slice(1));
@@ -1147,7 +1150,6 @@ class DocumentManagementConsole {
                         .find((element) => element.id === target_id);
                     if (!target) return;
 
-                    event.preventDefault();
                     target.scrollIntoView({behavior: 'smooth', block: 'start'});
                 };
 

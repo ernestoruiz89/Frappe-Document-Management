@@ -1,8 +1,17 @@
 import frappe
-
 from werkzeug.routing import RequestRedirect
 
 def preserve_guest_redirect_parameters():
+    path = frappe.local.request.path if (hasattr(frappe, "local") and hasattr(frappe.local, "request")) else None
+    if path and path.startswith("/app"):
+        import os
+        log_file = "/mnt/c/Users/Ernesto/Desktop/document_management/debug_redirect.log"
+        try:
+            with open(log_file, "a") as f:
+                f.write(f"User: {frappe.session.user if frappe.session else None} | Path: {path} | Query: {frappe.local.request.query_string} | Cookies: {frappe.get_cookies()}\n")
+        except Exception as log_err:
+            pass
+
     # Only run for Guest users
     if frappe.session.user == "Guest":
         # Only run if frappe.local.request is set

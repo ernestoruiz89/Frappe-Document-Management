@@ -442,6 +442,9 @@ class DocumentManagementConsole {
                             </div>
                         </div>
                         <div class="sidebar-footer">
+                            <button v-if="!trash_mode" class="btn btn-copy-link" @click="copy_link(selected_doc)">
+                                <i class="fa fa-clipboard"></i> ${__('Copy Link')}
+                            </button>
                             <button v-if="!trash_mode" class="btn btn-default" @click="reprocess_ocr(selected_doc.name)" :disabled="['Pending', 'Processing'].includes(selected_doc.ocr_status)">
                                 <i class="fa fa-file-text-o"></i> ${__('Reprocess OCR')}
                             </button>
@@ -1078,6 +1081,19 @@ class DocumentManagementConsole {
 
                 const is_fullscreen = ref(false);
 
+                const copy_link = (doc) => {
+                    if (!doc) return;
+                    const pageSuffix = doc.search_page ? `&page=${doc.search_page}` : '';
+                    const link = `${window.location.origin}/app/document-management-console?Doc=${encodeURIComponent(doc.name)}${pageSuffix}`;
+                    
+                    navigator.clipboard.writeText(link).then(() => {
+                        frappe.show_alert({message: __('Link copied to clipboard!'), indicator: 'green'});
+                    }).catch(err => {
+                        console.error('Failed to copy link', err);
+                        frappe.msgprint(__('Unable to copy link to clipboard.'));
+                    });
+                };
+
                 const force_pdf = (doc_name) => {
                     frappe.call({
                         method: 'document_management.frappe_document_management.page.document_management_console.document_management_console.force_generate_pdf',
@@ -1163,7 +1179,7 @@ class DocumentManagementConsole {
                     show_tag_dropdown, toggle_tag_dropdown, clear_tags,
                     fetch_documents, debounce_fetch, select_doc, open_doc, status_class, force_pdf,
                     apply_saved_view, save_view, delete_view,
-                    reprocess_ocr,
+                    reprocess_ocr, copy_link,
                     is_selected, toggle_selection, toggle_all, clear_selection, toggle_trash,
                     show_bulk_edit, trash_selected, restore_selected, purge_selected,
                     trash_one, restore_one, purge_one,

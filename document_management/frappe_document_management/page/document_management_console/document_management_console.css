@@ -919,13 +919,13 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
-.sidebar-footer .btn-download {
+.sidebar-footer .btn-download, .sidebar-footer .btn-copy-link {
     background: var(--pc-bg-card);
     color: var(--pc-text);
     border: 1px solid var(--pc-border);
 }
 
-.sidebar-footer .btn-download:hover {
+.sidebar-footer .btn-download:hover, .sidebar-footer .btn-copy-link:hover {
     background: var(--pc-bg-hover);
     border-color: var(--pc-primary);
     color: var(--pc-primary);

@@ -322,17 +322,73 @@ def rebuild_index():
         os.makedirs(index_path, exist_ok=True)
         
     total_indexed = 0
+    
+    if settings.enable_full_text_search:
+        import gc
+        import tantivy
+        from document_management.search.tantivy_backend import get_index
+        tantivy_index = get_index()
+        writer = tantivy_index.writer()
+    else:
+        writer = None
+
     for dt in indexed_doctypes:
         if dt == "Document":
             continue
-        docs = frappe.get_all(dt, fields=["name"])
-        for d in docs:
-            doc = frappe.get_doc(dt, d.name)
-            content = get_document_content(doc)
-            title = doc.get_title() or doc.name
-            if settings.enable_full_text_search:
-                tantivy_backend.index_document(dt, d.name, title, content)
-            total_indexed += 1
+            
+        # Paginate to prevent memory overflow
+        batch_size = 5000
+        offset = 0
+        while True:
+            docs = frappe.get_all(
+                dt,
+                fields=["name"],
+                limit_start=offset,
+                limit_page_length=batch_size,
+                order_by="creation asc"
+            )
+            if not docs:
+                break
+                
+            for d in docs:
+                try:
+                    doc = frappe.get_doc(dt, d.name)
+                    content = get_document_content(doc)
+                    title = doc.get_title() or doc.name
+                    
+                    if writer:
+                        doc_type = str(dt)
+                        doc_name = str(d.name)
+                        t_title = str(title) if title is not None else ""
+                        t_content = str(content) if content is not None else ""
+                        
+                        record_key = f"{doc_type}:{doc_name}"
+                        t_doc = tantivy.Document()
+                        t_doc.add_text("record_key", record_key)
+                        t_doc.add_text("doc_type", doc_type)
+                        t_doc.add_text("doc_name", doc_name)
+                        t_doc.add_text("title", t_title)
+                        t_doc.add_text("content", t_content)
+                        writer.add_document(t_doc)
+                        
+                    total_indexed += 1
+                except Exception as e:
+                    frappe.log_error(
+                        title=f"Error indexing {dt} {d.name}",
+                        message=frappe.get_traceback()
+                    )
+            
+            # Commit batch to disk
+            if writer:
+                writer.commit()
+            
+            # Memory management: Clear cache and garbage collect
+            frappe.local.cache = {}
+            if hasattr(frappe.local, "document_cache"):
+                frappe.local.document_cache = {}
+            gc.collect()
+            
+            offset += batch_size
 
     rag_result = None
     if settings.enable_semantic_search:

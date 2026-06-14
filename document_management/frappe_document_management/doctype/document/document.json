@@ -131,7 +131,6 @@
   {
    "fieldname": "ocr_content",
    "fieldtype": "Long Text",
-   "hidden": 1,
    "label": "OCR Content"
   },
   {
@@ -200,7 +199,7 @@
    "link_fieldname": "document"
   }
  ],
- "modified": "2026-06-14 11:39:12.959764",
+ "modified": "2026-06-15 04:13:49.834612",
  "modified_by": "Administrator",
  "module": "Frappe Document Management",
  "name": "Document",

@@ -1,4 +1,15 @@
 frappe.ui.form.on('Document Management Settings', {
+    setup(frm) {
+        frm.set_query('document_type', 'indexed_doctypes', () => {
+            return {
+                filters: {
+                    istable: 0,
+                    issingle: 0
+                }
+            };
+        });
+    },
+
     refresh(frm) {
         render_provider_summary(frm);
     },

@@ -33,3 +33,8 @@ scheduler_events = {
         "document_management.frappe_document_management.utils.ml_tagger.train_tagger_model"
     ]
 }
+
+before_request = [
+    "document_management.frappe_document_management.utils.auth.preserve_guest_redirect_parameters"
+]
+

@@ -418,24 +418,9 @@ class DocumentChatController {
         );
     }
 
-    async editFilters() {
+    editFilters() {
         if (!this.session) return;
         const current = this.parseJSON(this.session.filters_json);
-
-        const [tags_res, docs_res] = await Promise.all([
-            frappe.call({
-                method: 'frappe.client.get_list',
-                args: { doctype: 'Document Tag', fields: ['name'], limit_page_length: 1000 }
-            }),
-            frappe.call({
-                method: 'frappe.client.get_list',
-                args: { doctype: 'Document', fields: ['name'], limit_page_length: 1000 }
-            })
-        ]);
-
-        const tags = (tags_res.message || []).map(row => row.name);
-        const documents = (docs_res.message || []).map(row => row.name);
-
         const dialog = new frappe.ui.Dialog({
             title: __('Document filters'),
             fields: [
@@ -445,23 +430,23 @@ class DocumentChatController {
                 {fieldname: 'party_name', fieldtype: 'Data', label: __('Party Name'), default: current.party_name},
                 {
                     fieldname: 'tags',
-                    fieldtype: 'MultiSelect',
+                    fieldtype: 'Table MultiSelect',
+                    options: 'Document Tag Link',
                     label: __('Tags'),
-                    options: tags,
-                    default: (current.tags || []).join(', ')
+                    default: (current.tags || []).map(t => ({ tag: t }))
                 },
                 {
                     fieldname: 'documents',
-                    fieldtype: 'MultiSelect',
+                    fieldtype: 'Table MultiSelect',
+                    options: 'Document Link',
                     label: __('Document IDs'),
-                    options: documents,
-                    default: (current.documents || []).join(', ')
+                    default: (current.documents || []).map(d => ({ document: d }))
                 }
             ],
             primary_action_label: __('Apply'),
             primary_action: async (values) => {
-                values.tags = this.csv(values.tags);
-                values.documents = this.csv(values.documents);
+                values.tags = (values.tags || []).map(row => row.tag);
+                values.documents = (values.documents || []).map(row => row.document);
                 const filters = await this.call('update_session_filters', {
                     session: this.session.name,
                     filters: JSON.stringify(values)

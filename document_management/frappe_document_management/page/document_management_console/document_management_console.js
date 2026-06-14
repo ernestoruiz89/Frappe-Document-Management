@@ -24,13 +24,21 @@ class DocumentManagementConsole {
 
     load_pdf_viewer() {
         const viewer_version = "5.7.284-7";
+        const load_marked = () => {
+            if (window.marked) {
+                this.init_vue();
+            } else {
+                frappe.require("https://cdn.jsdelivr.net/npm/marked/marked.min.js", () => this.init_vue());
+            }
+        };
+
         if (window.LoanManagerPdfSearchViewer?.version === viewer_version) {
-            this.init_vue();
+            load_marked();
             return;
         }
         frappe.require(
             "/assets/document_management/js/pdf_search_viewer.v5_7_284_7.js",
-            () => this.init_vue(),
+            () => load_marked(),
         );
     }
 
@@ -311,6 +319,7 @@ class DocumentManagementConsole {
                                     <div v-if="loading_text_preview" class="text-preview-loading">
                                         <i class="fa fa-spinner fa-spin"></i> ${__('Loading text...')}
                                     </div>
+                                    <div v-else-if="is_md(selected_doc.document_file)" class="markdown-preview-body" v-html="render_markdown(text_preview_content)"></div>
                                     <pre v-else class="text-preview-pre">{{ text_preview_content }}</pre>
                                 </div>
 
@@ -367,6 +376,7 @@ class DocumentManagementConsole {
                                             <div v-if="loading_text_preview" class="text-preview-loading">
                                                 <i class="fa fa-spinner fa-spin"></i> ${__('Loading text...')}
                                             </div>
+                                            <div v-else-if="is_md(selected_doc.document_file)" class="markdown-preview-body" v-html="render_markdown(text_preview_content)"></div>
                                             <pre v-else class="text-preview-pre">{{ text_preview_content }}</pre>
                                         </div>
 
@@ -1088,6 +1098,18 @@ class DocumentManagementConsole {
                     return html + escape_html(text.slice(last_index));
                 };
 
+                const render_markdown = (text) => {
+                    if (!text) return '';
+                    try {
+                        if (window.marked && typeof window.marked.parse === 'function') {
+                            return window.marked.parse(text);
+                        }
+                    } catch (e) {
+                        console.error('Error parsing markdown', e);
+                    }
+                    return `<pre style="white-space: pre-wrap;">${escape_html(text)}</pre>`;
+                };
+
                 const get_file_type = (doc) => {
                     const file_path = doc.original_file || doc.document_file;
                     if (!file_path) return 'generic';
@@ -1236,7 +1258,7 @@ class DocumentManagementConsole {
                     is_selected, toggle_selection, toggle_all, clear_selection, toggle_trash,
                     show_bulk_edit, trash_selected, restore_selected, purge_selected,
                     trash_one, restore_one, purge_one,
-                    is_pdf, is_img, is_office, is_txt, is_md, text_preview_content, loading_text_preview, highlight_text,
+                    is_pdf, is_img, is_office, is_txt, is_md, text_preview_content, loading_text_preview, highlight_text, render_markdown,
                     get_icon, get_icon_class, get_file_type, get_contrast_color,
                     format_date, open_party,
                     show_upload_modal, upload_form, dragover, is_uploading, close_upload_modal, handle_drop, handle_file_select, remove_file, submit_upload

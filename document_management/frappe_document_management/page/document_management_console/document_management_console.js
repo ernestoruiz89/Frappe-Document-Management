@@ -306,6 +306,14 @@ class DocumentManagementConsole {
                                 </div>
                                 <img v-else-if="is_img(selected_doc.document_file)" :src="selected_doc.document_file" />
                                 
+                                <!-- Txt/Md Viewer -->
+                                <div v-else-if="is_txt(selected_doc.document_file) || is_md(selected_doc.document_file)" class="text-preview-container">
+                                    <div v-if="loading_text_preview" class="text-preview-loading">
+                                        <i class="fa fa-spinner fa-spin"></i> ${__('Loading text...')}
+                                    </div>
+                                    <pre v-else class="text-preview-pre">{{ text_preview_content }}</pre>
+                                </div>
+
                                 <!-- Office Formats (No PDF generated yet) -->
                                 <div v-else-if="is_office(selected_doc.document_file)" class="office-placeholder">
                                     <div class="placeholder-icon"><i class="fa fa-file-text-o"></i></div>
@@ -353,6 +361,15 @@ class DocumentManagementConsole {
                                             </loan-pdf-viewer>
                                         </div>
                                         <img v-else-if="is_img(selected_doc.document_file)" :src="selected_doc.document_file" />
+                                        
+                                        <!-- Txt/Md Viewer (Fullscreen) -->
+                                        <div v-else-if="is_txt(selected_doc.document_file) || is_md(selected_doc.document_file)" class="text-preview-container fullscreen">
+                                            <div v-if="loading_text_preview" class="text-preview-loading">
+                                                <i class="fa fa-spinner fa-spin"></i> ${__('Loading text...')}
+                                            </div>
+                                            <pre v-else class="text-preview-pre">{{ text_preview_content }}</pre>
+                                        </div>
+
                                         <div v-else-if="is_office(selected_doc.document_file)" class="office-placeholder">
                                             <div class="placeholder-icon"><i class="fa fa-file-text-o"></i></div>
                                             <h5>${__('Office Preview')}</h5>
@@ -892,8 +909,38 @@ class DocumentManagementConsole {
                     debounceTimer = setTimeout(fetch_documents, 300);
                 };
 
+                const text_preview_content = ref('');
+                const loading_text_preview = ref(false);
+
+                const load_text_preview = async (url) => {
+                    if (!url) {
+                        text_preview_content.value = '';
+                        return;
+                    }
+                    loading_text_preview.value = true;
+                    text_preview_content.value = '';
+                    try {
+                        const response = await fetch(url);
+                        if (response.ok) {
+                            text_preview_content.value = await response.text();
+                        } else {
+                            text_preview_content.value = `Failed to load preview: ${response.statusText}`;
+                        }
+                    } catch (err) {
+                        text_preview_content.value = `Failed to load preview: ${err.message}`;
+                    } finally {
+                        loading_text_preview.value = false;
+                    }
+                };
+
                 const select_doc = (doc) => {
                     selected_doc.value = doc;
+                    const file_path = doc ? (doc.original_file || doc.document_file) : null;
+                    if (file_path && (is_txt(file_path) || is_md(file_path))) {
+                        load_text_preview(file_path);
+                    } else {
+                        text_preview_content.value = '';
+                    }
                 };
 
                 const is_selected = (name) => selected_names.value.has(name);
@@ -1012,6 +1059,8 @@ class DocumentManagementConsole {
                 const is_pdf = (file) => file && file.toLowerCase().endsWith('.pdf');
                 const is_img = (file) => file && file.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) != null;
                 const is_office = (file) => file && file.match(/\.(doc|docx|ppt|pptx|xls|xlsx)$/i) != null;
+                const is_txt = (file) => file && file.toLowerCase().endsWith('.txt');
+                const is_md = (file) => file && file.toLowerCase().endsWith('.md');
 
                 const escape_html = (value) => String(value || '')
                     .replace(/&/g, '&amp;')
@@ -1044,6 +1093,8 @@ class DocumentManagementConsole {
                     if (!file_path) return 'generic';
                     if (is_pdf(file_path)) return 'pdf';
                     if (is_img(file_path)) return 'image';
+                    if (is_txt(file_path)) return 'text';
+                    if (is_md(file_path)) return 'markdown';
                     if (file_path.match(/\.(doc|docx)$/i)) return 'word';
                     if (file_path.match(/\.(xls|xlsx)$/i)) return 'excel';
                     if (file_path.match(/\.(ppt|pptx)$/i)) return 'ppt';
@@ -1058,6 +1109,8 @@ class DocumentManagementConsole {
                     const file_path = doc.original_file || doc.document_file;
                     if (is_pdf(file_path)) return 'fa-file-pdf-o';
                     if (is_img(file_path)) return 'fa-file-image-o';
+                    if (is_txt(file_path)) return 'fa-file-text-o';
+                    if (is_md(file_path)) return 'fa-file-text-o';
                     if (file_path && file_path.match(/\.(doc|docx)$/i)) return 'fa-file-word-o';
                     if (file_path && file_path.match(/\.(xls|xlsx)$/i)) return 'fa-file-excel-o';
                     if (file_path && file_path.match(/\.(ppt|pptx)$/i)) return 'fa-file-powerpoint-o';
@@ -1183,7 +1236,7 @@ class DocumentManagementConsole {
                     is_selected, toggle_selection, toggle_all, clear_selection, toggle_trash,
                     show_bulk_edit, trash_selected, restore_selected, purge_selected,
                     trash_one, restore_one, purge_one,
-                    is_pdf, is_img, is_office, highlight_text,
+                    is_pdf, is_img, is_office, is_txt, is_md, text_preview_content, loading_text_preview, highlight_text,
                     get_icon, get_icon_class, get_file_type, get_contrast_color,
                     format_date, open_party,
                     show_upload_modal, upload_form, dragover, is_uploading, close_upload_modal, handle_drop, handle_file_select, remove_file, submit_upload

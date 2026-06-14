@@ -1926,3 +1926,50 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+/* Text/Markdown Preview */
+.text-preview-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: var(--pc-bg-preview);
+    box-sizing: border-box;
+    padding: 16px;
+}
+
+.text-preview-container.fullscreen {
+    padding: 24px;
+    width: 100%;
+    height: 100%;
+    max-width: 900px;
+    background: var(--pc-bg-card);
+    border-radius: var(--pc-radius-lg);
+    box-shadow: var(--pc-shadow-lg);
+}
+
+.text-preview-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    gap: 8px;
+    color: var(--pc-text-muted);
+}
+
+.text-preview-pre {
+    flex-grow: 1;
+    margin: 0;
+    padding: 12px;
+    background: var(--pc-bg-card);
+    color: var(--pc-text);
+    border: 1px solid var(--pc-border);
+    border-radius: var(--pc-radius);
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-family: monospace;
+    font-size: 13px;
+    text-align: left;
+}

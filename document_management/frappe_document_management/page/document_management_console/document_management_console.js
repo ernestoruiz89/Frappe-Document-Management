@@ -315,11 +315,11 @@ class DocumentManagementConsole {
                                 <img v-else-if="is_img(selected_doc.document_file)" :src="selected_doc.document_file" />
                                 
                                 <!-- Txt/Md Viewer -->
-                                <div v-else-if="is_txt(selected_doc.document_file) || is_md(selected_doc.document_file)" class="text-preview-container">
+                                <div v-else-if="is_txt(selected_doc.document_file) || is_md(selected_doc.document_file, selected_doc)" class="text-preview-container">
                                     <div v-if="loading_text_preview" class="text-preview-loading">
                                         <i class="fa fa-spinner fa-spin"></i> ${__('Loading text...')}
                                     </div>
-                                    <div v-else-if="is_md(selected_doc.document_file)" class="markdown-preview-body" v-html="render_markdown(text_preview_content)"></div>
+                                    <div v-else-if="is_md(selected_doc.document_file, selected_doc)" class="markdown-preview-body" v-html="render_markdown(text_preview_content)"></div>
                                     <pre v-else class="text-preview-pre">{{ text_preview_content }}</pre>
                                 </div>
 
@@ -372,11 +372,11 @@ class DocumentManagementConsole {
                                         <img v-else-if="is_img(selected_doc.document_file)" :src="selected_doc.document_file" />
                                         
                                         <!-- Txt/Md Viewer (Fullscreen) -->
-                                        <div v-else-if="is_txt(selected_doc.document_file) || is_md(selected_doc.document_file)" class="text-preview-container fullscreen">
+                                        <div v-else-if="is_txt(selected_doc.document_file) || is_md(selected_doc.document_file, selected_doc)" class="text-preview-container fullscreen">
                                             <div v-if="loading_text_preview" class="text-preview-loading">
                                                 <i class="fa fa-spinner fa-spin"></i> ${__('Loading text...')}
                                             </div>
-                                            <div v-else-if="is_md(selected_doc.document_file)" class="markdown-preview-body" v-html="render_markdown(text_preview_content)"></div>
+                                            <div v-else-if="is_md(selected_doc.document_file, selected_doc)" class="markdown-preview-body" v-html="render_markdown(text_preview_content)"></div>
                                             <pre v-else class="text-preview-pre">{{ text_preview_content }}</pre>
                                         </div>
 
@@ -946,7 +946,7 @@ class DocumentManagementConsole {
                 const select_doc = (doc) => {
                     selected_doc.value = doc;
                     const file_path = doc ? (doc.original_file || doc.document_file) : null;
-                    if (file_path && (is_txt(file_path) || is_md(file_path))) {
+                    if (file_path && (is_txt(file_path) || is_md(file_path, doc))) {
                         load_text_preview(file_path);
                     } else {
                         text_preview_content.value = '';
@@ -1070,7 +1070,11 @@ class DocumentManagementConsole {
                 const is_img = (file) => file && file.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) != null;
                 const is_office = (file) => file && file.match(/\.(doc|docx|ppt|pptx|xls|xlsx)$/i) != null;
                 const is_txt = (file) => file && file.toLowerCase().endsWith('.txt');
-                const is_md = (file) => file && file.toLowerCase().endsWith('.md');
+                const is_md = (file, doc = null) => {
+                    if (file && file.toLowerCase().endsWith('.md')) return true;
+                    if (doc && doc.is_markdown) return true;
+                    return false;
+                };
 
                 const escape_html = (value) => String(value || '')
                     .replace(/&/g, '&amp;')
@@ -1115,8 +1119,10 @@ class DocumentManagementConsole {
                     if (!file_path) return 'generic';
                     if (is_pdf(file_path)) return 'pdf';
                     if (is_img(file_path)) return 'image';
-                    if (is_txt(file_path)) return 'text';
-                    if (is_md(file_path)) return 'markdown';
+                    if (is_txt(file_path)) {
+                        return doc.is_markdown ? 'markdown' : 'text';
+                    }
+                    if (is_md(file_path, doc)) return 'markdown';
                     if (file_path.match(/\.(doc|docx)$/i)) return 'word';
                     if (file_path.match(/\.(xls|xlsx)$/i)) return 'excel';
                     if (file_path.match(/\.(ppt|pptx)$/i)) return 'ppt';
@@ -1132,7 +1138,7 @@ class DocumentManagementConsole {
                     if (is_pdf(file_path)) return 'fa-file-pdf-o';
                     if (is_img(file_path)) return 'fa-file-image-o';
                     if (is_txt(file_path)) return 'fa-file-text-o';
-                    if (is_md(file_path)) return 'fa-file-text-o';
+                    if (is_md(file_path, doc)) return 'fa-file-text-o';
                     if (file_path && file_path.match(/\.(doc|docx)$/i)) return 'fa-file-word-o';
                     if (file_path && file_path.match(/\.(xls|xlsx)$/i)) return 'fa-file-excel-o';
                     if (file_path && file_path.match(/\.(ppt|pptx)$/i)) return 'fa-file-powerpoint-o';

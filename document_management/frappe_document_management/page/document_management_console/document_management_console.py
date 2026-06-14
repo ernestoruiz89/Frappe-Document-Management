@@ -408,6 +408,7 @@ def get_documents(
                 "preview_attachment",
                 "preview_status",
                 "version_number",
+                "is_markdown",
                 "idx",
             ],
             order_by="parent asc, idx desc",
@@ -425,6 +426,7 @@ def get_documents(
             )
             doc.preview_status = latest_version.preview_status
             doc.version = latest_version.version_number
+            doc.is_markdown = getattr(latest_version, "is_markdown", 0)
 
     return docs
 

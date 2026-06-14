@@ -278,3 +278,268 @@
         display: none;
     }
 }
+
+/* PDF Viewer Modal adjustments */
+.pdf-viewer-modal .modal-body {
+    padding: 0 !important;
+}
+.pdf-viewer-modal .modal-content {
+    overflow: hidden;
+}
+
+/* Custom PDF search viewer component styles */
+.loan-pdf-shell {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+    background: #525659;
+}
+
+.loan-pdf-toolbar {
+    display: flex;
+    min-height: 38px;
+    flex-shrink: 0;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 5px 8px;
+    background: #323639;
+    color: white;
+    font-size: 12px;
+}
+
+.loan-pdf-toolbar button {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: white;
+}
+
+.loan-pdf-toolbar button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.loan-pdf-toolbar button:disabled {
+    opacity: 0.35;
+}
+
+.loan-pdf-toolbar-divider {
+    width: 1px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.loan-pdf-toolbar .loan-pdf-scale {
+    width: 48px;
+    font-size: 11px;
+}
+
+.loan-pdf-search {
+    display: flex;
+    min-width: 130px;
+    height: 28px;
+    flex: 1 1 180px;
+    align-items: center;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.loan-pdf-search > i {
+    margin-left: 8px;
+    opacity: 0.7;
+}
+
+.loan-pdf-search input {
+    min-width: 0;
+    height: 28px;
+    flex: 1;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: white;
+    font-size: 12px;
+}
+
+.loan-pdf-search input::placeholder {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.loan-pdf-search input::-webkit-search-cancel-button {
+    display: none;
+}
+
+.loan-pdf-toolbar .loan-pdf-clear {
+    width: 24px;
+    height: 24px;
+}
+
+.loan-pdf-match-count {
+    min-width: 42px;
+    text-align: center;
+}
+
+.loan-pdf-viewport {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+}
+
+.loan-pdf-container {
+    position: absolute;
+    inset: 0;
+    overflow: auto;
+}
+
+.loan-pdf-container .pdfViewer {
+    --scale-factor: 1;
+    padding: 10px 0;
+}
+
+.loan-pdf-container .pdfViewer .page {
+    --user-unit: 1;
+    --total-scale-factor: calc(var(--scale-factor) * var(--user-unit));
+    --scale-round-x: 1px;
+    --scale-round-y: 1px;
+    position: relative;
+    width: 816px;
+    height: 1056px;
+    margin: 0 auto 10px;
+    overflow: visible;
+    border: 0;
+    background-color: white;
+    background-clip: content-box;
+}
+
+.loan-pdf-container .pdfViewer .canvasWrapper {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+.loan-pdf-container .pdfViewer .canvasWrapper canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    contain: content;
+}
+
+.loan-pdf-container .textLayer {
+    --min-font-size: 1;
+    --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+    --min-font-size-inv: calc(1 / var(--min-font-size));
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    overflow: clip;
+    line-height: 1;
+    text-align: initial;
+    text-size-adjust: none;
+    transform-origin: 0 0;
+    user-select: text;
+}
+
+.loan-pdf-container .textLayer :is(span, br) {
+    position: absolute;
+    color: transparent;
+    white-space: pre;
+    cursor: text;
+    transform-origin: 0 0;
+}
+
+.loan-pdf-container .textLayer > :not(.markedContent),
+.loan-pdf-container .textLayer .markedContent span:not(.markedContent) {
+    --font-height: 0;
+    --scale-x: 1;
+    --rotate: 0deg;
+    z-index: 1;
+    font-size: calc(var(--text-scale-factor) * var(--font-height));
+    transform: rotate(var(--rotate)) scaleX(var(--scale-x))
+        scale(var(--min-font-size-inv));
+}
+
+.loan-pdf-container .textLayer .markedContent {
+    display: contents;
+}
+
+.loan-pdf-container .textLayer .highlight {
+    position: initial;
+    z-index: 0;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    background-color: rgba(255, 221, 64, 0.3);
+}
+
+.loan-pdf-container .textLayer .highlight.begin {
+    border-radius: 0;
+}
+
+.loan-pdf-container .textLayer .highlight.middle {
+    border-radius: 0;
+}
+
+.loan-pdf-container .textLayer .highlight.end {
+    border-radius: 0;
+}
+
+.loan-pdf-container .textLayer .highlight.selected {
+    background-color: rgba(255, 166, 0, 0.42);
+    box-shadow: inset 0 -1px 0 rgba(173, 92, 0, 0.7);
+}
+
+.loan-pdf-container .textLayer ::selection {
+    background: rgba(30, 100, 255, 0.35);
+    color: transparent !important;
+}
+
+.loan-pdf-container .annotationLayer {
+    position: absolute;
+    z-index: 3;
+    inset: 0;
+    pointer-events: none;
+}
+
+.loan-pdf-container .annotationLayer section {
+    position: absolute;
+    box-sizing: border-box;
+    transform-origin: 0 0;
+    pointer-events: auto;
+}
+
+.loan-pdf-container .annotationLayer .linkAnnotation > a {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.loan-pdf-container .hiddenCanvasElement {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.loan-pdf-error {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: var(--card-bg);
+    color: var(--text-muted);
+}
+

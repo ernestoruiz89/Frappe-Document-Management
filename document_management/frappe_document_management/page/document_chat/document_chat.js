@@ -251,8 +251,126 @@ class DocumentChatController {
                 `${__('Version')} ${source.version || '-'} · ${__('Page')} ${source.page || '-'}`
             ));
             card.append($('<small></small>').text(source.excerpt || ''));
+            card.on('click', (event) => {
+                if (event.ctrlKey || event.metaKey || event.shiftKey) {
+                    return;
+                }
+                event.preventDefault();
+                this.openPdfModal(source);
+            });
             container.append(card);
         });
+    }
+
+    openPdfModal(source) {
+        const doc_name = source.document;
+        frappe.show_alert({message: __('Loading document preview...'), indicator: 'blue'});
+
+        frappe.call({
+            method: 'frappe.client.get_list',
+            args: {
+                doctype: 'Document Version',
+                filters: { parent: doc_name, parenttype: 'Document' },
+                fields: ['attachment', 'preview_attachment'],
+                order_by: 'idx desc',
+                limit: 1
+            }
+        }).then((r) => {
+            const latest_version = r.message && r.message[0];
+            if (!latest_version) {
+                frappe.msgprint(__('No file version found for this document.'));
+                return;
+            }
+
+            const file_url = latest_version.preview_attachment || latest_version.attachment;
+            if (!file_url) {
+                frappe.msgprint(__('This version does not have an attached file.'));
+                return;
+            }
+
+            if (!file_url.toLowerCase().endsWith('.pdf')) {
+                frappe.msgprint(__('The document preview is not a PDF file. Opening in a new window instead.'));
+                window.open(file_url, '_blank');
+                return;
+            }
+
+            this.loadPdfViewer(() => {
+                const dialog = new frappe.ui.Dialog({
+                    title: source.title || doc_name,
+                    size: 'extra-large',
+                    fields: [
+                        {
+                            fieldname: 'pdf_viewer_container',
+                            fieldtype: 'HTML',
+                            options: '<div id="modal-pdf-viewer-app" style="height: 75vh; width: 100%;"></div>'
+                        }
+                    ]
+                });
+
+                dialog.$wrapper.addClass('pdf-viewer-modal');
+
+                let app = null;
+
+                dialog.on_page_show = () => {
+                    app = Vue.createApp({
+                        template: `
+                            <div style="height: 100%; width: 100%;">
+                                <loan-pdf-viewer
+                                    :src="src"
+                                    :page="page"
+                                    :terms="terms">
+                                </loan-pdf-viewer>
+                            </div>
+                        `,
+                        setup() {
+                            const src = Vue.ref(file_url);
+                            const page = Vue.ref(source.page || 1);
+                            const terms = Vue.ref([]);
+                            return { src, page, terms };
+                        }
+                    });
+
+                    app.component(
+                        'loan-pdf-viewer',
+                        window.LoanManagerPdfSearchViewer.createVueComponent(Vue)
+                    );
+                    app.mount('#modal-pdf-viewer-app');
+                };
+
+                dialog.on_hide = () => {
+                    if (app) {
+                        app.unmount();
+                    }
+                };
+
+                dialog.show();
+            });
+        }).catch((err) => {
+            console.error(err);
+            frappe.msgprint(__('Failed to load the document preview.'));
+        });
+    }
+
+    loadPdfViewer(callback) {
+        if (typeof Vue === 'undefined') {
+            frappe.require("https://unpkg.com/vue@3/dist/vue.global.prod.js", () => {
+                this.loadPdfViewerLibrary(callback);
+            });
+        } else {
+            this.loadPdfViewerLibrary(callback);
+        }
+    }
+
+    loadPdfViewerLibrary(callback) {
+        const viewer_version = "5.7.284-7";
+        if (window.LoanManagerPdfSearchViewer?.version === viewer_version) {
+            callback();
+            return;
+        }
+        frappe.require(
+            "/assets/document_management/js/pdf_search_viewer.v5_7_284_7.js",
+            () => callback()
+        );
     }
 
     async send() {

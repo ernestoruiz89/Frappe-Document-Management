@@ -89,12 +89,12 @@
 
 [data-theme="dark"] .keyword-badge.tag-colored,
 .dark .keyword-badge.tag-colored {
-    color: #ffffff;
-    color: color-mix(in srgb, var(--tag-color) 35%, #ffffff);
+    color: #d1d5db;
     background: #30343a;
-    background: color-mix(in srgb, var(--tag-color) 24%, var(--pc-bg-card));
+    background: color-mix(in srgb, var(--tag-color) 18%, var(--pc-bg-card));
     border-color: var(--tag-color);
-    border-color: color-mix(in srgb, var(--tag-color) 55%, #ffffff);
+    border-color: color-mix(in srgb, var(--tag-color) 45%, var(--pc-border));
+    text-shadow: none;
 }
 
 /* --- Global App Container --- */

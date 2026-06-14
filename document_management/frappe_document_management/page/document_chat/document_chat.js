@@ -275,25 +275,9 @@ class DocumentChatController {
         const doc_name = source.document;
         frappe.show_alert({message: __('Loading document preview...'), indicator: 'blue'});
 
-        frappe.call({
-            method: 'frappe.client.get_list',
-            args: {
-                doctype: 'Document Version',
-                filters: { parent: doc_name, parenttype: 'Document' },
-                fields: ['attachment', 'preview_attachment'],
-                order_by: 'idx desc',
-                limit: 1
-            }
-        }).then((r) => {
-            const latest_version = r.message && r.message[0];
-            if (!latest_version) {
-                frappe.msgprint(__('No file version found for this document.'));
-                return;
-            }
-
-            const file_url = latest_version.preview_attachment || latest_version.attachment;
+        this.call('get_document_pdf_url', {document: doc_name}).then((file_url) => {
             if (!file_url) {
-                frappe.msgprint(__('This version does not have an attached file.'));
+                frappe.msgprint(__('This document does not have an attached preview or file.'));
                 return;
             }
 

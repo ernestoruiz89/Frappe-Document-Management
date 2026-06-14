@@ -308,3 +308,14 @@ def get_latest_rag_evaluation():
     if "System Manager" not in frappe.get_roles():
         frappe.throw("System Manager role is required.", frappe.PermissionError)
     return get_latest_report()
+
+
+@frappe.whitelist()
+def get_document_pdf_url(document):
+    doc = frappe.get_doc("Document", document)
+    doc.check_permission("read")
+    latest_version = doc.get_current_version()
+    if latest_version:
+        return latest_version.preview_attachment or latest_version.attachment
+    return None
+

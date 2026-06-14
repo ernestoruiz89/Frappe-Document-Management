@@ -36,6 +36,19 @@ class DocumentChatController {
                 this.send();
             }
         });
+        this.wrapper.find('#chat-messages').on('click', '.source-card', (event) => {
+            if (event.ctrlKey || event.metaKey || event.shiftKey) {
+                return;
+            }
+            event.preventDefault();
+            const $card = $(event.currentTarget);
+            const source = {
+                document: $card.attr('data-document'),
+                page: parseInt($card.attr('data-page'), 10) || 1,
+                title: $card.attr('data-title')
+            };
+            this.openPdfModal(source);
+        });
     }
 
     setupAdminActions() {
@@ -246,18 +259,14 @@ class DocumentChatController {
         references.forEach((source) => {
             const card = $('<a class="source-card" target="_blank" rel="noopener"></a>');
             card.attr('href', `/app/document/${encodeURIComponent(source.document)}`);
+            card.attr('data-document', source.document);
+            card.attr('data-page', source.page || 1);
+            card.attr('data-title', source.title || '');
             card.append($('<strong></strong>').text(source.title || source.document));
             card.append($('<span></span>').text(
                 `${__('Version')} ${source.version || '-'} · ${__('Page')} ${source.page || '-'}`
             ));
             card.append($('<small></small>').text(source.excerpt || ''));
-            card.on('click', (event) => {
-                if (event.ctrlKey || event.metaKey || event.shiftKey) {
-                    return;
-                }
-                event.preventDefault();
-                this.openPdfModal(source);
-            });
             container.append(card);
         });
     }

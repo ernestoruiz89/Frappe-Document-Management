@@ -87,6 +87,16 @@
     border-color: hsl(var(--pc-primary-h), var(--pc-primary-s), 30%);
 }
 
+[data-theme="dark"] .keyword-badge.tag-colored,
+.dark .keyword-badge.tag-colored {
+    color: #ffffff;
+    color: color-mix(in srgb, var(--tag-color) 35%, #ffffff);
+    background: #30343a;
+    background: color-mix(in srgb, var(--tag-color) 24%, var(--pc-bg-card));
+    border-color: var(--tag-color);
+    border-color: color-mix(in srgb, var(--tag-color) 55%, #ffffff);
+}
+
 /* --- Global App Container --- */
 .paperless-app {
     display: flex;
@@ -1010,6 +1020,12 @@
     margin-right: 4px;
     margin-bottom: 4px;
     transition: all var(--pc-transition-fast);
+}
+
+.keyword-badge.tag-colored {
+    color: var(--tag-contrast);
+    background: var(--tag-color);
+    border-color: color-mix(in srgb, var(--tag-color) 75%, var(--tag-contrast));
 }
 
 .keyword-badge:hover {

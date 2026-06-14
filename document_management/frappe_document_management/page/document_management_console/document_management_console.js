@@ -218,7 +218,7 @@ class DocumentManagementConsole {
                                     <span v-if="doc.party_name" class="keyword-badge" style="font-size: 10px; padding: 1px 6px; margin: 0; background: var(--pc-primary-faded); color: var(--pc-primary-dark); border-color: var(--pc-primary-light);">
                                         <i class="fa fa-handshake-o" style="margin-right: 3px;"></i>{{ doc.party_name }}
                                     </span>
-                                    <span v-if="doc.tags" v-for="tag in doc.tags.slice(0, 2)" class="keyword-badge" :style="{fontSize: '10px', padding: '1px 6px', margin: '0', backgroundColor: tag.color, color: get_contrast_color(tag.color)}">{{ tag.name }}</span>
+                                    <span v-if="doc.tags" v-for="tag in doc.tags.slice(0, 2)" class="keyword-badge tag-colored" :style="[get_tag_style(tag.color), {fontSize: '10px', padding: '1px 6px', margin: '0'}]">{{ tag.name }}</span>
                                 </div>
                             </div>
                         </div>
@@ -241,7 +241,7 @@ class DocumentManagementConsole {
                                         <span v-if="doc.ocr_status === 'Pending' || doc.ocr_status === 'Processing'" class="doc-meta-item" style="color: var(--pc-primary);"><i class="fa fa-spinner fa-spin"></i> ${__('OCR')}</span>
                                         <span class="doc-meta-item"><i class="fa fa-tag"></i> {{ doc.category }}</span>
                                         <span v-if="doc.party_type && doc.party_name" class="doc-meta-item"><i class="fa fa-handshake-o"></i> {{ doc.party_name }}</span>
-                                        <span v-for="tag in doc.tags" class="keyword-badge" :style="{fontSize: '10px', padding: '1px 6px', margin: '0', backgroundColor: tag.color, color: get_contrast_color(tag.color)}">{{ tag.name }}</span>
+                                        <span v-for="tag in doc.tags" class="keyword-badge tag-colored" :style="[get_tag_style(tag.color), {fontSize: '10px', padding: '1px 6px', margin: '0'}]">{{ tag.name }}</span>
                                     </div>
                                     <div class="search-excerpt" v-if="filters.search && doc.search_excerpt">
                                         <span v-if="doc.search_page">${__('Page')} {{ doc.search_page }}: </span><span v-html="highlight_text(doc.search_excerpt, doc.search_terms)"></span>
@@ -285,7 +285,7 @@ class DocumentManagementConsole {
                                         <td>{{ doc.category }}</td>
                                         <td>
                                              <div style="display: flex; gap: 4px; flex-wrap: wrap;">
-                                                 <span v-for="tag in doc.tags.slice(0, 3)" class="keyword-badge" :style="{fontSize: '10px', padding: '1px 6px', margin: '0', whiteSpace: 'nowrap', backgroundColor: tag.color, color: get_contrast_color(tag.color)}">{{ tag.name }}</span>
+                                                 <span v-for="tag in doc.tags.slice(0, 3)" class="keyword-badge tag-colored" :style="[get_tag_style(tag.color), {fontSize: '10px', padding: '1px 6px', margin: '0', whiteSpace: 'nowrap'}]">{{ tag.name }}</span>
                                              </div>
                                          </td>
                                         <td style="white-space: nowrap">{{ format_date(doc.document_date) }}</td>
@@ -471,7 +471,7 @@ class DocumentManagementConsole {
                                     <div class="meta-content">
                                         <div class="meta-label">${__('Tags')}</div>
                                         <div class="meta-value" style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px;">
-                                            <span v-for="tag in selected_doc.tags" class="keyword-badge" :style="{backgroundColor: tag.color, color: get_contrast_color(tag.color)}">{{ tag.name }}</span>
+                                            <span v-for="tag in selected_doc.tags" class="keyword-badge tag-colored" :style="get_tag_style(tag.color)">{{ tag.name }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1199,6 +1199,16 @@ class DocumentManagementConsole {
                     return (yiq >= 128) ? '#000000' : '#ffffff';
                 };
 
+                const get_tag_style = (color) => {
+                    const tag_color = /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(color || '')
+                        ? color
+                        : '#e2e8f0';
+                    return {
+                        '--tag-color': tag_color,
+                        '--tag-contrast': get_contrast_color(tag_color)
+                    };
+                };
+
                 const is_fullscreen = ref(false);
 
                 const copy_link = (doc) => {
@@ -1304,7 +1314,7 @@ class DocumentManagementConsole {
                     show_bulk_edit, trash_selected, restore_selected, purge_selected,
                     trash_one, restore_one, purge_one,
                     is_pdf, is_img, is_office, is_txt, is_md, text_preview_content, loading_text_preview, highlight_text, render_markdown, handle_markdown_click,
-                    get_icon, get_icon_class, get_file_type, get_contrast_color,
+                    get_icon, get_icon_class, get_file_type, get_tag_style,
                     format_date, open_party,
                     show_upload_modal, upload_form, dragover, is_uploading, close_upload_modal, handle_drop, handle_file_select, remove_file, submit_upload
                 };

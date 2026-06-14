@@ -418,9 +418,24 @@ class DocumentChatController {
         );
     }
 
-    editFilters() {
+    async editFilters() {
         if (!this.session) return;
         const current = this.parseJSON(this.session.filters_json);
+
+        const [tags_res, docs_res] = await Promise.all([
+            frappe.call({
+                method: 'frappe.client.get_list',
+                args: { doctype: 'Document Tag', fields: ['name'], limit_page_length: 1000 }
+            }),
+            frappe.call({
+                method: 'frappe.client.get_list',
+                args: { doctype: 'Document', fields: ['name'], limit_page_length: 1000 }
+            })
+        ]);
+
+        const tags = (tags_res.message || []).map(row => row.name);
+        const documents = (docs_res.message || []).map(row => row.name);
+
         const dialog = new frappe.ui.Dialog({
             title: __('Document filters'),
             fields: [
@@ -428,10 +443,20 @@ class DocumentChatController {
                 {fieldname: 'department', fieldtype: 'Link', options: 'Department', label: __('Department'), default: current.department},
                 {fieldname: 'party_type', fieldtype: 'Link', options: 'DocType', label: __('Party Type'), default: current.party_type},
                 {fieldname: 'party_name', fieldtype: 'Data', label: __('Party Name'), default: current.party_name},
-                {fieldname: 'date_from', fieldtype: 'Date', label: __('From Date'), default: current.date_from},
-                {fieldname: 'date_to', fieldtype: 'Date', label: __('To Date'), default: current.date_to},
-                {fieldname: 'tags', fieldtype: 'Data', label: __('Tags (comma separated)'), default: (current.tags || []).join(', ')},
-                {fieldname: 'documents', fieldtype: 'Data', label: __('Document IDs (comma separated)'), default: (current.documents || []).join(', ')}
+                {
+                    fieldname: 'tags',
+                    fieldtype: 'MultiSelect',
+                    label: __('Tags'),
+                    options: tags,
+                    default: (current.tags || []).join(', ')
+                },
+                {
+                    fieldname: 'documents',
+                    fieldtype: 'MultiSelect',
+                    label: __('Document IDs'),
+                    options: documents,
+                    default: (current.documents || []).join(', ')
+                }
             ],
             primary_action_label: __('Apply'),
             primary_action: async (values) => {

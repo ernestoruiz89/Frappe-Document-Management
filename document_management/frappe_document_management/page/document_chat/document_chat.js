@@ -305,29 +305,31 @@ class DocumentChatController {
                 let app = null;
 
                 dialog.on_page_show = () => {
-                    app = Vue.createApp({
-                        template: `
-                            <div style="height: 100%; width: 100%;">
-                                <loan-pdf-viewer
-                                    :src="src"
-                                    :page="page"
-                                    :terms="terms">
-                                </loan-pdf-viewer>
-                            </div>
-                        `,
-                        setup() {
-                            const src = Vue.ref(file_url);
-                            const page = Vue.ref(source.page || 1);
-                            const terms = Vue.ref([]);
-                            return { src, page, terms };
-                        }
-                    });
+                    setTimeout(() => {
+                        app = Vue.createApp({
+                            template: `
+                                <div style="height: 100%; width: 100%;">
+                                    <loan-pdf-viewer
+                                        :src="src"
+                                        :page="page"
+                                        :terms="terms">
+                                    </loan-pdf-viewer>
+                                </div>
+                            `,
+                            setup() {
+                                const src = Vue.ref(file_url);
+                                const page = Vue.ref(source.page || 1);
+                                const terms = Vue.ref([]);
+                                return { src, page, terms };
+                            }
+                        });
 
-                    app.component(
-                        'loan-pdf-viewer',
-                        window.LoanManagerPdfSearchViewer.createVueComponent(Vue)
-                    );
-                    app.mount('#modal-pdf-viewer-app');
+                        app.component(
+                            'loan-pdf-viewer',
+                            window.LoanManagerPdfSearchViewer.createVueComponent(Vue)
+                        );
+                        app.mount('#modal-pdf-viewer-app');
+                    }, 200);
                 };
 
                 dialog.on_hide = () => {

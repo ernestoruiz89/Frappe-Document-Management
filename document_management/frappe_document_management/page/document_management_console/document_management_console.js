@@ -8,6 +8,15 @@ frappe.pages['document-management-console'].on_page_load = function(wrapper) {
     wrapper.document_management_console = new DocumentManagementConsole(wrapper, page);
 };
 
+function markdown_anchor_slug(value) {
+    return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}\s-]/gu, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+}
+
 class DocumentManagementConsole {
     constructor(wrapper, page) {
         this.wrapper = $(wrapper).find('.layout-main-section');
@@ -319,7 +328,7 @@ class DocumentManagementConsole {
                                     <div v-if="loading_text_preview" class="text-preview-loading">
                                         <i class="fa fa-spinner fa-spin"></i> ${__('Loading text...')}
                                     </div>
-                                    <div v-else-if="is_md(selected_doc.document_file, selected_doc)" class="markdown-preview-body" v-html="render_markdown(text_preview_content)"></div>
+                                    <div v-else-if="is_md(selected_doc.document_file, selected_doc)" class="markdown-preview-body" @click="handle_markdown_click" v-html="render_markdown(text_preview_content)"></div>
                                     <pre v-else class="text-preview-pre">{{ text_preview_content }}</pre>
                                 </div>
 
@@ -376,7 +385,7 @@ class DocumentManagementConsole {
                                             <div v-if="loading_text_preview" class="text-preview-loading">
                                                 <i class="fa fa-spinner fa-spin"></i> ${__('Loading text...')}
                                             </div>
-                                            <div v-else-if="is_md(selected_doc.document_file, selected_doc)" class="markdown-preview-body" v-html="render_markdown(text_preview_content)"></div>
+                                            <div v-else-if="is_md(selected_doc.document_file, selected_doc)" class="markdown-preview-body" @click="handle_markdown_click" v-html="render_markdown(text_preview_content)"></div>
                                             <pre v-else class="text-preview-pre">{{ text_preview_content }}</pre>
                                         </div>
 
@@ -749,7 +758,7 @@ class DocumentManagementConsole {
                                     if (requested_page && !requested.search_page) {
                                         requested.search_page = requested_page;
                                     }
-                                    selected_doc.value = requested;
+                                    select_doc(requested);
                                     is_fullscreen.value = true;
                                     requested_document = null;
                                 } else {
@@ -763,7 +772,7 @@ class DocumentManagementConsole {
                                                     req_doc.search_page = requested_page;
                                                 }
                                                 documents.value.unshift(req_doc);
-                                                selected_doc.value = req_doc;
+                                                select_doc(req_doc);
                                                 is_fullscreen.value = true;
                                             }
                                             requested_document = null;
@@ -1106,12 +1115,40 @@ class DocumentManagementConsole {
                     if (!text) return '';
                     try {
                         if (window.marked && typeof window.marked.parse === 'function') {
-                            return window.marked.parse(text);
+                            const parsed = window.marked.parse(text);
+                            const document = new DOMParser().parseFromString(parsed, 'text/html');
+                            const slug_counts = new Map();
+                            document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((heading) => {
+                                const base_slug = markdown_anchor_slug(heading.textContent);
+                                if (!base_slug) return;
+                                const count = slug_counts.get(base_slug) || 0;
+                                heading.id = count ? `${base_slug}-${count}` : base_slug;
+                                slug_counts.set(base_slug, count + 1);
+                            });
+                            return document.body.innerHTML;
                         }
                     } catch (e) {
                         console.error('Error parsing markdown', e);
                     }
                     return `<pre style="white-space: pre-wrap;">${escape_html(text)}</pre>`;
+                };
+
+                const handle_markdown_click = (event) => {
+                    const link = event.target.closest('a[href^="#"]');
+                    if (!link || !event.currentTarget.contains(link)) return;
+
+                    let target_id;
+                    try {
+                        target_id = decodeURIComponent(link.getAttribute('href').slice(1));
+                    } catch (e) {
+                        target_id = link.getAttribute('href').slice(1);
+                    }
+                    const target = Array.from(event.currentTarget.querySelectorAll('[id]'))
+                        .find((element) => element.id === target_id);
+                    if (!target) return;
+
+                    event.preventDefault();
+                    target.scrollIntoView({behavior: 'smooth', block: 'start'});
                 };
 
                 const get_file_type = (doc) => {
@@ -1264,7 +1301,7 @@ class DocumentManagementConsole {
                     is_selected, toggle_selection, toggle_all, clear_selection, toggle_trash,
                     show_bulk_edit, trash_selected, restore_selected, purge_selected,
                     trash_one, restore_one, purge_one,
-                    is_pdf, is_img, is_office, is_txt, is_md, text_preview_content, loading_text_preview, highlight_text, render_markdown,
+                    is_pdf, is_img, is_office, is_txt, is_md, text_preview_content, loading_text_preview, highlight_text, render_markdown, handle_markdown_click,
                     get_icon, get_icon_class, get_file_type, get_contrast_color,
                     format_date, open_party,
                     show_upload_modal, upload_form, dragover, is_uploading, close_upload_modal, handle_drop, handle_file_select, remove_file, submit_upload

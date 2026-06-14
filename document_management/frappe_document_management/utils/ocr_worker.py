@@ -449,6 +449,31 @@ def process_ocr(doc_name):
             raise FileNotFoundError(f"File not found: {source_path}")
 
         ext = source_url.rsplit(".", 1)[-1].lower()
+        if ext in {"txt", "md"}:
+            with open(source_path, "r", encoding="utf-8", errors="ignore") as f:
+                text_content = f.read()
+            extracted_pages = [text_content]
+            extraction_method = "plain-text"
+            _replace_document_pages(
+                doc,
+                version,
+                extracted_pages,
+                extraction_method,
+            )
+            _set_ocr_state(doc, version, "Completed", text_content)
+            _apply_tags(doc, text_content)
+            frappe.db.commit()
+            
+            frappe.enqueue(
+                "document_management.search.indexer.run_indexing_background",
+                doc_type="Document",
+                doc_name=doc.name,
+                queue="long",
+                timeout=900,
+                enqueue_after_commit=True,
+            )
+            return
+
         if ext not in IMAGE_EXTENSIONS and ext != "pdf":
             raise RuntimeError(f"Unsupported OCR file type: {ext}")
 

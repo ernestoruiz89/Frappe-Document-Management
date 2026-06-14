@@ -1,14 +1,14 @@
-frappe.pages['unified-search'].on_page_load = function(wrapper) {
+frappe.pages['indexed-doctypes-search'].on_page_load = function(wrapper) {
     const page = frappe.ui.make_app_page({
         parent: wrapper,
-        title: __('Unified Search'),
+        title: __('Indexed DocTypes Search'),
         single_column: true
     });
-    $(frappe.render_template('unified_search', {})).appendTo(page.main);
-    new UnifiedSearchController(wrapper, page);
+    $(frappe.render_template('indexed_doctypes_search', {})).appendTo(page.main);
+    new IndexedDocTypesSearchController(wrapper, page);
 };
 
-class UnifiedSearchController {
+class IndexedDocTypesSearchController {
     constructor(wrapper, page) {
         this.wrapper = $(wrapper);
         this.page = page;
@@ -23,7 +23,7 @@ class UnifiedSearchController {
 
     setupActions() {
         if ((frappe.user_roles || []).includes('System Manager')) {
-            this.page.add_menu_item(__('Rebuild Unified Search Index'), () => {
+            this.page.add_menu_item(__('Rebuild Indexed DocTypes Search Index'), () => {
                 frappe.confirm(
                     __('Rebuild all configured search indexes?'),
                     () => this.call('enqueue_rebuild_index').then(() => {
@@ -38,8 +38,8 @@ class UnifiedSearchController {
     }
 
     bind() {
-        this.wrapper.find('#unified-search-button').on('click', () => this.search());
-        this.wrapper.find('#unified-search-input').on('keydown', (event) => {
+        this.wrapper.find('#indexed-doctypes-search-button').on('click', () => this.search());
+        this.wrapper.find('#indexed-doctypes-search-input').on('keydown', (event) => {
             if (event.key === 'Enter') {
                 event.preventDefault();
                 this.search();
@@ -73,11 +73,11 @@ class UnifiedSearchController {
                 'The operational record index must be rebuilt before first use.'
             )}`;
         }
-        this.wrapper.find('#unified-search-status').text(status);
+        this.wrapper.find('#indexed-doctypes-search-status').text(status);
     }
 
     renderTypes() {
-        const container = this.wrapper.find('#unified-search-types').empty();
+        const container = this.wrapper.find('#indexed-doctypes-search-types').empty();
         const all = $('<button class="search-type active"></button>')
             .text(__('All'))
             .on('click', () => {
@@ -103,11 +103,11 @@ class UnifiedSearchController {
     }
 
     async search() {
-        const query = this.wrapper.find('#unified-search-input').val().trim();
+        const query = this.wrapper.find('#indexed-doctypes-search-input').val().trim();
         if (!query) return;
         this.currentQuery = query;
-        const results = this.wrapper.find('#unified-search-results');
-        const status = this.wrapper.find('#unified-search-status');
+        const results = this.wrapper.find('#indexed-doctypes-search-results');
+        const status = this.wrapper.find('#indexed-doctypes-search-status');
         results.html(
             '<div class="search-empty"><i class="fa fa-spinner fa-spin"></i></div>'
         );
@@ -141,7 +141,7 @@ class UnifiedSearchController {
     }
 
     renderResults(response) {
-        const container = this.wrapper.find('#unified-search-results').empty();
+        const container = this.wrapper.find('#indexed-doctypes-search-results').empty();
         if (response.semantic_rebuild_required) {
             container.append(
                 $('<div class="alert alert-warning"></div>').text(

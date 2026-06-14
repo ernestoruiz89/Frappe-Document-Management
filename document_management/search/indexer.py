@@ -186,7 +186,7 @@ def search(query, limit=10, doctypes=None):
     }
     requested = _parse_doctypes(doctypes)
     generic_filter = (requested & configured) if requested else configured
-    include_documents = not requested or "Document" in requested
+    include_documents = False
     results = {
         "exact": [],
         "semantic": [],
@@ -274,18 +274,12 @@ def get_search_options():
                 options_dict[doctype] = {"value": doctype, "label": doctype}
         except Exception:
             continue
-    if (
-        settings.enable_semantic_search
-        and frappe.has_permission("Document", "read")
-    ):
-        options_dict["Document"] = {"value": "Document", "label": "Document"}
-        
     options = list(options_dict.values())
     
     return {
         "doctypes": sorted(options, key=lambda row: row["label"]),
         "full_text_enabled": bool(settings.enable_full_text_search),
-        "semantic_enabled": bool(settings.enable_semantic_search),
+        "semantic_enabled": False,
         "generic_index_ready": tantivy_backend.index_exists(),
     }
 

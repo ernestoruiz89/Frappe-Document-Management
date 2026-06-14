@@ -295,7 +295,7 @@
    "label": "Legacy Shared AI Endpoint"
   },
   {
-   "description": "Operational DocTypes indexed in Tantivy for fast full-text lookup. Document records use the separate semantic RAG index. Rebuild Unified Search after changing this list.",
+   "description": "Operational DocTypes indexed in Tantivy for fast full-text lookup. Document records use the separate semantic RAG index. Rebuild Indexed DocTypes Search after changing this list.",
    "fieldname": "indexed_doctypes",
    "fieldtype": "Table",
    "label": "Operational Indexed DocTypes",

@@ -418,9 +418,15 @@ class DocumentChatController {
         );
     }
 
-    editFilters() {
+    async editFilters() {
         if (!this.session) return;
         const current = this.parseJSON(this.session.filters_json);
+
+        await Promise.all([
+            new Promise(resolve => frappe.model.with_doctype('Document Tag Link', resolve)),
+            new Promise(resolve => frappe.model.with_doctype('Document Link', resolve))
+        ]);
+
         const dialog = new frappe.ui.Dialog({
             title: __('Document filters'),
             fields: [

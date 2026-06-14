@@ -465,14 +465,55 @@ class DocumentChatController {
         dialog.show();
     }
 
-    renderFilters() {
-        const filters = this.parseJSON(this.session && this.session.filters_json);
+    async renderFilters() {
+        if (!this.session) {
+            this.wrapper.find('#active-filters').empty().hide();
+            return;
+        }
+        const session_name = this.session.name;
+        const filters = this.parseJSON(this.session.filters_json);
         const labels = [];
-        Object.keys(filters).forEach((key) => {
-            const value = Array.isArray(filters[key]) ? filters[key].join(', ') : filters[key];
-            if (value) labels.push(`${key}: ${value}`);
-        });
-        this.wrapper.find('#active-filters').text(labels.join(' · ')).toggle(!!labels.length);
+
+        const keys = Object.keys(filters);
+        for (const key of keys) {
+            const val = filters[key];
+            if (!val || (Array.isArray(val) && !val.length)) continue;
+
+            if (key === 'documents' && Array.isArray(val)) {
+                try {
+                    const response = await frappe.call({
+                        method: 'frappe.client.get_list',
+                        args: {
+                            doctype: 'Document',
+                            filters: { name: ['in', val] },
+                            fields: ['name', 'title'],
+                            limit_page_length: val.length
+                        }
+                    });
+                    if (this.session && this.session.name === session_name) {
+                        const docs_info = response.message || [];
+                        const name_to_title = {};
+                        docs_info.forEach(d => {
+                            name_to_title[d.name] = d.title;
+                        });
+                        const formatted = val.map(name => {
+                            const title = name_to_title[name];
+                            return title ? `${name} (${title})` : name;
+                        }).join(', ');
+                        labels.push(`${key}: ${formatted}`);
+                    }
+                } catch (e) {
+                    labels.push(`${key}: ${val.join(', ')}`);
+                }
+            } else {
+                const formatted_val = Array.isArray(val) ? val.join(', ') : val;
+                labels.push(`${key}: ${formatted_val}`);
+            }
+        }
+
+        if (this.session && this.session.name === session_name) {
+            this.wrapper.find('#active-filters').text(labels.join(' · ')).toggle(!!labels.length);
+        }
     }
 
     renameSession() {

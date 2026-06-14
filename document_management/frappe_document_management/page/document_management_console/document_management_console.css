@@ -1933,8 +1933,11 @@
 
 /* Text/Markdown Preview */
 .text-preview-container {
-    width: 100%;
-    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -1944,6 +1947,7 @@
 }
 
 .text-preview-container.fullscreen {
+    position: relative;
     padding: 24px;
     width: 100%;
     height: 100%;
@@ -1964,6 +1968,7 @@
 
 .text-preview-pre {
     flex-grow: 1;
+    min-height: 0;
     margin: 0;
     padding: 12px;
     background: var(--pc-bg-card);
@@ -1976,4 +1981,96 @@
     font-family: monospace;
     font-size: 13px;
     text-align: left;
+}
+
+.markdown-preview-body {
+    flex-grow: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 20px;
+    background: var(--pc-bg-card);
+    color: var(--pc-text);
+    border: 1px solid var(--pc-border);
+    border-radius: var(--pc-radius);
+    text-align: left;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.markdown-preview-body h1,
+.markdown-preview-body h2,
+.markdown-preview-body h3,
+.markdown-preview-body h4 {
+    color: var(--pc-text);
+    margin-top: 1.2em;
+    margin-bottom: 0.6em;
+    font-weight: 600;
+}
+
+.markdown-preview-body h1 { font-size: 1.8em; border-bottom: 1px solid var(--pc-border); padding-bottom: 0.3em; }
+.markdown-preview-body h2 { font-size: 1.4em; border-bottom: 1px solid var(--pc-border); padding-bottom: 0.3em; }
+.markdown-preview-body h3 { font-size: 1.2em; }
+.markdown-preview-body h4 { font-size: 1.1em; }
+
+.markdown-preview-body p {
+    margin-bottom: 1em;
+}
+
+.markdown-preview-body ul,
+.markdown-preview-body ol {
+    margin-bottom: 1em;
+    padding-left: 2em;
+}
+
+.markdown-preview-body li {
+    margin-bottom: 0.25em;
+}
+
+.markdown-preview-body code {
+    background: var(--pc-bg-hover);
+    color: var(--pc-primary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+.markdown-preview-body pre {
+    background: var(--pc-bg-hover);
+    border: 1px solid var(--pc-border);
+    padding: 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin-bottom: 1em;
+}
+
+.markdown-preview-body pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    font-size: inherit;
+}
+
+.markdown-preview-body blockquote {
+    border-left: 4px solid var(--pc-primary-light);
+    color: var(--pc-text-muted);
+    padding-left: 1em;
+    margin: 0 0 1em 0;
+}
+
+.markdown-preview-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1em;
+}
+
+.markdown-preview-body table th,
+.markdown-preview-body table td {
+    border: 1px solid var(--pc-border);
+    padding: 8px 12px;
+}
+
+.markdown-preview-body table th {
+    background: var(--pc-bg-hover);
+    font-weight: 600;
 }

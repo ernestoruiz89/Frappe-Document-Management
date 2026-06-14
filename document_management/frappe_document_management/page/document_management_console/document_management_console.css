@@ -55,7 +55,11 @@
 
 /* Dark mode compatibility */
 [data-theme="dark"] .paperless-app,
-.dark .paperless-app {
+.dark .paperless-app,
+[data-theme="dark"] .pc-fullscreen-overlay,
+.dark .pc-fullscreen-overlay,
+[data-theme="dark"] .pc-modal-overlay,
+.dark .pc-modal-overlay {
     --pc-bg: #1a1c1e;
     --pc-bg-card: #242628;
     --pc-bg-sidebar: #242628;

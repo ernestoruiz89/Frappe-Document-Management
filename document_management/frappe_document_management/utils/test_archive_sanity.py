@@ -7,6 +7,7 @@ import frappe
 
 from document_management.frappe_document_management.utils.archive_sanity import (
     _check_file_references,
+    _check_physical_orphans,
     _check_stored_file,
 )
 
@@ -98,3 +99,34 @@ class TestArchiveSanity(TestCase):
             _check_file_references(issues, {"DOC-1"}, versions)
 
         self.assertEqual(issues[0]["code"], "file_record_missing")
+
+    def test_file_audit_reports_physical_file_without_database_row(self):
+        issues = []
+        with tempfile.TemporaryDirectory() as temp_dir:
+            private_root = Path(temp_dir) / "private"
+            public_root = Path(temp_dir) / "public"
+            private_root.mkdir()
+            public_root.mkdir()
+            (private_root / "orphan.pdf").write_bytes(b"orphan")
+
+            def site_path(*parts):
+                return str(
+                    private_root
+                    if parts == ("private", "files")
+                    else public_root
+                )
+
+            with (
+                patch(
+                    "document_management.frappe_document_management.utils.archive_sanity.frappe.get_all",
+                    return_value=[],
+                ),
+                patch(
+                    "document_management.frappe_document_management.utils.archive_sanity.frappe.get_site_path",
+                    side_effect=site_path,
+                ),
+            ):
+                _check_physical_orphans(issues)
+
+        self.assertEqual(issues[0]["code"], "physical_file_orphaned")
+        self.assertEqual(issues[0]["file_url"], "/private/files/orphan.pdf")

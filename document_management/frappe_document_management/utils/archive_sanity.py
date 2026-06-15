@@ -1,5 +1,7 @@
 import hashlib
 import os
+from pathlib import Path
+from urllib.parse import unquote
 
 import frappe
 from frappe.utils.file_manager import get_file_path
@@ -171,6 +173,46 @@ def _check_file_references(issues, document_names, versions):
             )
 
 
+def _physical_file_url(path, root, private):
+    relative = path.relative_to(root).as_posix()
+    prefix = "/private/files" if private else "/files"
+    return f"{prefix}/{relative}"
+
+
+def _check_physical_orphans(issues):
+    known_urls = {
+        unquote(row.file_url)
+        for row in frappe.get_all(
+            "File",
+            filters={"is_folder": 0},
+            fields=["file_url"],
+            limit_page_length=0,
+        )
+        if row.file_url
+    }
+    roots = (
+        (Path(frappe.get_site_path("private", "files")), True),
+        (Path(frappe.get_site_path("public", "files")), False),
+    )
+    for root, private in roots:
+        if not root.is_dir():
+            continue
+        for path in root.rglob("*"):
+            if not path.is_file() or path.name.startswith("."):
+                continue
+            file_url = _physical_file_url(path, root, private)
+            if unquote(file_url) in known_urls:
+                continue
+            _issue(
+                issues,
+                "warning",
+                "physical_file_orphaned",
+                "Physical file has no matching File record.",
+                file_url=file_url,
+                path=str(path),
+            )
+
+
 def check_document_archive():
     issues = []
     documents = frappe.get_all(
@@ -256,6 +298,7 @@ def check_document_archive():
             )
 
     _check_file_references(issues, document_names, versions_by_name)
+    _check_physical_orphans(issues)
     counts = {
         "error": sum(issue["severity"] == "error" for issue in issues),
         "warning": sum(issue["severity"] == "warning" for issue in issues),

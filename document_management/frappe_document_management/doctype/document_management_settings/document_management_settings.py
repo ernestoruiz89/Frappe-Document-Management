@@ -5,6 +5,15 @@ from frappe.model.document import Document
 class DocumentManagementSettings(Document):
     def validate(self):
         self._validate_indexed_doctypes()
+        if int(self.trash_retention_days or 0) < 0:
+            frappe.throw("Trash Retention (Days) cannot be negative.")
+        if int(self.export_retention_hours or 0) < 0:
+            frappe.throw("Export Retention (Hours) cannot be negative.")
+        if (
+            self.ocr_processing_timeout_minutes
+            and int(self.ocr_processing_timeout_minutes) < 5
+        ):
+            frappe.throw("OCR Processing Timeout must be at least 5 minutes.")
         if self.chat_provider == "OpenAI Compatible" and not (
             self.chat_endpoint or ""
         ).strip():

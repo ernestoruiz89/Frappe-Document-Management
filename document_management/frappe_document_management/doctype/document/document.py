@@ -5,6 +5,12 @@ import frappe
 from frappe.model.document import Document as FrappeDocument
 from frappe.utils.file_manager import get_file_path
 
+from document_management.frappe_document_management.utils.document_access import (
+    get_user_departments,
+    matches_access_rules,
+    sql_access_parts,
+)
+
 class Document(FrappeDocument):
     def autoname(self):
         self.name = frappe.model.naming.make_autoname("DOC-.YYYY.-.####")
@@ -21,10 +27,12 @@ class Document(FrappeDocument):
 
     def on_update(self):
         self.enqueue_processing()
-        
+
     def on_trash(self):
         if frappe.db.exists("DocType", "Document Page"):
             frappe.db.delete("Document Page", {"document": self.name})
+        if frappe.db.exists("DocType", "Document Share Link"):
+            frappe.db.delete("Document Share Link", {"document": self.name})
 
     def get_current_version(self):
         versions = [row for row in (self.get("versions") or []) if row.attachment]
@@ -93,8 +101,17 @@ class Document(FrappeDocument):
         self.ocr_content = version.ocr_content or ""
 
     def enqueue_ocr(self, enqueue_after_commit=True):
+        from document_management.frappe_document_management.utils.ocr_worker import (
+            is_ocr_processing_stale,
+        )
+
         version = self.get_current_version()
-        if not version or version.ocr_status in ["Processing", "Completed"]:
+        if not version or version.ocr_status == "Completed":
+            return
+        if (
+            version.ocr_status == "Processing"
+            and not is_ocr_processing_stale(version)
+        ):
             return
         source_url = version.preview_attachment or version.attachment
         extension = (source_url or "").lower().rsplit(".", 1)[-1]
@@ -136,17 +153,17 @@ class Document(FrappeDocument):
         # Find all files attached to this document or its child versions
         doc_names = [self.name]
         version_names = [v.name for v in self.get("versions", []) if v.name]
-        
+
         all_refs = [("Document", self.name)]
         for v in version_names:
             all_refs.append(("Document Version", v))
-            
+
         for doctype, name in all_refs:
             # Skip if name is not set (e.g. unsaved child row)
             if not name:
                 continue
-                
-            files = frappe.get_all("File", 
+
+            files = frappe.get_all("File",
                 filters={"attached_to_doctype": doctype, "attached_to_name": name, "is_private": 0},
                 fields=["name", "file_url"]
             )
@@ -154,7 +171,7 @@ class Document(FrappeDocument):
                 f = frappe.get_doc("File", file_data.name)
                 f.is_private = 1
                 f.save(ignore_permissions=True)
-                
+
                 # Update references in the child table to reflect the new /private/files/... URL
                 for v in self.get("versions", []):
                     if getattr(v, "attachment", "") == file_data.file_url:
@@ -311,17 +328,18 @@ def has_permission(doc, ptype="read", user=None):
         user = frappe.session.user
     if user == "Administrator":
         return True
-        
+
     user_roles = frappe.get_roles(user)
 
     if ptype == "delete":
-        if "System Manager" in user_roles:
-            return True
-        return False
+        return doc.owner == user or "System Manager" in user_roles
+
+    if ptype == "share":
+        return doc.owner == user or "System Manager" in user_roles
 
     if doc.owner == user:
         return True
-            
+
 
     # Check if explicitly shared via Frappe's native Share feature
     share_filters = {
@@ -346,29 +364,34 @@ def has_permission(doc, ptype="read", user=None):
     if ptype == "write":
         return "System Manager" in user_roles
 
+    user_departments = get_user_departments(user)
+
     # Check Document Level
     if doc.only_me:
         return doc.owner == user
-        
-    if doc.roles_with_access:
-        doc_roles = [d.role for d in doc.roles_with_access]
-        if set(user_roles).intersection(set(doc_roles)):
-            return True
-        return False
-        
+
+    has_restrictions, allowed = matches_access_rules(
+        doc,
+        set(user_roles),
+        user_departments,
+    )
+    if has_restrictions:
+        return allowed
 
     # Check Category Level
     if doc.category:
         category = frappe.get_cached_doc("Document Category", doc.category)
         if category.only_me:
             return category.owner == user
-            
-        if category.roles_with_access:
-            cat_roles = [d.role for d in category.roles_with_access]
-            if set(user_roles).intersection(set(cat_roles)):
-                return True
-            return False
-            
+
+        has_restrictions, allowed = matches_access_rules(
+            category,
+            set(user_roles),
+            user_departments,
+        )
+        if has_restrictions:
+            return allowed
+
     return True
 
 def get_permission_query_conditions(user):
@@ -376,34 +399,54 @@ def get_permission_query_conditions(user):
         user = frappe.session.user
     if user == "Administrator":
         return "`tabDocument`.is_deleted = 0"
-        
+
     user_roles = frappe.get_roles(user)
     roles_str = ",".join(frappe.db.escape(role) for role in user_roles)
     if not roles_str:
         roles_str = "''"
-        
-    # Condition for Document
+
+    escaped_user = frappe.db.escape(user)
+    doc_access = sql_access_parts(
+        "`tabDocument`",
+        "Document",
+        user,
+        roles_str,
+    )
+    category_access = sql_access_parts(
+        "cat",
+        "Document Category",
+        user,
+        roles_str,
+    )
+
     doc_cond = f"""
-        (`tabDocument`.only_me = 1 AND `tabDocument`.owner = {frappe.db.escape(user)})
+        (`tabDocument`.only_me = 1 AND `tabDocument`.owner = {escaped_user})
         OR
-        (`tabDocument`.only_me = 0 AND EXISTS (SELECT 1 FROM `tabDocument Role Access` d_ra WHERE d_ra.parent = `tabDocument`.name AND d_ra.parenttype = 'Document' AND d_ra.role IN ({roles_str})))
+        (`tabDocument`.only_me = 0 AND {doc_access["matches"]})
     """
-    
 
     cat_cond = f"""
         EXISTS (
             SELECT 1 FROM `tabDocument Category` cat WHERE cat.name = `tabDocument`.category AND (
-                (cat.only_me = 1 AND cat.owner = {frappe.db.escape(user)})
+                (cat.only_me = 1 AND cat.owner = {escaped_user})
                 OR
-                (cat.only_me = 0 AND EXISTS (SELECT 1 FROM `tabDocument Role Access` c_ra WHERE c_ra.parent = cat.name AND c_ra.parenttype = 'Document Category' AND c_ra.role IN ({roles_str})))
+                (cat.only_me = 0 AND {category_access["matches"]})
                 OR
-                (cat.only_me = 0 AND NOT EXISTS (SELECT 1 FROM `tabDocument Role Access` c_ra WHERE c_ra.parent = cat.name AND c_ra.parenttype = 'Document Category'))
+                (cat.only_me = 0 AND NOT {category_access["has_restrictions"]})
             )
         )
     """
-    
+
     fallback_cond = f"""
-        (`tabDocument`.only_me = 0 AND NOT EXISTS (SELECT 1 FROM `tabDocument Role Access` d_ra WHERE d_ra.parent = `tabDocument`.name AND d_ra.parenttype = 'Document') AND {cat_cond})
+        (
+            `tabDocument`.only_me = 0
+            AND NOT {doc_access["has_restrictions"]}
+            AND (
+                `tabDocument`.category IS NULL
+                OR `tabDocument`.category = ''
+                OR {cat_cond}
+            )
+        )
     """
 
     shared_cond = f"""
@@ -411,13 +454,13 @@ def get_permission_query_conditions(user):
             SELECT 1 FROM `tabDocShare` ds
             WHERE ds.share_doctype = 'Document'
               AND ds.share_name = `tabDocument`.name
-              AND ds.user = {frappe.db.escape(user)}
+              AND ds.user = {escaped_user}
               AND ds.read = 1
         )
     """
-    
+
     return (
         f"`tabDocument`.is_deleted = 0 AND "
-        f"(`tabDocument`.owner = {frappe.db.escape(user)} "
+        f"(`tabDocument`.owner = {escaped_user} "
         f"OR ({doc_cond}) OR ({fallback_cond}) OR ({shared_cond}))"
     )

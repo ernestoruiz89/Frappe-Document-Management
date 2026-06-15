@@ -8,7 +8,8 @@
   "category_name",
   "sb_permissions",
   "only_me",
-  "roles_with_access"
+  "roles_with_access",
+  "departments_with_access"
  ],
  "fields": [
   {
@@ -36,6 +37,12 @@
    "fieldtype": "Table MultiSelect",
    "label": "Roles with Access",
    "options": "Document Role Access"
+  },
+  {
+   "fieldname": "departments_with_access",
+   "fieldtype": "Table MultiSelect",
+   "label": "Departments with Access",
+   "options": "Document Department Access"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -56,18 +63,6 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Loan Manager",
    "share": 1,
    "write": 1
   },

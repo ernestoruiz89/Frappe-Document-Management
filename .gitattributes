@@ -1,0 +1,3 @@
+*.py whitespace=cr-at-eol
+*.json whitespace=cr-at-eol
+*.js whitespace=cr-at-eol

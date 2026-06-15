@@ -1,4 +1,5 @@
 import hashlib
+import json
 import uuid
 from pathlib import Path
 from unittest import TestCase
@@ -31,6 +32,7 @@ class TestDocumentUpload(TestCase):
         ).insert(ignore_permissions=True)
         frappe.db.commit()
         self.document_names = []
+        self.department_name = frappe.db.get_value("Department", {}, "name")
 
     def tearDown(self):
         frappe.set_user("Administrator")
@@ -88,11 +90,16 @@ class TestDocumentUpload(TestCase):
             result = quick_upload(
                 title="Multipart upload test",
                 category=self.category_name,
+                departments=json.dumps([self.department_name]),
             )
         self.document_names.append(result["docname"])
         frappe.db.commit()
 
         document = frappe.get_doc("Document", result["docname"])
+        self.assertEqual(
+            [row.department for row in document.departments_with_access],
+            [self.department_name],
+        )
         self.assertEqual(len(document.versions), 1)
         first_version = document.versions[0]
         self.assertEqual(first_version.version_number, "1")
@@ -124,6 +131,129 @@ class TestDocumentUpload(TestCase):
             document.versions[-1].file_checksum,
             hashlib.sha256(second_content).hexdigest(),
         )
+
+    def test_quick_upload_allows_document_without_category(self):
+        self._set_upload("uncategorized.txt", b"uncategorized-content")
+
+        with patch(
+            "document_management.frappe_document_management.doctype.document.document.Document.enqueue_processing"
+        ):
+            result = quick_upload(title="Uncategorized upload test")
+
+        self.document_names.append(result["docname"])
+        document = frappe.get_doc("Document", result["docname"])
+        self.assertFalse(document.category)
+        self.assertEqual(len(document.versions), 1)
+
+    def test_uncategorized_document_is_visible_to_another_normal_user(self):
+        self._set_upload("visible-uncategorized.txt", b"visible-content")
+        with patch(
+            "document_management.frappe_document_management.doctype.document.document.Document.enqueue_processing"
+        ):
+            result = quick_upload(title="Visible uncategorized upload")
+        self.document_names.append(result["docname"])
+        user = f"document-reader-{uuid.uuid4().hex}@example.com"
+        frappe.get_doc(
+            {
+                "doctype": "User",
+                "email": user,
+                "first_name": "Document Reader",
+                "enabled": 1,
+                "send_welcome_email": 0,
+                "user_type": "System User",
+            }
+        ).insert(ignore_permissions=True)
+        frappe.db.commit()
+        try:
+            frappe.set_user(user)
+            visible = frappe.get_list(
+                "Document",
+                filters={"name": result["docname"]},
+                pluck="name",
+            )
+            self.assertEqual(visible, [result["docname"]])
+        finally:
+            frappe.set_user("Administrator")
+            frappe.delete_doc(
+                "User",
+                user,
+                ignore_permissions=True,
+                force=True,
+            )
+
+    def test_quick_upload_rejects_unsupported_type_before_insert(self):
+        self._set_upload("malware.exe", b"MZ" + b"\x00" * 64)
+        before_documents = frappe.db.count("Document")
+
+        with self.assertRaisesRegex(
+            frappe.ValidationError,
+            "Unsupported document file type",
+        ):
+            quick_upload(title="Unsupported upload")
+
+        self.assertEqual(frappe.db.count("Document"), before_documents)
+
+    def test_quick_upload_rejects_mismatched_signature_before_insert(self):
+        self._set_upload("fake.pdf", b"this is not a PDF")
+        before_documents = frappe.db.count("Document")
+
+        with self.assertRaisesRegex(
+            frappe.ValidationError,
+            "does not match its file extension",
+        ):
+            quick_upload(title="Mismatched upload")
+
+        self.assertEqual(frappe.db.count("Document"), before_documents)
+
+    def test_quick_upload_rejects_duplicate_before_document_insert(self):
+        content = f"duplicate-upload-{uuid.uuid4().hex}".encode()
+        self._set_upload("first-duplicate.txt", content)
+        with patch(
+            "document_management.frappe_document_management.doctype.document.document.Document.enqueue_processing"
+        ):
+            first = quick_upload(title="Original duplicate test")
+        self.document_names.append(first["docname"])
+        frappe.db.commit()
+        before_documents = frappe.db.count("Document")
+
+        self._set_upload("second-duplicate.txt", content)
+        with (
+            patch(
+                "document_management.frappe_document_management.doctype.document.document.Document.enqueue_processing"
+            ),
+            self.assertRaisesRegex(
+                frappe.ValidationError,
+                "identical file already exists",
+            ),
+        ):
+            quick_upload(title="Rejected duplicate test")
+
+        self.assertEqual(frappe.db.count("Document"), before_documents)
+
+    def test_add_version_rejects_duplicate_before_save(self):
+        content = f"duplicate-version-{uuid.uuid4().hex}".encode()
+        self._set_upload("version-one.txt", content)
+        with patch(
+            "document_management.frappe_document_management.doctype.document.document.Document.enqueue_processing"
+        ):
+            first = quick_upload(title="Duplicate version test")
+        self.document_names.append(first["docname"])
+        frappe.db.commit()
+
+        self._set_upload("version-two.txt", content)
+        with (
+            patch(
+                "document_management.frappe_document_management.doctype.document.document.Document.enqueue_processing"
+            ),
+            self.assertRaisesRegex(
+                frappe.ValidationError,
+                "same file more than once",
+            ),
+        ):
+            add_document_version(first["docname"])
+
+        document = frappe.get_doc("Document", first["docname"])
+        self.assertEqual(len(document.versions), 1)
 
     def test_failed_file_save_rolls_back_document_and_version(self):
         self._set_upload("rollback.txt", b"rollback-content")

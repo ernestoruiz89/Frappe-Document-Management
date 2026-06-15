@@ -1,5 +1,8 @@
 import hashlib
+import io
 import json
+import os
+import zipfile
 
 import frappe
 from frappe.utils import now_datetime
@@ -22,6 +25,28 @@ DOCUMENT_FIELDS = [
     "deleted_at",
     "deleted_by",
 ]
+SUPPORTED_EXTENSIONS = {
+    ".pdf",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".webp",
+    ".tif",
+    ".tiff",
+    ".txt",
+    ".md",
+    ".doc",
+    ".docx",
+    ".xls",
+    ".xlsx",
+    ".ppt",
+    ".pptx",
+}
+OOXML_MARKERS = {
+    ".docx": "word/",
+    ".xlsx": "xl/",
+    ".pptx": "ppt/",
+}
 
 
 def _database_search_names(search_text, filters, limit):
@@ -77,11 +102,55 @@ def _uploaded_request_content():
     filename = getattr(frappe.local, "uploaded_filename", None)
     if not content or not filename:
         frappe.throw("A multipart file upload is required.")
+    _validate_uploaded_document(filename, content)
     return filename, content
 
 
-def _save_version_file(version, folder=None):
+def _validate_uploaded_document(filename, content):
+    extension = os.path.splitext(filename)[1].lower()
+    if extension not in SUPPORTED_EXTENSIONS:
+        frappe.throw(f"Unsupported document file type: {extension or '(none)'}")
+    signatures = {
+        ".pdf": content.startswith(b"%PDF-"),
+        ".png": content.startswith(b"\x89PNG\r\n\x1a\n"),
+        ".jpg": content.startswith(b"\xff\xd8\xff"),
+        ".jpeg": content.startswith(b"\xff\xd8\xff"),
+        ".webp": content.startswith(b"RIFF") and content[8:12] == b"WEBP",
+        ".tif": content.startswith((b"II*\x00", b"MM\x00*")),
+        ".tiff": content.startswith((b"II*\x00", b"MM\x00*")),
+        ".doc": content.startswith(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"),
+        ".xls": content.startswith(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"),
+        ".ppt": content.startswith(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"),
+    }
+    if extension in signatures and not signatures[extension]:
+        frappe.throw("Uploaded content does not match its file extension.")
+    if extension in {".txt", ".md"}:
+        if b"\x00" in content[:8192]:
+            frappe.throw("Uploaded text document contains binary content.")
+        return
+    marker = OOXML_MARKERS.get(extension)
+    if marker:
+        try:
+            with zipfile.ZipFile(io.BytesIO(content)) as archive:
+                names = archive.namelist()
+                valid = "[Content_Types].xml" in names and any(
+                    name.startswith(marker) for name in names
+                )
+        except (OSError, zipfile.BadZipFile):
+            valid = False
+        if not valid:
+            frappe.throw("Uploaded content does not match its file extension.")
+
+
+def _upload_metadata():
     filename, content = _uploaded_request_content()
+    return filename, content, hashlib.sha256(content).hexdigest(), len(content)
+
+
+def _save_version_file(version, folder=None, upload=None):
+    filename, content, checksum, file_size = upload or _upload_metadata()
+    if version.file_checksum and version.file_checksum != checksum:
+        frappe.throw("Uploaded file content changed while it was being saved.")
     file_doc = frappe.get_doc(
         {
             "doctype": "File",
@@ -94,19 +163,18 @@ def _save_version_file(version, folder=None):
             "is_private": 1,
         }
     ).insert(ignore_permissions=True)
-    checksum = hashlib.sha256(content).hexdigest()
     frappe.db.set_value(
         "Document Version",
         version.name,
         {
             "attachment": file_doc.file_url,
             "file_checksum": checksum,
-            "file_size": len(content),
+            "file_size": file_size,
         },
     )
     version.attachment = file_doc.file_url
     version.file_checksum = checksum
-    version.file_size = len(content)
+    version.file_size = file_size
     return file_doc
 
 
@@ -134,7 +202,7 @@ def _saved_view_filters(raw_filters):
     search = raw_filters.get("search")
     if search:
         result["search"] = str(search).strip()[:500]
-    
+
     # Categories (multiple or single)
     categories = raw_filters.get("categories") or raw_filters.get("category")
     if categories:
@@ -373,10 +441,11 @@ def get_documents(
             ranked_names = [row["doc_name"] for row in results]
             search_metadata = {row["doc_name"]: row for row in results}
         except IndexRebuildRequired as exc:
-            frappe.throw(
-                str(exc),
-                title="Document Search Index Rebuild Required",
+            frappe.logger("document_search").warning(
+                "RAG index unavailable; using database search: %s",
+                exc,
             )
+            ranked_names = _database_search_names(search_text, filters, limit)
         except Exception:
             frappe.log_error(
                 title="Document Search Error",
@@ -511,7 +580,7 @@ def bulk_update_documents(
 @frappe.whitelist()
 def move_documents_to_trash(documents):
     names = _document_names(documents)
-    docs = _authorized_documents(names, "write")
+    docs = _authorized_documents(names, "delete")
     deleted_at = now_datetime()
     changed = []
     for doc in docs:
@@ -551,6 +620,10 @@ def restore_documents(documents):
 
 @frappe.whitelist()
 def permanently_delete_documents(documents):
+    from document_management.frappe_document_management.utils.archive_lifecycle import (
+        permanently_delete_document,
+    )
+
     if "System Manager" not in frappe.get_roles():
         frappe.throw(
             "System Manager role is required for permanent deletion.",
@@ -562,7 +635,7 @@ def permanently_delete_documents(documents):
         if not doc.is_deleted:
             frappe.throw("Only documents in trash can be permanently deleted.")
     for doc in docs:
-        frappe.delete_doc("Document", doc.name)
+        permanently_delete_document(doc.name)
     return {"deleted": names}
 
 @frappe.whitelist()
@@ -572,7 +645,7 @@ def force_generate_pdf(doc_name):
     frappe.get_doc("Document", doc_name).check_permission("write")
     if not shutil.which("libreoffice"):
         return _("ERROR: LibreOffice is not installed on the server ('libreoffice' command not found). Please install it using: sudo apt-get install libreoffice-core --no-install-recommends")
-        
+
     from document_management.frappe_document_management.doctype.document.document import convert_office_to_pdf
     try:
         status = convert_office_to_pdf(doc_name)
@@ -585,12 +658,19 @@ def force_generate_pdf(doc_name):
 
 @frappe.whitelist()
 def reprocess_ocr(doc_name):
+    from document_management.frappe_document_management.utils.ocr_worker import (
+        is_ocr_processing_stale,
+    )
+
     doc = frappe.get_doc("Document", doc_name)
     doc.check_permission("write")
     version = doc.get_current_version()
     if not version:
         frappe.throw("The document does not have an attached version.")
-    if version.ocr_status == "Processing":
+    if (
+        version.ocr_status == "Processing"
+        and not is_ocr_processing_stale(version)
+    ):
         frappe.throw("OCR is already processing this document.")
 
     frappe.db.set_value(
@@ -598,6 +678,12 @@ def reprocess_ocr(doc_name):
         version.name,
         "ocr_status",
         "Pending",
+    )
+    frappe.db.set_value(
+        "Document Version",
+        version.name,
+        "ocr_started_at",
+        None,
     )
     frappe.db.set_value("Document", doc.name, "ocr_status", "Pending")
     frappe.enqueue(
@@ -631,6 +717,7 @@ def quick_upload(
     status=None,
     only_me=0,
     roles=None,
+    departments=None,
 ):
     from frappe.utils import today
 
@@ -647,7 +734,8 @@ def quick_upload(
     status = status or form.get("status")
     only_me = only_me or form.get("only_me")
     roles = roles or form.get("roles")
-    _uploaded_request_content()
+    departments = departments or form.get("departments")
+    upload = _upload_metadata()
     frappe.has_permission("Document", "create", throw=True)
     try:
         doc = frappe.new_doc("Document")
@@ -676,6 +764,21 @@ def quick_upload(
                 if not frappe.db.exists("Role", role):
                     frappe.throw(f"Role does not exist: {role}")
                 doc.append("roles_with_access", {"role": role})
+        if departments:
+            department_list = (
+                json.loads(departments)
+                if isinstance(departments, str)
+                else departments
+            )
+            for access_department in department_list or []:
+                if not frappe.db.exists("Department", access_department):
+                    frappe.throw(
+                        f"Department does not exist: {access_department}"
+                    )
+                doc.append(
+                    "departments_with_access",
+                    {"department": access_department},
+                )
 
         version = doc.append(
             "versions",
@@ -683,11 +786,13 @@ def quick_upload(
                 "version_number": "1",
                 "release_date": today(),
                 "attachment": "/private/files/pending-upload",
+                "file_checksum": upload[2],
+                "file_size": upload[3],
                 "change_log": "Initial upload",
             },
         )
         doc.insert()
-        _save_version_file(version, folder)
+        _save_version_file(version, folder, upload)
         return {"docname": doc.name, "version_name": version.name}
     except Exception:
         frappe.db.rollback()
@@ -702,7 +807,7 @@ def add_document_version(doc_name=None, change_log=None, folder=None):
     doc_name = doc_name or form.get("doc_name")
     change_log = change_log or form.get("change_log")
     folder = folder or form.get("folder")
-    _uploaded_request_content()
+    upload = _upload_metadata()
     doc = frappe.get_doc("Document", doc_name)
     doc.check_permission("write")
     if doc.is_deleted:
@@ -722,11 +827,13 @@ def add_document_version(doc_name=None, change_log=None, folder=None):
                 "version_number": str(next_number),
                 "release_date": today(),
                 "attachment": "/private/files/pending-upload",
+                "file_checksum": upload[2],
+                "file_size": upload[3],
                 "change_log": (change_log or "Uploaded new version").strip(),
             },
         )
         doc.save()
-        _save_version_file(version, folder)
+        _save_version_file(version, folder, upload)
         return {
             "docname": doc.name,
             "version_name": version.name,

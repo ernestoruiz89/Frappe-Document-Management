@@ -1,13 +1,19 @@
 from types import SimpleNamespace
 from unittest.mock import patch
+from datetime import datetime, timedelta
+
+import frappe
 
 from document_management.frappe_document_management.utils.ocr_worker import (
     OCRConfig,
+    OCRLeaseLost,
+    _assert_ocr_lease,
     _pdf_needs_ocr,
     _processing_source,
     _run_local_ocr,
     _should_run_local_ocr,
     _should_store_archive,
+    is_ocr_processing_stale,
 )
 
 
@@ -153,3 +159,65 @@ def test_force_pdf_does_not_add_image_dpi():
     command = run.call_args.args[0]
     assert "--force-ocr" in command
     assert "--image-dpi" not in command
+
+
+def test_processing_without_start_time_is_stale():
+    version = frappe._dict(ocr_status="Processing", ocr_started_at=None)
+
+    assert is_ocr_processing_stale(version)
+
+
+def test_recent_processing_is_not_stale():
+    now = datetime(2026, 6, 15, 12, 0, 0)
+    version = frappe._dict(
+        ocr_status="Processing",
+        ocr_started_at=now - timedelta(minutes=10),
+    )
+
+    with patch(
+        "document_management.frappe_document_management.utils.ocr_worker._ocr_timeout_minutes",
+        return_value=60,
+    ):
+        assert not is_ocr_processing_stale(version, now=now)
+
+
+def test_expired_processing_is_stale():
+    now = datetime(2026, 6, 15, 12, 0, 0)
+    version = frappe._dict(
+        ocr_status="Processing",
+        ocr_started_at=now - timedelta(minutes=61),
+    )
+
+    with patch(
+        "document_management.frappe_document_management.utils.ocr_worker._ocr_timeout_minutes",
+        return_value=60,
+    ):
+        assert is_ocr_processing_stale(version, now=now)
+
+
+def test_recent_heartbeat_keeps_long_running_ocr_active():
+    now = datetime(2026, 6, 15, 12, 0, 0)
+    version = frappe._dict(
+        ocr_status="Processing",
+        ocr_started_at=now - timedelta(minutes=120),
+        ocr_heartbeat_at=now - timedelta(minutes=5),
+    )
+
+    with patch(
+        "document_management.frappe_document_management.utils.ocr_worker._ocr_timeout_minutes",
+        return_value=60,
+    ):
+        assert not is_ocr_processing_stale(version, now=now)
+
+
+def test_obsolete_worker_cannot_write_after_lease_replacement():
+    with patch(
+        "document_management.frappe_document_management.utils.ocr_worker._current_ocr_lease",
+        return_value="new-lease",
+    ):
+        try:
+            _assert_ocr_lease("VERSION-1", "old-lease")
+        except OCRLeaseLost:
+            pass
+        else:
+            raise AssertionError("Expected obsolete OCR lease to be rejected")

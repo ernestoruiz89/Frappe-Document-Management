@@ -9,6 +9,7 @@ import tempfile
 from dataclasses import dataclass
 
 import frappe
+from frappe.utils import add_to_date, get_datetime, now_datetime
 from frappe.utils.file_manager import get_file_path
 
 
@@ -17,6 +18,10 @@ OFFICE_EXTENSIONS = {"doc", "docx", "xls", "xlsx", "ppt", "pptx"}
 PDF_EXTENSION = "pdf"
 OCR_MODES = {"auto", "redo", "force", "off"}
 ARCHIVE_MODES = {"auto", "always", "never"}
+
+
+class OCRLeaseLost(RuntimeError):
+    pass
 
 
 @dataclass(frozen=True)
@@ -151,8 +156,27 @@ def _current_version(doc):
     return versions[-1] if versions else None
 
 
-def _set_ocr_state(doc, version, status, content=None):
+def _set_ocr_state(doc, version, status, content=None, lease_token=None):
+    if status != "Processing":
+        _assert_ocr_lease(version.name, lease_token)
     values = {"ocr_status": status}
+    if status == "Processing":
+        timestamp = now_datetime()
+        values.update(
+            {
+                "ocr_started_at": timestamp,
+                "ocr_heartbeat_at": timestamp,
+                "ocr_lease_token": lease_token,
+            }
+        )
+    else:
+        values.update(
+            {
+                "ocr_started_at": None,
+                "ocr_heartbeat_at": None,
+                "ocr_lease_token": None,
+            }
+        )
     if content is not None:
         values["ocr_content"] = content
     frappe.db.set_value("Document Version", version.name, values)
@@ -165,10 +189,156 @@ def _set_ocr_state(doc, version, status, content=None):
         },
     )
     version.ocr_status = status
+    version.ocr_started_at = values["ocr_started_at"]
+    version.ocr_heartbeat_at = values["ocr_heartbeat_at"]
+    version.ocr_lease_token = values["ocr_lease_token"]
     if content is not None:
         version.ocr_content = content
         doc.ocr_content = content
     doc.ocr_status = status
+
+
+def _ocr_timeout_minutes():
+    value = frappe.db.get_single_value(
+        "Document Management Settings",
+        "ocr_processing_timeout_minutes",
+    )
+    return max(int(value or 60), 5)
+
+
+def is_ocr_processing_stale(version, now=None):
+    if version.ocr_status != "Processing":
+        return False
+    last_activity = version.get("ocr_heartbeat_at") or version.get("ocr_started_at")
+    if not last_activity:
+        return True
+    cutoff = add_to_date(
+        now or now_datetime(),
+        minutes=-_ocr_timeout_minutes(),
+    )
+    return get_datetime(last_activity) <= get_datetime(cutoff)
+
+
+def _assert_ocr_lease(version_name, lease_token):
+    if not lease_token:
+        raise OCRLeaseLost("OCR worker has no active lease.")
+    current = _current_ocr_lease(version_name)
+    if current != lease_token:
+        raise OCRLeaseLost("OCR lease was replaced by another worker.")
+
+
+def _current_ocr_lease(version_name):
+    return frappe.db.get_value(
+        "Document Version",
+        version_name,
+        "ocr_lease_token",
+    )
+
+
+def _heartbeat_ocr_lease(version_name, lease_token):
+    _assert_ocr_lease(version_name, lease_token)
+    frappe.db.set_value(
+        "Document Version",
+        version_name,
+        "ocr_heartbeat_at",
+        now_datetime(),
+        update_modified=False,
+    )
+    frappe.db.commit()
+
+
+def _lock_ocr_lease(version_name, lease_token):
+    frappe.db.sql(
+        "SELECT name FROM `tabDocument Version` WHERE name = %s FOR UPDATE",
+        (version_name,),
+    )
+    _assert_ocr_lease(version_name, lease_token)
+
+
+def _claim_ocr_lease(doc, version):
+    frappe.db.sql(
+        "SELECT name FROM `tabDocument Version` WHERE name = %s FOR UPDATE",
+        (version.name,),
+    )
+    current = frappe.db.get_value(
+        "Document Version",
+        version.name,
+        ["ocr_status", "ocr_started_at", "ocr_heartbeat_at"],
+        as_dict=True,
+    )
+    if current.ocr_status == "Completed":
+        frappe.db.commit()
+        return None
+    if current.ocr_status == "Processing" and not is_ocr_processing_stale(current):
+        frappe.db.commit()
+        return None
+    lease_token = frappe.generate_hash(length=32)
+    _set_ocr_state(
+        doc,
+        version,
+        "Processing",
+        lease_token=lease_token,
+    )
+    frappe.db.commit()
+    return lease_token
+
+
+def recover_stale_ocr_jobs():
+    processing_versions = frappe.get_all(
+        "Document Version",
+        filters={"ocr_status": "Processing"},
+        fields=[
+            "name",
+            "parent",
+            "ocr_status",
+            "ocr_started_at",
+            "ocr_heartbeat_at",
+        ],
+        limit_page_length=0,
+    )
+    recovered = []
+    for row in processing_versions:
+        if not is_ocr_processing_stale(row):
+            continue
+        frappe.db.sql(
+            "SELECT name FROM `tabDocument Version` WHERE name = %s FOR UPDATE",
+            (row.name,),
+        )
+        current = frappe.db.get_value(
+            "Document Version",
+            row.name,
+            [
+                "name",
+                "parent",
+                "ocr_status",
+                "ocr_started_at",
+                "ocr_heartbeat_at",
+            ],
+            as_dict=True,
+        )
+        if not current or not is_ocr_processing_stale(current):
+            frappe.db.commit()
+            continue
+        frappe.db.set_value(
+            "Document Version",
+            row.name,
+            {
+                "ocr_status": "Pending",
+                "ocr_started_at": None,
+                "ocr_heartbeat_at": None,
+                "ocr_lease_token": None,
+            },
+        )
+        frappe.db.set_value("Document", row.parent, "ocr_status", "Pending")
+        frappe.db.commit()
+        frappe.enqueue(
+            "document_management.frappe_document_management.utils.ocr_worker.process_ocr",
+            doc_name=row.parent,
+            queue="long",
+            enqueue_after_commit=True,
+        )
+        recovered.append(row.parent)
+    return recovered
 
 
 def _extract_pdf_pages(pdf_path):
@@ -365,7 +535,13 @@ def _delete_replaced_preview(version_name, previous_url, current_url):
         )
 
 
-def _run_local_ocr(source_path, ext, temp_dir, config):
+def _run_local_ocr(
+    source_path,
+    ext,
+    temp_dir,
+    config,
+    timeout_seconds=3570,
+):
     base_name = os.path.splitext(os.path.basename(source_path))[0]
     output_pdf = os.path.join(temp_dir, f"{base_name}_ocr.pdf")
     sidecar = os.path.join(temp_dir, f"{base_name}_ocr.txt")
@@ -396,6 +572,7 @@ def _run_local_ocr(source_path, ext, temp_dir, config):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
+        timeout=timeout_seconds,
     )
     pages = []
     if os.path.exists(output_pdf):
@@ -432,17 +609,16 @@ def _apply_tags(doc, extracted_text):
 def process_ocr(doc_name):
     temp_dir = None
     replaced_preview = ("", "")
+    lease_token = None
     try:
         doc = frappe.get_doc("Document", doc_name)
         version = _current_version(doc)
         if not version:
             doc.db_set("ocr_status", "Pending")
             return
-        if version.ocr_status in ("Processing", "Completed"):
+        lease_token = _claim_ocr_lease(doc, version)
+        if not lease_token:
             return
-
-        _set_ocr_state(doc, version, "Processing")
-        frappe.db.commit()
 
         config = _ocr_config()
         source_url, original_ext = _processing_source(version)
@@ -456,13 +632,20 @@ def process_ocr(doc_name):
                 text_content = f.read()
             extracted_pages = [text_content]
             extraction_method = "plain-text"
+            _lock_ocr_lease(version.name, lease_token)
             _replace_document_pages(
                 doc,
                 version,
                 extracted_pages,
                 extraction_method,
             )
-            _set_ocr_state(doc, version, "Completed", text_content)
+            _set_ocr_state(
+                doc,
+                version,
+                "Completed",
+                text_content,
+                lease_token=lease_token,
+            )
             _apply_tags(doc, text_content)
             frappe.db.commit()
             
@@ -503,7 +686,12 @@ def process_ocr(doc_name):
                 ext,
                 temp_dir,
                 config,
+                timeout_seconds=max(
+                    (_ocr_timeout_minutes() * 60) - 30,
+                    60,
+                ),
             )
+            _heartbeat_ocr_lease(version.name, lease_token)
             extraction_method = f"ocrmypdf-{config.mode}"
         else:
             extracted_pages = source_pages
@@ -518,6 +706,7 @@ def process_ocr(doc_name):
             if not (content or "").strip()
         ]
         if missing_pages and config.mode != "off":
+            _heartbeat_ocr_lease(version.name, lease_token)
             fallback_pages = extract_pages_with_openai(
                 source_path,
                 ext,
@@ -531,6 +720,7 @@ def process_ocr(doc_name):
             if _aggregate_pages(fallback_pages):
                 extraction_method += "+openai"
         if not _aggregate_pages(extracted_pages) and config.mode != "off":
+            _heartbeat_ocr_lease(version.name, lease_token)
             extracted_pages = extract_pages_with_openai(source_path, ext)
             extraction_method = "openai"
         extracted_text = _aggregate_pages(extracted_pages)
@@ -549,14 +739,13 @@ def process_ocr(doc_name):
             bool(output_pdf and os.path.exists(output_pdf)),
         ) and original_ext not in OFFICE_EXTENSIONS
 
+        _lock_ocr_lease(version.name, lease_token)
         _replace_document_pages(
             doc,
             version,
             extracted_pages,
             extraction_method,
         )
-        _set_ocr_state(doc, version, "Completed", extracted_text)
-        _apply_tags(doc, extracted_text)
         if store_archive:
             replaced_preview = _save_ocr_preview(
                 version,
@@ -565,6 +754,14 @@ def process_ocr(doc_name):
             )
         elif original_ext not in OFFICE_EXTENSIONS:
             replaced_preview = _clear_ocr_preview(version)
+        _set_ocr_state(
+            doc,
+            version,
+            "Completed",
+            extracted_text,
+            lease_token=lease_token,
+        )
+        _apply_tags(doc, extracted_text)
         frappe.db.commit()
         _delete_replaced_preview(version.name, *replaced_preview)
 
@@ -576,13 +773,31 @@ def process_ocr(doc_name):
             timeout=900,
             enqueue_after_commit=True,
         )
+    except OCRLeaseLost:
+        frappe.db.rollback()
+        frappe.logger("document_ocr").warning(
+            "OCR lease lost for %s; discarding obsolete worker result.",
+            doc_name,
+        )
     except Exception:
         frappe.log_error(title="OCR Exception", message=frappe.get_traceback())
         try:
-            if "doc" in locals() and "version" in locals() and version:
+            if (
+                "doc" in locals()
+                and "version" in locals()
+                and version
+                and lease_token
+            ):
                 frappe.db.rollback()
-                _set_ocr_state(doc, version, "Failed")
+                _set_ocr_state(
+                    doc,
+                    version,
+                    "Failed",
+                    lease_token=lease_token,
+                )
                 frappe.db.commit()
+        except OCRLeaseLost:
+            frappe.db.rollback()
         except Exception:
             frappe.log_error(
                 title="OCR Status Update Error",

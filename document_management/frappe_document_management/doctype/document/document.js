@@ -24,8 +24,8 @@ frappe.ui.form.on("Document", {
             // For new docs, they should just fill the form and add a row, 
             // but to be nice, we can add a custom button that uploads the file and saves.
             frm.page.set_primary_action(__('Save & Upload File'), function() {
-                if (!frm.doc.title || !frm.doc.category) {
-                    frappe.msgprint(__('Title and Category are required before uploading.'));
+                if (!frm.doc.title) {
+                    frappe.msgprint(__('Title is required before uploading.'));
                     return;
                 }
                 show_upload_version_dialog(frm, true);
@@ -70,6 +70,11 @@ function show_upload_version_dialog(frm, is_new = false) {
                     only_me: frm.doc.only_me ? '1' : '0',
                     roles: JSON.stringify(
                         (frm.doc.roles_with_access || []).map((row) => row.role)
+                    ),
+                    departments: JSON.stringify(
+                        (frm.doc.departments_with_access || []).map(
+                            (row) => row.department
+                        )
                     )
                 }
                 : {

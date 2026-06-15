@@ -14,6 +14,9 @@
   "preview_status",
   "preview_error",
   "ocr_status",
+  "ocr_started_at",
+  "ocr_heartbeat_at",
+  "ocr_lease_token",
   "ocr_content",
   "change_log",
   "is_markdown"
@@ -46,7 +49,8 @@
    "hidden": 1,
    "label": "File SHA-256",
    "read_only": 1,
-   "search_index": 1
+   "search_index": 1,
+   "unique": 1
   },
   {
    "fieldname": "file_size",
@@ -77,6 +81,27 @@
    "hidden": 1,
    "label": "Preview Status",
    "options": "Pending\nQueued\nProcessing\nCompleted\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ocr_started_at",
+   "fieldtype": "Datetime",
+   "hidden": 1,
+   "label": "OCR Started At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ocr_heartbeat_at",
+   "fieldtype": "Datetime",
+   "hidden": 1,
+   "label": "OCR Heartbeat At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ocr_lease_token",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "OCR Lease Token",
    "read_only": 1
   },
   {

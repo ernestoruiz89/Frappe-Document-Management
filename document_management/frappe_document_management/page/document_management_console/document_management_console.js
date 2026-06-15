@@ -177,12 +177,18 @@ class DocumentManagementConsole {
                     <button v-if="!trash_mode" class="btn-upload" @click="show_upload_modal = true" style="margin-left: 10px;">
                         <i class="fa fa-cloud-upload"></i> ${__('Upload')}
                     </button>
+                    <button v-if="!trash_mode && can_purge" class="btn btn-default" @click="import_archive">
+                        <i class="fa fa-upload"></i> ${__('Import Archive')}
+                    </button>
                 </div>
 
                 <div class="bulk-toolbar" v-if="selected_count">
                     <strong>{{ selected_count }} ${__('selected')}</strong>
                     <button v-if="!trash_mode" class="btn btn-sm btn-default" @click="show_bulk_edit">
                         <i class="fa fa-pencil"></i> ${__('Edit')}
+                    </button>
+                    <button v-if="!trash_mode" class="btn btn-sm btn-default" @click="export_selected">
+                        <i class="fa fa-download"></i> ${__('Export Archive')}
                     </button>
                     <button v-if="!trash_mode" class="btn btn-sm btn-danger" @click="trash_selected">
                         <i class="fa fa-trash"></i> ${__('Move to trash')}
@@ -502,6 +508,9 @@ class DocumentManagementConsole {
                             <button v-if="!trash_mode" class="btn btn-copy-link" @click="copy_link(selected_doc)">
                                 <i class="fa fa-clipboard"></i> ${__('Copy Link')}
                             </button>
+                            <button v-if="!trash_mode" class="btn btn-default" @click="manage_share_links(selected_doc)">
+                                <i class="fa fa-share-alt"></i> ${__('External Share')}
+                            </button>
                             <button v-if="!trash_mode" class="btn btn-default" @click="reprocess_ocr(selected_doc.name)" :disabled="['Pending', 'Processing'].includes(selected_doc.ocr_status)">
                                 <i class="fa fa-file-text-o"></i> ${__('Reprocess OCR')}
                             </button>
@@ -563,9 +572,9 @@ class DocumentManagementConsole {
                                     <input type="text" class="pc-form-control" v-model="upload_form.title" placeholder="${__('Document Title')}" required>
                                 </div>
                                 <div class="pc-form-group">
-                                    <label>${__('Category *')}</label>
-                                    <select class="pc-form-control" v-model="upload_form.category" required>
-                                        <option value="" disabled>${__('Select Category')}</option>
+                                    <label>${__('Category')} <span style="font-weight:normal;color:#888;">(Optional)</span></label>
+                                    <select class="pc-form-control" v-model="upload_form.category">
+                                        <option value="">${__('No Category')}</option>
                                         <option v-for="cat in categories" :value="cat.name">{{ cat.name }}</option>
                                     </select>
                                 </div>
@@ -580,7 +589,7 @@ class DocumentManagementConsole {
                             </div>
                             <div class="pc-modal-footer">
                                 <button class="btn btn-default" @click="close_upload_modal">${__('Cancel')}</button>
-                                <button class="btn-upload" @click="submit_upload" :disabled="!upload_form.file || !upload_form.title || !upload_form.category || is_uploading">
+                                <button class="btn-upload" @click="submit_upload" :disabled="!upload_form.file || !upload_form.title || is_uploading">
                                     <i class="fa fa-spinner fa-spin" v-if="is_uploading"></i>
                                     <i class="fa fa-upload" v-else></i>
                                     {{ is_uploading ? '${__('Uploading...')}' : '${__('Upload & Save')}' }}
@@ -720,7 +729,7 @@ class DocumentManagementConsole {
                 };
 
                 const submit_upload = async () => {
-                    if (!upload_form.file || !upload_form.title || !upload_form.category) return;
+                    if (!upload_form.file || !upload_form.title) return;
                     is_uploading.value = true;
 
                     try {
@@ -1036,6 +1045,44 @@ class DocumentManagementConsole {
                     dialog.show();
                 };
 
+                const export_selected = () => {
+                    frappe.call({
+                        method: 'document_management.frappe_document_management.utils.archive_portability.export_document_archive',
+                        args: {documents: JSON.stringify(selected_list())},
+                        freeze: true,
+                        callback: (r) => {
+                            if (r.message?.file_url) {
+                                window.open(r.message.file_url, '_blank');
+                            }
+                        }
+                    });
+                };
+
+                const import_archive = () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.zip,application/zip';
+                    input.onchange = async () => {
+                        const file = input.files?.[0];
+                        if (!file) return;
+                        try {
+                            const result = await upload_document_file(
+                                file,
+                                'document_management.frappe_document_management.utils.archive_portability.import_document_archive',
+                                {}
+                            );
+                            frappe.show_alert({
+                                message: __('Imported {0} documents', [result.count || 0]),
+                                indicator: 'green'
+                            });
+                            fetch_documents();
+                        } catch (error) {
+                            frappe.msgprint(error.message || __('Archive import failed.'));
+                        }
+                    };
+                    input.click();
+                };
+
                 const trash_selected = () => {
                     frappe.confirm(__('Move selected documents to trash?'), () =>
                         run_bulk_action('move_documents_to_trash', {
@@ -1232,6 +1279,85 @@ class DocumentManagementConsole {
                     });
                 };
 
+                const manage_share_links = (doc) => {
+                    if (!doc) return;
+                    const dialog = new frappe.ui.Dialog({
+                        title: __('External share links'),
+                        fields: [
+                            {
+                                fieldname: 'expiration_days',
+                                fieldtype: 'Int',
+                                label: __('Expiration (days)'),
+                                default: 7,
+                                reqd: 1
+                            },
+                            {
+                                fieldname: 'file_version',
+                                fieldtype: 'Select',
+                                label: __('File version'),
+                                options: 'Original\nSearchable PDF',
+                                default: 'Original',
+                                reqd: 1
+                            },
+                            {
+                                fieldname: 'links_html',
+                                fieldtype: 'HTML',
+                                label: __('Existing links')
+                            }
+                        ],
+                        primary_action_label: __('Create and copy link'),
+                        primary_action: (values) => {
+                            frappe.call({
+                                method: 'document_management.frappe_document_management.utils.document_sharing.create_share_link',
+                                args: {
+                                    document: doc.name,
+                                    expiration_days: values.expiration_days,
+                                    file_version: values.file_version
+                                },
+                                callback: (r) => {
+                                    if (!r.exc && r.message?.url) {
+                                        navigator.clipboard.writeText(r.message.url);
+                                        frappe.show_alert({
+                                            message: __('Share link copied to clipboard'),
+                                            indicator: 'green'
+                                        });
+                                        load_links();
+                                    }
+                                }
+                            });
+                        }
+                    });
+                    const load_links = () => {
+                        frappe.call({
+                            method: 'document_management.frappe_document_management.utils.document_sharing.get_share_links',
+                            args: {document: doc.name},
+                            callback: (r) => {
+                                const links = r.message || [];
+                                const wrapper = dialog.fields_dict.links_html.$wrapper;
+                                if (!links.length) {
+                                    wrapper.html(`<p class="text-muted">${__('No share links created.')}</p>`);
+                                    return;
+                                }
+                                wrapper.html(links.map((link) => `
+                                    <div class="share-link-row" style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-color);">
+                                        <span>${frappe.utils.escape_html(link.file_version)} · ${frappe.datetime.str_to_user(link.expires_at)} · ${link.enabled ? __('Active') : __('Revoked')}</span>
+                                        ${link.enabled ? `<button class="btn btn-xs btn-danger revoke-share-link" data-name="${frappe.utils.escape_html(link.name)}">${__('Revoke')}</button>` : ''}
+                                    </div>
+                                `).join(''));
+                                wrapper.find('.revoke-share-link').on('click', function() {
+                                    frappe.call({
+                                        method: 'document_management.frappe_document_management.utils.document_sharing.revoke_share_link',
+                                        args: {name: this.dataset.name},
+                                        callback: load_links
+                                    });
+                                });
+                            }
+                        });
+                    };
+                    dialog.show();
+                    load_links();
+                };
+
                 const force_pdf = (doc_name) => {
                     frappe.call({
                         method: 'document_management.frappe_document_management.page.document_management_console.document_management_console.force_generate_pdf',
@@ -1317,9 +1443,10 @@ class DocumentManagementConsole {
                     show_tag_dropdown, toggle_tag_dropdown, clear_tags,
                     fetch_documents, debounce_fetch, select_doc, open_doc, status_class, force_pdf,
                     apply_saved_view, save_view, delete_view,
-                    reprocess_ocr, copy_link,
+                    reprocess_ocr, copy_link, manage_share_links,
                     is_selected, toggle_selection, toggle_all, clear_selection, toggle_trash,
                     show_bulk_edit, trash_selected, restore_selected, purge_selected,
+                    export_selected, import_archive,
                     trash_one, restore_one, purge_one,
                     is_pdf, is_img, is_office, is_txt, is_md, text_preview_content, loading_text_preview, highlight_text, render_markdown, handle_markdown_click,
                     get_icon, get_icon_class, get_file_type, get_tag_style,

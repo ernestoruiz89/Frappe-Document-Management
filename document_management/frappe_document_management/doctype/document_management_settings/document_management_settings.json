@@ -13,6 +13,7 @@
   "ocr_archive_generation",
   "ocr_language",
   "ocr_min_text_chars",
+  "ocr_processing_timeout_minutes",
   "enable_openai_for_ocr",
   "openai_ocr_model",
   "chat_section",
@@ -39,6 +40,9 @@
   "rag_min_semantic_score",
   "index_path",
   "indexed_doctypes",
+  "archive_management_section",
+  "trash_retention_days",
+  "export_retention_hours",
   "legacy_section",
   "semantic_model_type",
   "openai_model",
@@ -109,6 +113,13 @@
    "fieldname": "ocr_min_text_chars",
    "fieldtype": "Int",
    "label": "Digital PDF Text Threshold"
+  },
+  {
+   "default": "60",
+   "description": "Processing jobs older than this are considered interrupted and can be queued again.",
+   "fieldname": "ocr_processing_timeout_minutes",
+   "fieldtype": "Int",
+   "label": "OCR Processing Timeout (Minutes)"
   },
   {
    "default": "1",
@@ -300,6 +311,25 @@
    "fieldtype": "Table",
    "label": "Operational Indexed DocTypes",
    "options": "Indexed DocType"
+  },
+  {
+   "fieldname": "archive_management_section",
+   "fieldtype": "Section Break",
+   "label": "Archive Lifecycle"
+  },
+  {
+   "default": "30",
+   "description": "Documents in trash are permanently deleted after this many days. Set to 0 to disable automatic deletion.",
+   "fieldname": "trash_retention_days",
+   "fieldtype": "Int",
+   "label": "Trash Retention (Days)"
+  },
+  {
+   "default": "24",
+   "description": "Generated portable ZIP exports are deleted automatically after this many hours. Set to 0 to disable cleanup.",
+   "fieldname": "export_retention_hours",
+   "fieldtype": "Int",
+   "label": "Export Retention (Hours)"
   }
  ],
  "issingle": 1,

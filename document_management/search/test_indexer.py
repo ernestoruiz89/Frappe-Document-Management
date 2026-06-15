@@ -19,6 +19,7 @@ from document_management.search.query import (
     make_excerpt,
     normalize_language,
     query_tokens,
+    search_match_details,
     significant_terms,
 )
 
@@ -267,6 +268,22 @@ def test_excerpt_is_centered_on_a_matching_term():
     assert excerpt.endswith("...")
 
 
+def test_excerpt_matches_query_without_accents():
+    content = ("inicio " * 80) + "Período de Nómina activo" + (
+        " final" * 80
+    )
+
+    excerpt = make_excerpt(
+        content,
+        "periodo de nomina",
+        maximum=120,
+        language="es",
+    )
+
+    assert "Período de Nómina" in excerpt
+    assert excerpt.startswith("...")
+
+
 def test_long_document_excerpt_can_supply_list_card_context():
     content = ("contexto previo " * 80) + "riesgo de fraude" + (
         " contexto posterior" * 80
@@ -285,6 +302,45 @@ def test_long_document_excerpt_can_supply_list_card_context():
 
 def test_fold_text_normalizes_accents_for_indexing():
     assert fold_text("Período de Nómina") == "periodo de nomina"
+
+
+def test_search_match_details_prioritize_exact_accent_insensitive_title():
+    details = search_match_details(
+        "periodo de nomina",
+        doc_name="PAYROLL-001",
+        title="Período de Nómina",
+        content="Configuración activa",
+        language="es",
+    )
+
+    assert details["match_type"] == "exact"
+    assert details["quality"] == 90
+    assert details["coverage"] == 1
+
+
+def test_search_match_details_report_partial_term_coverage():
+    details = search_match_details(
+        "contrato cliente vencido urgente",
+        title="Contrato de cliente",
+        content="Seguimiento pendiente",
+        language="es",
+    )
+
+    assert details["match_type"] == "partial"
+    assert details["matched_terms"] == 2
+    assert details["total_terms"] == 4
+    assert details["coverage"] == 0.5
+
+
+def test_search_match_details_do_not_count_word_substrings():
+    details = search_match_details(
+        "pay contract",
+        content="Payment contract",
+        language="en",
+    )
+
+    assert details["matched_terms"] == 1
+    assert details["coverage"] == 0.5
 
 
 def test_natural_query_weights_fields_and_supports_relaxed_mode(monkeypatch):
@@ -333,6 +389,95 @@ def test_natural_query_weights_fields_and_supports_relaxed_mode(monkeypatch):
     assert "nomina" in repr(strict)
     assert "doc_name" in repr(strict)
     assert "6.0" in repr(strict)
+
+
+def test_tantivy_search_prioritizes_exact_and_filters_weak_partial_hits(
+    monkeypatch,
+):
+    class SearchResult:
+        def __init__(self, hits, count):
+            self.hits = hits
+            self.count = count
+
+    documents = {
+        "exact": {
+            "doc_type": ["Task"],
+            "doc_name": ["TASK-EXACT"],
+            "title": ["Contrato cliente vencido urgente"],
+            "content": [""],
+        },
+        "generic": {
+            "doc_type": ["Task"],
+            "doc_name": ["TASK-GENERIC"],
+            "title": ["Seguimiento"],
+            "content": ["contrato cliente vencido urgente"],
+        },
+        "too-partial": {
+            "doc_type": ["Task"],
+            "doc_name": ["TASK-NOISE"],
+            "title": ["Contrato"],
+            "content": ["sin relacion"],
+        },
+        "useful-partial": {
+            "doc_type": ["Task"],
+            "doc_name": ["TASK-PARTIAL"],
+            "title": ["Contrato cliente"],
+            "content": ["seguimiento"],
+        },
+    }
+
+    class FakeSearcher:
+        def search(self, query, limit, count=True, offset=0):
+            hits = {
+                "strict": [(2.0, "exact"), (20.0, "generic")],
+                "relaxed": [
+                    (2.0, "exact"),
+                    (8.0, "too-partial"),
+                    (5.0, "useful-partial"),
+                ],
+            }[query]
+            return SearchResult(hits[offset:offset + limit], len(hits))
+
+        def doc(self, address):
+            return documents[address]
+
+    class FakeIndex:
+        def reload(self):
+            return None
+
+        def searcher(self):
+            return FakeSearcher()
+
+    monkeypatch.setattr(tantivy_backend, "get_index", lambda: FakeIndex())
+    monkeypatch.setattr(
+        tantivy_backend,
+        "build_natural_query",
+        lambda index, query, fields, require_all: (
+            "strict" if require_all else "relaxed"
+        ),
+    )
+
+    results = tantivy_backend.search(
+        "contrato cliente vencido urgente",
+        limit=3,
+    )
+
+    assert [row["doc_name"] for row in results] == [
+        "TASK-EXACT",
+        "TASK-GENERIC",
+        "TASK-PARTIAL",
+    ]
+    assert results[0]["match_type"] == "exact"
+
+    second_page = tantivy_backend.search(
+        "contrato cliente vencido urgente",
+        limit=2,
+        offset=1,
+    )
+    assert [row["doc_name"] for row in second_page] == [
+        "TASK-GENERIC",
+        "TASK-PARTIAL",
+    ]
 
 
 def test_tantivy_rebuild_publishes_generation_atomically(monkeypatch, tmp_path):

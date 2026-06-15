@@ -452,6 +452,19 @@ def fold_text(value):
     ).lower()
 
 
+def _fold_with_offsets(value):
+    folded = []
+    offsets = []
+    for index, character in enumerate(str(value or "")):
+        normalized = unicodedata.normalize("NFKD", character)
+        for normalized_character in normalized:
+            if unicodedata.combining(normalized_character):
+                continue
+            folded.append(normalized_character.lower())
+            offsets.append(index)
+    return "".join(folded), offsets
+
+
 def significant_terms(query, language=None):
     stopwords = stopwords_for_language(language)
     return list(
@@ -468,13 +481,13 @@ def make_excerpt(content, query, maximum=360, language=None):
     if len(normalized) <= maximum:
         return normalized
 
-    lowered = normalized.lower()
+    folded_content, offsets = _fold_with_offsets(normalized)
     positions = [
-        lowered.find(term)
+        folded_content.find(fold_text(term))
         for term in significant_terms(query, language=language)
     ]
     positions = [position for position in positions if position >= 0]
-    center = min(positions) if positions else 0
+    center = offsets[min(positions)] if positions and offsets else 0
     start = max(center - maximum // 3, 0)
     end = min(start + maximum, len(normalized))
     if end - start < maximum:
@@ -482,6 +495,53 @@ def make_excerpt(content, query, maximum=360, language=None):
     prefix = "..." if start else ""
     suffix = "..." if end < len(normalized) else ""
     return prefix + normalized[start:end].strip() + suffix
+
+
+def search_match_details(query, doc_name="", title="", content="", language=None):
+    terms = significant_terms(query, language=language)
+    folded_terms = list(dict.fromkeys(fold_text(term) for term in terms))
+    folded_query = " ".join(fold_text(query).split())
+    folded_name = " ".join(fold_text(doc_name).split())
+    folded_title = " ".join(fold_text(title).split())
+    folded_content = fold_text(content)
+    searchable = " ".join(
+        part for part in (folded_name, folded_title, folded_content) if part
+    )
+    searchable_tokens = set(query_tokens(searchable))
+    matched_terms = sum(term in searchable_tokens for term in folded_terms)
+    total_terms = len(folded_terms)
+    coverage = matched_terms / total_terms if total_terms else 0.0
+
+    exact_name = bool(folded_query and folded_name == folded_query)
+    exact_title = bool(folded_query and folded_title == folded_query)
+    quality = 0
+    if exact_name:
+        quality = 100
+    elif exact_title:
+        quality = 90
+    elif folded_query and folded_name.startswith(folded_query):
+        quality = 75
+    elif folded_query and folded_title.startswith(folded_query):
+        quality = 65
+    elif folded_query and folded_query in folded_title:
+        quality = 50
+    elif folded_query and folded_query in folded_content:
+        quality = 30
+
+    if exact_name or exact_title:
+        match_type = "exact"
+    elif total_terms and matched_terms == total_terms:
+        match_type = "all_terms"
+    else:
+        match_type = "partial"
+
+    return {
+        "quality": quality,
+        "match_type": match_type,
+        "matched_terms": matched_terms,
+        "total_terms": total_terms,
+        "coverage": coverage,
+    }
 
 
 def build_natural_query(

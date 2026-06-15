@@ -16,6 +16,9 @@ class IndexedDocTypesSearchController {
         this.options = [];
         this.currentQuery = '';
         this.currentTerms = [];
+        this.currentPage = 1;
+        this.pageLength = 25;
+        this.searchRequest = 0;
         this.bind();
         this.setupActions();
         this.loadOptions();
@@ -38,11 +41,13 @@ class IndexedDocTypesSearchController {
     }
 
     bind() {
-        this.wrapper.find('#indexed-doctypes-search-button').on('click', () => this.search());
+        this.wrapper.find('#indexed-doctypes-search-button').on('click', () => {
+            this.search(1);
+        });
         this.wrapper.find('#indexed-doctypes-search-input').on('keydown', (event) => {
             if (event.key === 'Enter') {
                 event.preventDefault();
-                this.search();
+                this.search(1);
             }
         });
     }
@@ -82,6 +87,7 @@ class IndexedDocTypesSearchController {
             .on('click', () => {
                 this.selectedTypes.clear();
                 this.renderTypes();
+                if (this.currentQuery) this.search(1);
             });
         container.append(all);
         this.options.forEach((option) => {
@@ -95,51 +101,70 @@ class IndexedDocTypesSearchController {
                         this.selectedTypes.add(option.value);
                     }
                     this.renderTypes();
+                    if (this.currentQuery) this.search(1);
                 });
             container.append(button);
         });
         all.toggleClass('active', this.selectedTypes.size === 0);
     }
 
-    async search() {
+    async search(page = 1) {
         const query = this.wrapper.find('#indexed-doctypes-search-input').val().trim();
         if (!query) return;
+        const requestId = ++this.searchRequest;
+        this.currentPage = Math.max(Number(page) || 1, 1);
         this.currentQuery = query;
         const results = this.wrapper.find('#indexed-doctypes-search-results');
         const status = this.wrapper.find('#indexed-doctypes-search-status');
+        const button = this.wrapper.find('#indexed-doctypes-search-button');
+        button.prop('disabled', true);
         results.html(
             '<div class="search-empty"><i class="fa fa-spinner fa-spin"></i></div>'
         );
-        status.text(__('Searching...'));
+        status.removeClass('text-danger').text(__('Searching...'));
         try {
             const response = await this.call('search', {
                 query,
-                limit: 25,
+                page: this.currentPage,
+                page_length: this.pageLength,
                 doctypes: JSON.stringify(Array.from(this.selectedTypes))
             });
+            if (requestId !== this.searchRequest) return;
             this.currentTerms = response.terms || [];
             this.renderResults(response);
             const count = (response.exact || []).length;
+            const pagination = response.pagination || {};
             status.text(
                 response.exact_error
                     ? response.exact_error
-                    : __('{0} results', [count])
+                    : count
+                        ? __('Results {0}-{1}', [
+                            pagination.from || 1,
+                            pagination.to || count
+                        ])
+                        : __('0 results')
             ).toggleClass(
                 'text-danger',
                 Boolean(response.exact_error)
             );
         } catch (error) {
+            if (requestId !== this.searchRequest) return;
             results.html(
                 `<div class="search-empty"><strong>${__(
                     'Search is temporarily unavailable.'
                 )}</strong></div>`
             );
             status.empty();
+        } finally {
+            if (requestId === this.searchRequest) {
+                button.prop('disabled', false);
+            }
         }
     }
 
     renderResults(response) {
         const container = this.wrapper.find('#indexed-doctypes-search-results').empty();
+        const rows = response.exact || [];
         if (response.exact_error) {
             container.append(
                 $('<div class="alert alert-warning"></div>').text(
@@ -150,15 +175,34 @@ class IndexedDocTypesSearchController {
         this.renderSection(
             container,
             __('Indexed Records'),
-            response.exact || []
+            rows
         );
-        if (!container.children().length) {
-            container.html(
+        if (!rows.length && !response.exact_error) {
+            container.append(
                 `<div class="search-empty"><i class="fa fa-search"></i><strong>${
                     __('No permitted results found.')
                 }</strong></div>`
             );
         }
+        this.renderPagination(container, response.pagination || {});
+    }
+
+    renderPagination(container, pagination) {
+        if (!pagination.has_previous && !pagination.has_more) return;
+        const controls = $('<nav class="search-pagination"></nav>');
+        const previous = $('<button class="btn btn-default btn-sm"></button>')
+            .text(__('Previous'))
+            .prop('disabled', !pagination.has_previous)
+            .on('click', () => this.search(this.currentPage - 1));
+        const page = $('<span class="search-pagination-page"></span>').text(
+            __('Page {0}', [pagination.page || this.currentPage])
+        );
+        const next = $('<button class="btn btn-default btn-sm"></button>')
+            .text(__('Next'))
+            .prop('disabled', !pagination.has_more)
+            .on('click', () => this.search(this.currentPage + 1));
+        controls.append(previous, page, next);
+        container.append(controls);
     }
 
     renderSection(container, title, rows) {
@@ -176,8 +220,8 @@ class IndexedDocTypesSearchController {
                 )
             );
             header.append(
-                $('<div class="result-score"></div>').text(
-                    Number(row.score || 0).toFixed(3)
+                $('<div class="result-match"></div>').text(
+                    this.matchLabel(row)
                 )
             );
             card.append(header);
@@ -216,32 +260,93 @@ class IndexedDocTypesSearchController {
     highlightText(value) {
         const fragment = document.createDocumentFragment();
         const text = String(value || '');
-        const terms = this.highlightTerms();
+        const terms = this.highlightTerms()
+            .map((term) => this.foldText(term))
+            .filter(Boolean);
         if (!terms.length) {
             fragment.append(document.createTextNode(text));
             return fragment;
         }
 
-        const pattern = new RegExp(
-            `(${terms.map((term) => this.escapeRegExp(term)).join('|')})`,
-            'giu'
-        );
+        const folded = this.foldTextWithOffsets(text);
+        const ranges = [];
+        terms.forEach((term) => {
+            let searchFrom = 0;
+            while (searchFrom < folded.text.length) {
+                const index = folded.text.indexOf(term, searchFrom);
+                if (index < 0) break;
+                const first = folded.offsets[index];
+                const last = folded.offsets[index + term.length - 1];
+                if (first && last) {
+                    ranges.push([first.start, last.end]);
+                }
+                searchFrom = index + Math.max(term.length, 1);
+            }
+        });
+        ranges.sort((left, right) => left[0] - right[0] || right[1] - left[1]);
+        const merged = [];
+        ranges.forEach((range) => {
+            const previous = merged[merged.length - 1];
+            if (previous && range[0] <= previous[1]) {
+                previous[1] = Math.max(previous[1], range[1]);
+            } else {
+                merged.push(range.slice());
+            }
+        });
+
         let lastIndex = 0;
-        for (const match of text.matchAll(pattern)) {
-            if (match.index > lastIndex) {
+        merged.forEach(([start, end]) => {
+            if (start > lastIndex) {
                 fragment.append(
-                    document.createTextNode(text.slice(lastIndex, match.index))
+                    document.createTextNode(text.slice(lastIndex, start))
                 );
             }
             const mark = document.createElement('mark');
-            mark.textContent = match[0];
+            mark.textContent = text.slice(start, end);
             fragment.append(mark);
-            lastIndex = match.index + match[0].length;
-        }
+            lastIndex = end;
+        });
         if (lastIndex < text.length) {
             fragment.append(document.createTextNode(text.slice(lastIndex)));
         }
         return fragment;
+    }
+
+    matchLabel(row) {
+        if (row.match_type === 'exact') {
+            return __('Exact match');
+        }
+        if (row.match_type === 'all_terms') {
+            return __('All terms');
+        }
+        const coverage = Math.round(Number(row.coverage || 0) * 100);
+        return __('Partial {0}%', [coverage]);
+    }
+
+    foldText(value) {
+        return String(value || '')
+            .normalize('NFKD')
+            .replace(/\p{M}/gu, '')
+            .toLocaleLowerCase();
+    }
+
+    foldTextWithOffsets(value) {
+        const source = String(value || '');
+        const offsets = [];
+        let text = '';
+        let sourceIndex = 0;
+        for (const character of source) {
+            const foldedCharacter = this.foldText(character);
+            text += foldedCharacter;
+            for (let index = 0; index < foldedCharacter.length; index += 1) {
+                offsets.push({
+                    start: sourceIndex,
+                    end: sourceIndex + character.length
+                });
+            }
+            sourceIndex += character.length;
+        }
+        return { text, offsets };
     }
 
     highlightTerms() {
@@ -252,7 +357,4 @@ class IndexedDocTypesSearchController {
         );
     }
 
-    escapeRegExp(value) {
-        return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    }
 }

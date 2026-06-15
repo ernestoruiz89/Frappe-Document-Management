@@ -408,8 +408,8 @@ class TestDocumentChatSecurity(FrappeTestCase):
                 return_value=settings,
             ),
             patch(
-                "document_management.search.indexer.tantivy_backend.search",
-                return_value=hits,
+                "document_management.search.indexer.tantivy_backend.iter_search",
+                return_value=iter([hits]),
             ),
             patch(
                 "document_management.search.indexer.frappe.get_list",
@@ -456,8 +456,8 @@ class TestDocumentChatSecurity(FrappeTestCase):
                 return_value=settings,
             ),
             patch(
-                "document_management.search.indexer.tantivy_backend.search",
-                return_value=hits,
+                "document_management.search.indexer.tantivy_backend.iter_search",
+                return_value=iter([hits]),
             ),
             patch(
                 "document_management.search.indexer.frappe.get_list",
@@ -487,6 +487,68 @@ class TestDocumentChatSecurity(FrappeTestCase):
         self.assertEqual(
             [row["doc_name"] for row in results["exact"]],
             ["NOTE-PUBLIC"],
+        )
+
+    def test_global_search_paginates_after_permission_filtering(self):
+        settings = frappe._dict(
+            {
+                "enable_full_text_search": True,
+                "enable_semantic_search": False,
+                "indexed_doctypes": [
+                    frappe._dict(document_type="Note"),
+                ],
+            }
+        )
+        hits = [
+            {
+                "doc_type": "Note",
+                "doc_name": f"NOTE-{index}",
+                "title": f"Note {index}",
+            }
+            for index in range(1, 6)
+        ]
+
+        with (
+            patch(
+                "document_management.search.indexer.frappe.get_single",
+                return_value=settings,
+            ),
+            patch(
+                "document_management.search.indexer.tantivy_backend.iter_search",
+                return_value=iter([hits]),
+            ),
+            patch(
+                "document_management.search.indexer.frappe.get_list",
+                return_value=[
+                    frappe._dict(name=f"NOTE-{index}", modified="")
+                    for index in range(1, 6)
+                ],
+            ),
+            patch(
+                "document_management.search.indexer.frappe.get_hooks",
+                return_value={},
+            ),
+        ):
+            results = global_search(
+                "contract",
+                page=2,
+                page_length=2,
+            )
+
+        self.assertEqual(
+            [row["doc_name"] for row in results["exact"]],
+            ["NOTE-3", "NOTE-4"],
+        )
+        self.assertEqual(
+            results["pagination"],
+            {
+                "page": 2,
+                "page_length": 2,
+                "has_previous": True,
+                "has_more": True,
+                "from": 3,
+                "to": 4,
+            },
         )
 
     def test_new_version_resets_aggregate_ocr_state(self):

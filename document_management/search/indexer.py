@@ -309,6 +309,10 @@ def _record_result(hit, metadata):
         "title": hit.get("title") or hit["doc_name"],
         "excerpt": hit.get("excerpt") or "",
         "score": float(hit.get("score") or 0),
+        "match_type": hit.get("match_type") or "partial",
+        "matched_terms": int(hit.get("matched_terms") or 0),
+        "total_terms": int(hit.get("total_terms") or 0),
+        "coverage": float(hit.get("coverage") or 0),
         "modified": str(metadata.get("modified") or ""),
         "route": (
             f"/app/{hit['doc_type'].lower().replace(' ', '-')}/"
@@ -353,14 +357,28 @@ def _permitted_metadata(hits):
 
 
 @frappe.whitelist()
-def search(query, limit=10, doctypes=None):
+def search(query, page=1, page_length=25, doctypes=None, limit=None):
     query = (query or "").strip()
     if not query:
-        return {"exact": []}
+        return {
+            "exact": [],
+            "pagination": {
+                "page": 1,
+                "page_length": 25,
+                "has_previous": False,
+                "has_more": False,
+            },
+        }
     try:
-        limit = min(max(int(limit), 1), 100)
+        page = max(int(page), 1)
     except (TypeError, ValueError):
-        limit = 10
+        page = 1
+    if limit is not None and page_length in (None, "", 25, "25"):
+        page_length = limit
+    try:
+        page_length = min(max(int(page_length), 1), 100)
+    except (TypeError, ValueError):
+        page_length = 25
 
     settings = frappe.get_single('Document Management Settings')
     configured = {
@@ -375,33 +393,58 @@ def search(query, limit=10, doctypes=None):
         "configured_doctypes": sorted(configured),
         "search_language": current_search_language(),
         "terms": significant_terms(query),
+        "pagination": {
+            "page": page,
+            "page_length": page_length,
+            "has_previous": page > 1,
+            "has_more": False,
+        },
     }
     if not generic_filter:
         return results
 
     if settings.enable_full_text_search:
         try:
-            exact = tantivy_backend.search(
+            target_start = (page - 1) * page_length
+            authorized_seen = 0
+            page_results = []
+            for batch in tantivy_backend.iter_search(
                 query,
-                limit=min(max(limit * 20, 200), 1000),
                 doctypes=sorted(generic_filter),
+                batch_size=max(page_length * 4, 100),
+            ):
+                filtered = [
+                    hit
+                    for hit in batch
+                    if hit["doc_type"] != "Document"
+                    and hit["doc_type"] in generic_filter
+                ]
+                permitted = _permitted_metadata(filtered)
+                for hit in filtered:
+                    key = (hit["doc_type"], hit["doc_name"])
+                    if key not in permitted:
+                        continue
+                    if authorized_seen < target_start:
+                        authorized_seen += 1
+                        continue
+                    page_results.append(
+                        _record_result(hit, permitted[key])
+                    )
+                    authorized_seen += 1
+                    if len(page_results) > page_length:
+                        break
+                if len(page_results) > page_length:
+                    break
+            results["pagination"]["has_more"] = (
+                len(page_results) > page_length
             )
-            filtered = [
-                hit
-                for hit in exact
-                if hit["doc_type"] != "Document"
-                and hit["doc_type"] in generic_filter
-            ]
-            permitted = _permitted_metadata(filtered)
-            authorized = [
-                _record_result(
-                    hit,
-                    permitted[(hit["doc_type"], hit["doc_name"])],
-                )
-                for hit in filtered
-                if (hit["doc_type"], hit["doc_name"]) in permitted
-            ][:limit]
-            results['exact'] = authorized
+            results["exact"] = page_results[:page_length]
+            results["pagination"]["from"] = (
+                target_start + 1 if results["exact"] else 0
+            )
+            results["pagination"]["to"] = (
+                target_start + len(results["exact"])
+            )
         except tantivy_backend.IndexRebuildRequired as exc:
             results["exact_rebuild_required"] = True
             results["exact_error"] = str(exc)

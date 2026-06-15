@@ -11,6 +11,7 @@ from document_management.search.query import (
     build_natural_query,
     fold_text,
     make_excerpt,
+    search_match_details,
 )
 
 
@@ -207,8 +208,13 @@ def remove_document(doc_type, doc_name):
         raise IndexBusy("The operational search index is rebuilding.") from exc
 
 
-def _search_hits(searcher, query, limit):
-    return searcher.search(query, limit).hits
+def _search_result(searcher, query, limit, offset=0):
+    return searcher.search(
+        query,
+        limit,
+        count=True,
+        offset=offset,
+    )
 
 
 def _apply_doctype_filter(index, query, doctypes):
@@ -236,10 +242,44 @@ def _apply_doctype_filter(index, query, doctypes):
     )
 
 
-def search(query_str, limit=10, doctypes=None):
+def _get_first_val(doc, field):
+    try:
+        val = doc[field]
+        if isinstance(val, list) and val:
+            return val[0]
+        if val and not isinstance(val, list):
+            return val
+    except Exception:
+        pass
+    return ""
+
+
+def _build_hit(searcher, query_str, score, doc_address):
+    doc = searcher.doc(doc_address)
+    doc_name = _get_first_val(doc, "doc_name")
+    title = _get_first_val(doc, "title")
+    content = _get_first_val(doc, "content")
+    details = search_match_details(
+        query_str,
+        doc_name=doc_name,
+        title=title,
+        content=content,
+    )
+    return {
+        "score": score,
+        "doc_type": _get_first_val(doc, "doc_type"),
+        "doc_name": doc_name,
+        "title": title,
+        "excerpt": _excerpt(content, query_str),
+        **details,
+    }
+
+
+def iter_search(query_str, doctypes=None, batch_size=100):
     index = get_index()
     index.reload()
     searcher = index.searcher()
+    batch_size = max(int(batch_size), 1)
 
     strict_query = build_natural_query(
         index,
@@ -248,53 +288,74 @@ def search(query_str, limit=10, doctypes=None):
         require_all=True,
     )
     strict_query = _apply_doctype_filter(index, strict_query, doctypes)
-    raw_hits = list(_search_hits(searcher, strict_query, limit))
-
-    if len(raw_hits) < limit:
-        relaxed_query = build_natural_query(
-            index,
-            query_str,
-            SEARCH_FIELDS,
-            require_all=False,
+    strict_offset = 0
+    while True:
+        result = _search_result(
+            searcher,
+            strict_query,
+            batch_size,
+            offset=strict_offset,
         )
-        relaxed_query = _apply_doctype_filter(index, relaxed_query, doctypes)
-        seen_addresses = {str(address) for _, address in raw_hits}
-        for score, address in _search_hits(searcher, relaxed_query, limit * 2):
-            address_key = str(address)
-            if address_key in seen_addresses:
+        if not result.hits:
+            break
+        yield [
+            _build_hit(searcher, query_str, score, doc_address)
+            for score, doc_address in result.hits
+        ]
+        strict_offset += len(result.hits)
+        if strict_offset >= int(result.count or 0):
+            break
+
+    relaxed_query = build_natural_query(
+        index,
+        query_str,
+        SEARCH_FIELDS,
+        require_all=False,
+    )
+    relaxed_query = _apply_doctype_filter(index, relaxed_query, doctypes)
+    relaxed_offset = 0
+    while True:
+        result = _search_result(
+            searcher,
+            relaxed_query,
+            batch_size,
+            offset=relaxed_offset,
+        )
+        if not result.hits:
+            break
+        candidates = []
+        for score, doc_address in result.hits:
+            hit = _build_hit(searcher, query_str, score, doc_address)
+            minimum_matches = max(1, (hit["total_terms"] + 1) // 2)
+            if hit["matched_terms"] == hit["total_terms"]:
                 continue
-            raw_hits.append((score, address))
-            seen_addresses.add(address_key)
-            if len(raw_hits) >= limit:
-                break
+            if hit["matched_terms"] < minimum_matches:
+                continue
+            candidates.append(hit)
+        if candidates:
+            yield candidates
+        relaxed_offset += len(result.hits)
+        if relaxed_offset >= int(result.count or 0):
+            break
 
-    def get_first_val(doc, field):
-        try:
-            val = doc[field]
-            if isinstance(val, list) and val:
-                return val[0]
-            if val and not isinstance(val, list):
-                return val
-        except Exception:
-            pass
-        return ""
 
-    hits = []
-    for score, doc_address in raw_hits[:limit]:
-        doc = searcher.doc(doc_address)
-        hits.append(
-            {
-                "score": score,
-                "doc_type": get_first_val(doc, "doc_type"),
-                "doc_name": get_first_val(doc, "doc_name"),
-                "title": get_first_val(doc, "title"),
-                "excerpt": _excerpt(
-                    get_first_val(doc, "content"),
-                    query_str,
-                ),
-            }
-        )
-    return hits
+def search(query_str, limit=10, doctypes=None, offset=0):
+    limit = max(int(limit), 0)
+    offset = max(int(offset), 0)
+    if not limit:
+        return []
+
+    results = []
+    skipped = 0
+    for batch in iter_search(query_str, doctypes=doctypes):
+        for hit in batch:
+            if skipped < offset:
+                skipped += 1
+                continue
+            results.append(hit)
+            if len(results) >= limit:
+                return results
+    return results
 
 
 def _excerpt(content, query, maximum=280):

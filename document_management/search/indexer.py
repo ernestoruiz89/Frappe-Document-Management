@@ -98,6 +98,44 @@ def get_document_content(doc):
     return " ".join(content_parts)
 
 
+def get_document_comments(doc_type, doc_names):
+    names = list(dict.fromkeys(str(name) for name in doc_names if name))
+    if not names:
+        return {}
+
+    comments = {name: [] for name in names}
+    rows = frappe.get_all(
+        "Comment",
+        filters={
+            "reference_doctype": doc_type,
+            "reference_name": ["in", names],
+            "comment_type": "Comment",
+        },
+        fields=["reference_name", "content"],
+        order_by="creation asc, name asc",
+    )
+    for row in rows:
+        reference_name = row.get("reference_name")
+        content = _plain_text(row.get("content"), "Text Editor")
+        if reference_name in comments and content:
+            comments[reference_name].append(content)
+    return comments
+
+
+def get_indexable_content(doc, comments=None):
+    content_parts = [get_document_content(doc)]
+    if comments is None:
+        comments = get_document_comments(doc.doctype, [doc.name]).get(
+            doc.name,
+            [],
+        )
+    for comment in comments:
+        text = _plain_text(comment, "Text Editor")
+        if text:
+            content_parts.append(f"Comment: {text}")
+    return " ".join(part for part in content_parts if part)
+
+
 def get_document_title(doc):
     title_field = getattr(doc.meta, "title_field", None)
     if not title_field:
@@ -111,6 +149,29 @@ def get_document_title(doc):
     return _plain_text(doc.get(title_field), field.fieldtype) or doc.name
 
 
+def _comment_reference(doc):
+    if doc.doctype != "Comment":
+        return None
+    if doc.get("comment_type") != "Comment":
+        return None
+    doc_type = doc.get("reference_doctype")
+    doc_name = doc.get("reference_name")
+    if not doc_type or not doc_name:
+        return None
+    return doc_type, doc_name
+
+
+def _enqueue_indexing(doc_type, doc_name, queue="short", timeout=300):
+    frappe.enqueue(
+        "document_management.search.indexer.run_indexing_background",
+        doc_type=doc_type,
+        doc_name=doc_name,
+        queue=queue,
+        timeout=timeout,
+        enqueue_after_commit=True,
+    )
+
+
 def handle_doc_save(doc, method=None):
     try:
         settings = frappe.get_single('Document Management Settings')
@@ -118,9 +179,17 @@ def handle_doc_save(doc, method=None):
         return
         
     indexed_doctypes = [d.document_type for d in settings.get("indexed_doctypes", [])]
+    comment_reference = _comment_reference(doc)
+    if comment_reference:
+        doc_type, doc_name = comment_reference
+        if settings.enable_full_text_search and doc_type in indexed_doctypes:
+            _enqueue_indexing(doc_type, doc_name)
+        return
 
     should_index_generic = (
-        doc.doctype != "Document" and doc.doctype in indexed_doctypes
+        settings.enable_full_text_search
+        and doc.doctype != "Document"
+        and doc.doctype in indexed_doctypes
     )
     should_index_rag = (
         doc.doctype == "Document"
@@ -131,14 +200,7 @@ def handle_doc_save(doc, method=None):
         return
         
     # Enqueue the heavy embedding process so it doesn't block the UI
-    frappe.enqueue(
-        'document_management.search.indexer.run_indexing_background',
-        doc_type=doc.doctype,
-        doc_name=doc.name,
-        queue='short',
-        timeout=300,
-        enqueue_after_commit=True,
-    )
+    _enqueue_indexing(doc.doctype, doc.name)
 
 def run_indexing_background(doc_type, doc_name):
     try:
@@ -151,7 +213,7 @@ def run_indexing_background(doc_type, doc_name):
     if doc_type == "Document" and doc.get("is_deleted"):
         semantic_backend.remove_document(doc_type, doc_name)
         return
-    content = get_document_content(doc)
+    content = get_indexable_content(doc)
     title = get_document_title(doc)
 
     if (
@@ -185,6 +247,12 @@ def handle_doc_trash(doc, method=None):
     try:
         settings = frappe.get_single('Document Management Settings')
         indexed_doctypes = [d.document_type for d in settings.get("indexed_doctypes", [])]
+        comment_reference = _comment_reference(doc)
+        if comment_reference:
+            doc_type, doc_name = comment_reference
+            if settings.enable_full_text_search and doc_type in indexed_doctypes:
+                _enqueue_indexing(doc_type, doc_name)
+            return
         if (
             settings.enable_full_text_search
             and doc.doctype != "Document"
@@ -405,6 +473,10 @@ def rebuild_index():
                 )
                 if not docs:
                     break
+                comments = get_document_comments(
+                    dt,
+                    [row.name for row in docs],
+                )
                 for row in docs:
                     try:
                         doc = frappe.get_doc(dt, row.name)
@@ -412,7 +484,10 @@ def rebuild_index():
                             "doc_type": dt,
                             "doc_name": row.name,
                             "title": get_document_title(doc),
-                            "content": get_document_content(doc),
+                            "content": get_indexable_content(
+                                doc,
+                                comments=comments.get(row.name, []),
+                            ),
                         }
                     except Exception:
                         frappe.log_error(
@@ -480,7 +555,7 @@ def extract_and_index_ocr(doc_type, doc_name):
                     frappe.log_error(title="OCR Error", message=f"Error extracting PDF text: {e}")
 
     # Combine extracted text with the standard document fields
-    base_content = get_document_content(doc)
+    base_content = get_indexable_content(doc)
     full_content = f"{base_content}\n\n--- OCR TEXT ---\n{extracted_text}"
     
     title = get_document_title(doc)

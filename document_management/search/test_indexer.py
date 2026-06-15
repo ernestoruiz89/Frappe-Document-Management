@@ -7,7 +7,11 @@ from document_management.search import tantivy_backend
 from document_management.search.indexer import (
     _parse_doctypes,
     get_document_content,
+    get_document_comments,
     get_document_title,
+    get_indexable_content,
+    handle_doc_save,
+    handle_doc_trash,
 )
 from document_management.search.query import (
     build_natural_query,
@@ -97,6 +101,73 @@ def test_generic_index_strips_html_from_rich_text():
 
     assert content == "Description: Approved contract today"
     assert "<strong>" not in content
+
+
+def test_comments_are_cleaned_and_added_to_index_content(monkeypatch):
+    document = Row(
+        [_field("subject", "Data", "Subject")],
+        subject="Payroll setup",
+    )
+    document.doctype = "Task"
+    document.name = "TASK-001"
+    monkeypatch.setattr(
+        "document_management.search.indexer.frappe.get_all",
+        lambda *args, **kwargs: [
+            {
+                "reference_name": "TASK-001",
+                "content": "<p>Review the <strong>payroll period</strong>.</p>",
+            }
+        ],
+    )
+
+    comments = get_document_comments("Task", ["TASK-001"])
+    content = get_indexable_content(
+        document,
+        comments=comments["TASK-001"],
+    )
+
+    assert comments == {"TASK-001": ["Review the payroll period."]}
+    assert "Subject: Payroll setup" in content
+    assert "Comment: Review the payroll period." in content
+    assert "<strong>" not in content
+
+
+def test_comment_changes_reindex_the_parent_document(monkeypatch):
+    settings = SimpleNamespace(
+        enable_full_text_search=True,
+        get=lambda key, default=None: (
+            [SimpleNamespace(document_type="Task")]
+            if key == "indexed_doctypes"
+            else default
+        ),
+    )
+    comment = Row(
+        [],
+        comment_type="Comment",
+        reference_doctype="Task",
+        reference_name="TASK-001",
+    )
+    comment.doctype = "Comment"
+    comment.name = "COMMENT-001"
+    queued = []
+    monkeypatch.setattr(
+        "document_management.search.indexer.frappe.get_single",
+        lambda *args, **kwargs: settings,
+    )
+    monkeypatch.setattr(
+        "document_management.search.indexer.frappe.enqueue",
+        lambda method, **kwargs: queued.append((method, kwargs)),
+    )
+
+    handle_doc_save(comment)
+    handle_doc_trash(comment)
+
+    assert len(queued) == 2
+    for method, kwargs in queued:
+        assert method.endswith("run_indexing_background")
+        assert kwargs["doc_type"] == "Task"
+        assert kwargs["doc_name"] == "TASK-001"
+        assert kwargs["enqueue_after_commit"] is True
 
 
 def test_restricted_title_field_falls_back_to_document_name():

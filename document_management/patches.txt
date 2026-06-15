@@ -1,2 +1,3 @@
 document_management.patches.v1_0.rename_unified_search_to_indexed_doctypes_search
 document_management.patches.v1_0.rebuild_indexed_doctypes_search_v3
+document_management.patches.v1_0.rebuild_indexed_doctype_comments

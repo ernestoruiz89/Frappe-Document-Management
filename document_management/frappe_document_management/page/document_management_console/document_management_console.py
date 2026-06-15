@@ -1,6 +1,7 @@
-import frappe
+import hashlib
 import json
 
+import frappe
 from frappe.utils import now_datetime
 
 
@@ -69,6 +70,44 @@ def _authorized_documents(names, permission_type="write"):
         doc.check_permission(permission_type)
         documents.append(doc)
     return documents
+
+
+def _uploaded_request_content():
+    content = getattr(frappe.local, "uploaded_file", None)
+    filename = getattr(frappe.local, "uploaded_filename", None)
+    if not content or not filename:
+        frappe.throw("A multipart file upload is required.")
+    return filename, content
+
+
+def _save_version_file(version, folder=None):
+    filename, content = _uploaded_request_content()
+    file_doc = frappe.get_doc(
+        {
+            "doctype": "File",
+            "file_name": filename,
+            "content": content,
+            "attached_to_doctype": "Document Version",
+            "attached_to_name": version.name,
+            "attached_to_field": "attachment",
+            "folder": folder or "Home",
+            "is_private": 1,
+        }
+    ).insert(ignore_permissions=True)
+    checksum = hashlib.sha256(content).hexdigest()
+    frappe.db.set_value(
+        "Document Version",
+        version.name,
+        {
+            "attachment": file_doc.file_url,
+            "file_checksum": checksum,
+            "file_size": len(content),
+        },
+    )
+    version.attachment = file_doc.file_url
+    version.file_checksum = checksum
+    version.file_size = len(content)
+    return file_doc
 
 
 def _enqueue_index_refresh(names, remove=False):
@@ -579,62 +618,123 @@ def get_folders():
     return frappe.get_list("File", filters={"is_folder": 1}, fields=["name as folder_name", "file_name"], order_by="file_name asc")
 
 @frappe.whitelist()
-def quick_upload(title, category, document_code=None, tags=None, file_data=None, folder=None):
-    import json
+def quick_upload(
+    title=None,
+    category=None,
+    document_code=None,
+    tags=None,
+    folder=None,
+    department=None,
+    party_type=None,
+    party_name=None,
+    description=None,
+    status=None,
+    only_me=0,
+    roles=None,
+):
     from frappe.utils import today
-    from frappe.utils.file_manager import save_file
-    
-    frappe.has_permission("Document", "create", throw=True)
-    doc = frappe.new_doc("Document")
-    if document_code:
-        doc.document_code = document_code
-        
-    doc.title = title
-    doc.category = category
-    doc.status = "Draft"
-    if folder:
-        doc.folder = folder
-    
-    if tags:
-        tags_list = json.loads(tags)
-        for tag in tags_list:
-            doc.append("tags", {"tag": tag})
-            
-    doc.insert(ignore_permissions=True)
-    
-    # Process the file if provided
-    file_url = ""
-    if file_data:
-        file_dict = json.loads(file_data)
-        
-        save_args = {
-            "fname": file_dict.get("filename"),
-            "content": file_dict.get("content"),
-            "dt": "Document",
-            "dn": doc.name,
-            "decode": True,
-            "is_private": 1,
-            "df": "attachment"
-        }
-        if folder:
-            save_args["folder"] = folder
-            
-        file_doc = save_file(**save_args)
-        file_url = file_doc.file_url
 
-    # Create the first version placeholder
-    version = doc.append("versions", {
-        "version_number": "1",
-        "release_date": today(),
-        "attachment": file_url,
-        "change_log": "Initial upload"
-    })
-    doc.save(ignore_permissions=True)
-    
-    return {
-        "docname": doc.name,
-        "version_name": version.name
-    }
+    form = frappe.form_dict
+    title = title or form.get("title")
+    category = category or form.get("category")
+    document_code = document_code or form.get("document_code")
+    tags = tags or form.get("tags")
+    folder = folder or form.get("folder")
+    department = department or form.get("department")
+    party_type = party_type or form.get("party_type")
+    party_name = party_name or form.get("party_name")
+    description = description or form.get("description")
+    status = status or form.get("status")
+    only_me = only_me or form.get("only_me")
+    roles = roles or form.get("roles")
+    _uploaded_request_content()
+    frappe.has_permission("Document", "create", throw=True)
+    try:
+        doc = frappe.new_doc("Document")
+        if document_code:
+            doc.document_code = document_code
+        doc.title = (title or "").strip()
+        doc.category = category
+        doc.status = status if status in {"Draft", "Published", "Obsolete"} else "Draft"
+        if folder:
+            doc.folder = folder
+        doc.department = department
+        doc.party_type = party_type
+        doc.party_name = party_name if party_type else None
+        doc.description = description
+        doc.only_me = 1 if str(only_me).lower() in {"1", "true"} else 0
+
+        if tags:
+            tags_list = json.loads(tags) if isinstance(tags, str) else tags
+            for tag in tags_list or []:
+                if not frappe.db.exists("Document Tag", tag):
+                    frappe.throw(f"Document tag does not exist: {tag}")
+                doc.append("tags", {"tag": tag})
+        if roles:
+            role_list = json.loads(roles) if isinstance(roles, str) else roles
+            for role in role_list or []:
+                if not frappe.db.exists("Role", role):
+                    frappe.throw(f"Role does not exist: {role}")
+                doc.append("roles_with_access", {"role": role})
+
+        version = doc.append(
+            "versions",
+            {
+                "version_number": "1",
+                "release_date": today(),
+                "attachment": "/private/files/pending-upload",
+                "change_log": "Initial upload",
+            },
+        )
+        doc.insert()
+        _save_version_file(version, folder)
+        return {"docname": doc.name, "version_name": version.name}
+    except Exception:
+        frappe.db.rollback()
+        raise
+
+
+@frappe.whitelist()
+def add_document_version(doc_name=None, change_log=None, folder=None):
+    from frappe.utils import today
+
+    form = frappe.form_dict
+    doc_name = doc_name or form.get("doc_name")
+    change_log = change_log or form.get("change_log")
+    folder = folder or form.get("folder")
+    _uploaded_request_content()
+    doc = frappe.get_doc("Document", doc_name)
+    doc.check_permission("write")
+    if doc.is_deleted:
+        frappe.throw("Restore the document before adding a version.")
+    try:
+        existing_numbers = {
+            str(row.version_number).strip()
+            for row in doc.get("versions") or []
+            if row.version_number
+        }
+        next_number = 1
+        while str(next_number) in existing_numbers:
+            next_number += 1
+        version = doc.append(
+            "versions",
+            {
+                "version_number": str(next_number),
+                "release_date": today(),
+                "attachment": "/private/files/pending-upload",
+                "change_log": (change_log or "Uploaded new version").strip(),
+            },
+        )
+        doc.save()
+        _save_version_file(version, folder)
+        return {
+            "docname": doc.name,
+            "version_name": version.name,
+            "version_number": version.version_number,
+        }
+    except Exception:
+        frappe.db.rollback()
+        raise
 
 
 @frappe.whitelist()

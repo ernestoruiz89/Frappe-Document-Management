@@ -17,6 +17,27 @@ function markdown_anchor_slug(value) {
         .replace(/-+/g, '-');
 }
 
+async function upload_document_file(file, method, fields) {
+    const form_data = new FormData();
+    form_data.append('file', file, file.name);
+    form_data.append('is_private', '1');
+    form_data.append('method', method);
+    Object.entries(fields || {}).forEach(([key, value]) => {
+        form_data.append(key, value == null ? '' : value);
+    });
+    const response = await fetch('/api/method/upload_file', {
+        method: 'POST',
+        body: form_data,
+        credentials: 'same-origin',
+        headers: {'X-Frappe-CSRF-Token': frappe.csrf_token}
+    });
+    const payload = await response.json();
+    if (!response.ok || payload.exc || !payload.message) {
+        throw new Error(payload.exception || __('File upload failed.'));
+    }
+    return payload.message;
+}
+
 class DocumentManagementConsole {
     constructor(wrapper, page) {
         this.wrapper = $(wrapper).find('.layout-main-section');
@@ -698,40 +719,27 @@ class DocumentManagementConsole {
                     upload_form.file = null;
                 };
 
-                const submit_upload = () => {
+                const submit_upload = async () => {
                     if (!upload_form.file || !upload_form.title || !upload_form.category) return;
                     is_uploading.value = true;
-                    
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const file_data = {
-                            filename: upload_form.file.name,
-                            content: e.target.result.split(',')[1]
-                        };
-                        
-                        frappe.call({
-                            method: 'document_management.frappe_document_management.page.document_management_console.document_management_console.quick_upload',
-                            args: {
+
+                    try {
+                        await upload_document_file(
+                            upload_form.file,
+                            'document_management.frappe_document_management.page.document_management_console.document_management_console.quick_upload',
+                            {
                                 title: upload_form.title,
                                 category: upload_form.category,
-                                folder: upload_form.folder || null,
-                                document_code: upload_form.document_code || null,
-                                file_data: JSON.stringify(file_data)
-                            },
-                            callback: function(r) {
-                                is_uploading.value = false;
-                                if (!r.exc) {
-                                    frappe.show_alert({message: __('Document uploaded successfully'), indicator: 'green'});
-                                    close_upload_modal();
-                                    fetch_documents();
-                                }
-                            },
-                            error: function() {
-                                is_uploading.value = false;
+                                folder: upload_form.folder || '',
+                                document_code: upload_form.document_code || ''
                             }
-                        });
-                    };
-                    reader.readAsDataURL(upload_form.file);
+                        );
+                        frappe.show_alert({message: __('Document uploaded successfully'), indicator: 'green'});
+                        close_upload_modal();
+                        fetch_documents();
+                    } finally {
+                        is_uploading.value = false;
+                    }
                 };
 
                 let debounceTimer;

@@ -56,33 +56,22 @@ function show_quick_upload_dialog(listview) {
             
             d.get_primary_btn().prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Uploading...');
             
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const file_data = {
-                    filename: d.pending_file.name,
-                    content: e.target.result.split(',')[1]
-                };
-                
-                frappe.call({
-                    method: 'document_management.frappe_document_management.page.document_management_console.document_management_console.quick_upload',
-                    args: {
+            upload_document_file(
+                d.pending_file,
+                'document_management.frappe_document_management.page.document_management_console.document_management_console.quick_upload',
+                {
                         title: values.title,
                         category: values.category,
-                        folder: values.folder || null,
-                        document_code: values.document_code || null,
-                        file_data: JSON.stringify(file_data)
-                    },
-                    callback: function(r) {
-                        d.hide();
-                        frappe.show_alert({message: __('Document uploaded successfully'), indicator: 'green'});
-                        listview.refresh();
-                    },
-                    error: function() {
-                        d.get_primary_btn().prop('disabled', false).html('Upload');
-                    }
-                });
-            };
-            reader.readAsDataURL(d.pending_file);
+                        folder: values.folder || '',
+                        document_code: values.document_code || ''
+                }
+            ).then(() => {
+                d.hide();
+                frappe.show_alert({message: __('Document uploaded successfully'), indicator: 'green'});
+                listview.refresh();
+            }).catch(() => {
+                d.get_primary_btn().prop('disabled', false).html(__('Upload'));
+            });
         }
     });
 
@@ -147,4 +136,25 @@ function show_quick_upload_dialog(listview) {
     }
 
     d.show();
+}
+
+async function upload_document_file(file, method, fields) {
+    const form_data = new FormData();
+    form_data.append('file', file, file.name);
+    form_data.append('is_private', '1');
+    form_data.append('method', method);
+    Object.entries(fields || {}).forEach(([key, value]) => {
+        form_data.append(key, value == null ? '' : value);
+    });
+    const response = await fetch('/api/method/upload_file', {
+        method: 'POST',
+        body: form_data,
+        credentials: 'same-origin',
+        headers: {'X-Frappe-CSRF-Token': frappe.csrf_token}
+    });
+    const payload = await response.json();
+    if (!response.ok || payload.exc || !payload.message) {
+        throw new Error(payload.exception || __('File upload failed.'));
+    }
+    return payload.message;
 }

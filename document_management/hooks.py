@@ -31,6 +31,9 @@ doc_events = {
 scheduler_events = {
     "daily": [
         "document_management.frappe_document_management.utils.ml_tagger.train_tagger_model"
+    ],
+    "weekly": [
+        "document_management.frappe_document_management.utils.archive_sanity.scheduled_archive_sanity_check"
     ]
 }
 

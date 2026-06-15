@@ -51,21 +51,46 @@ function show_upload_version_dialog(frm, is_new = false) {
                 return;
             }
             d.get_primary_btn().prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Uploading...');
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                if (is_new) {
-                    // It's a new document, save it first, then upload
-                    frm.save().then(() => {
-                        upload_file_to_existing(frm, d, e.target.result, d.pending_file.name);
-                    }).catch(() => {
-                        d.get_primary_btn().prop('disabled', false).html('Upload');
-                    });
-                } else {
-                    upload_file_to_existing(frm, d, e.target.result, d.pending_file.name);
+
+            const method = is_new
+                ? 'document_management.frappe_document_management.page.document_management_console.document_management_console.quick_upload'
+                : 'document_management.frappe_document_management.page.document_management_console.document_management_console.add_document_version';
+            const args = is_new
+                ? {
+                    title: frm.doc.title,
+                    category: frm.doc.category,
+                    folder: frm.doc.folder || '',
+                    document_code: frm.doc.document_code || '',
+                    tags: JSON.stringify((frm.doc.tags || []).map((row) => row.tag)),
+                    department: frm.doc.department || '',
+                    party_type: frm.doc.party_type || '',
+                    party_name: frm.doc.party_name || '',
+                    description: frm.doc.description || '',
+                    status: frm.doc.status || 'Draft',
+                    only_me: frm.doc.only_me ? '1' : '0',
+                    roles: JSON.stringify(
+                        (frm.doc.roles_with_access || []).map((row) => row.role)
+                    )
                 }
-            };
-            reader.readAsDataURL(d.pending_file);
+                : {
+                    doc_name: frm.doc.name,
+                    folder: frm.doc.folder || ''
+                };
+
+            upload_document_file(d.pending_file, method, args)
+                .then((result) => {
+                if (is_new) {
+                    d.hide();
+                    frappe.set_route('Form', 'Document', result.docname);
+                    return;
+                }
+
+                d.hide();
+                frappe.show_alert({message: __('File uploaded successfully'), indicator: 'green'});
+                return frm.reload_doc();
+            }).catch(() => {
+                d.get_primary_btn().prop('disabled', false).html(__('Upload'));
+            });
         }
     });
 
@@ -126,46 +151,23 @@ function show_upload_version_dialog(frm, is_new = false) {
     d.show();
 }
 
-function upload_file_to_existing(frm, dialog, filedata, filename) {
-    let args = {
-        cmd: "upload_file",
-        filedata: filedata,
-        filename: filename,
-        doctype: frm.doc.doctype,
-        docname: frm.doc.name,
-        is_private: 1
-    };
-    if (frm.doc.folder) {
-        args.folder = frm.doc.folder;
-    }
-
-    frappe.call({
-        method: "upload_file",
-        args: args,
-        callback: function(r) {
-            if(!r.exc && r.message) {
-                let file_url = r.message.file_url;
-                let row = frappe.model.add_child(frm.doc, "Document Version", "versions");
-                
-                let next_v = 1;
-                if (frm.doc.versions && frm.doc.versions.length > 1) { 
-                    next_v = frm.doc.versions.length; // Already added 1 to the array
-                }
-                
-                row.version_number = next_v.toString();
-                row.release_date = frappe.datetime.get_today();
-                row.attachment = file_url;
-                row.change_log = next_v === 1 ? "Initial upload" : "Uploaded via Quick Upload";
-                
-                frm.refresh_field("versions");
-                frm.save().then(() => {
-                    dialog.hide();
-                    frappe.show_alert({message: __('File uploaded successfully'), indicator: 'green'});
-                });
-            }
-        },
-        error: function() {
-            dialog.get_primary_btn().prop('disabled', false).html('Upload');
-        }
+async function upload_document_file(file, method, fields) {
+    const form_data = new FormData();
+    form_data.append('file', file, file.name);
+    form_data.append('is_private', '1');
+    form_data.append('method', method);
+    Object.entries(fields || {}).forEach(([key, value]) => {
+        form_data.append(key, value == null ? '' : value);
     });
+    const response = await fetch('/api/method/upload_file', {
+        method: 'POST',
+        body: form_data,
+        credentials: 'same-origin',
+        headers: {'X-Frappe-CSRF-Token': frappe.csrf_token}
+    });
+    const payload = await response.json();
+    if (!response.ok || payload.exc || !payload.message) {
+        throw new Error(payload.exception || __('File upload failed.'));
+    }
+    return payload.message;
 }

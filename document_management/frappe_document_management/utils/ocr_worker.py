@@ -304,6 +304,7 @@ def _save_ocr_preview(version, source_url, pdf_path):
         version.name,
         {
             "preview_attachment": saved_file.file_url,
+            "preview_checksum": hashlib.sha256(content).hexdigest(),
             "preview_status": "Completed",
             "preview_error": "",
         },
@@ -321,6 +322,7 @@ def _clear_ocr_preview(version):
         version.name,
         {
             "preview_attachment": "",
+            "preview_checksum": "",
             "preview_status": "Completed",
             "preview_error": "",
         },

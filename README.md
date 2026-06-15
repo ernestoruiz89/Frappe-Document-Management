@@ -48,3 +48,16 @@ This app may require additional Python libraries for semantic search and AI inte
 ## Configuration
 
 After installation, go to the **Document Management Console** in your Frappe interface to get started. You can configure AI providers, OCR settings, and search indices via the **Document Management Settings** page.
+
+## Archive integrity check
+
+Run a read-only audit of document originals, generated previews, checksums,
+OCR state, duplicate version numbers, and orphaned file references:
+
+```bash
+bench --site [your-site-name] execute \
+  document_management.frappe_document_management.utils.archive_sanity.check_document_archive
+```
+
+The same audit runs weekly and logs a Frappe error entry only when issues are
+detected.

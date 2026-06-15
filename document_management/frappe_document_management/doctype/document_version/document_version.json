@@ -10,6 +10,7 @@
   "file_checksum",
   "file_size",
   "preview_attachment",
+  "preview_checksum",
   "preview_status",
   "preview_error",
   "ocr_status",
@@ -60,6 +61,14 @@
    "hidden": 1,
    "label": "Preview Attachment (PDF)",
    "read_only": 1
+  },
+  {
+   "fieldname": "preview_checksum",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Preview SHA-256",
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "default": "Pending",

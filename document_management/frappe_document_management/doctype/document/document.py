@@ -13,6 +13,7 @@ class Document(FrappeDocument):
         self.sync_current_version()
         self.force_attachments_private()
         self.populate_version_checksums()
+        self.validate_version_numbers()
         self.validate_duplicate_files()
 
     def after_insert(self):
@@ -31,13 +32,28 @@ class Document(FrappeDocument):
 
     def populate_version_checksums(self):
         for version in self.get("versions") or []:
-            if not version.attachment or version.file_checksum:
-                continue
-            file_path = get_file_path(version.attachment)
-            if not file_path or not os.path.exists(file_path):
-                continue
-            version.file_checksum = _sha256_file(file_path)
-            version.file_size = os.path.getsize(file_path)
+            if version.attachment and not version.file_checksum:
+                file_path = get_file_path(version.attachment)
+                if file_path and os.path.exists(file_path):
+                    version.file_checksum = _sha256_file(file_path)
+                    version.file_size = os.path.getsize(file_path)
+            if version.preview_attachment and not version.preview_checksum:
+                preview_path = get_file_path(version.preview_attachment)
+                if preview_path and os.path.exists(preview_path):
+                    version.preview_checksum = _sha256_file(preview_path)
+
+    def validate_version_numbers(self):
+        seen = set()
+        for version in self.get("versions") or []:
+            version_number = str(version.version_number or "").strip()
+            if not version_number:
+                frappe.throw("Every document version must have a version number.")
+            if version_number in seen:
+                frappe.throw(
+                    f"Version number {version_number} is used more than once."
+                )
+            seen.add(version_number)
+            version.version_number = version_number
 
     def validate_duplicate_files(self):
         seen = set()
@@ -207,6 +223,7 @@ def _convert_office_version(doc, version):
             version.name,
             {
                 "preview_attachment": file_doc.file_url,
+                "preview_checksum": _sha256_file(pdf_path),
                 "preview_status": "Completed",
                 "preview_error": "",
             },
@@ -296,22 +313,38 @@ def has_permission(doc, ptype="read", user=None):
         return True
         
     user_roles = frappe.get_roles(user)
-    
-    if ptype in ["delete", "write"]:
+
+    if ptype == "delete":
         if "System Manager" in user_roles:
             return True
-        if doc.owner != user:
-            return False
+        return False
+
+    if doc.owner == user:
+        return True
             
 
     # Check if explicitly shared via Frappe's native Share feature
-    is_shared = frappe.db.exists("DocShare", {
+    share_filters = {
         "share_doctype": "Document",
         "share_name": doc.name,
-        "user": user
-    })
+        "user": user,
+    }
+    if ptype == "read":
+        share_filters["read"] = 1
+    elif ptype == "write":
+        share_filters["write"] = 1
+    else:
+        share_filters = None
+    is_shared = (
+        frappe.db.exists("DocShare", share_filters)
+        if share_filters
+        else False
+    )
     if is_shared:
         return True
+
+    if ptype == "write":
+        return "System Manager" in user_roles
 
     # Check Document Level
     if doc.only_me:
@@ -372,12 +405,19 @@ def get_permission_query_conditions(user):
     fallback_cond = f"""
         (`tabDocument`.only_me = 0 AND NOT EXISTS (SELECT 1 FROM `tabDocument Role Access` d_ra WHERE d_ra.parent = `tabDocument`.name AND d_ra.parenttype = 'Document') AND {cat_cond})
     """
-    
+
     shared_cond = f"""
-        EXISTS (SELECT 1 FROM `tabDocShare` ds WHERE ds.share_doctype = 'Document' AND ds.share_name = `tabDocument`.name AND ds.user = {frappe.db.escape(user)})
+        EXISTS (
+            SELECT 1 FROM `tabDocShare` ds
+            WHERE ds.share_doctype = 'Document'
+              AND ds.share_name = `tabDocument`.name
+              AND ds.user = {frappe.db.escape(user)}
+              AND ds.read = 1
+        )
     """
     
     return (
         f"`tabDocument`.is_deleted = 0 AND "
-        f"(({doc_cond}) OR ({fallback_cond}) OR ({shared_cond}))"
+        f"(`tabDocument`.owner = {frappe.db.escape(user)} "
+        f"OR ({doc_cond}) OR ({fallback_cond}) OR ({shared_cond}))"
     )

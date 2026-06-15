@@ -201,6 +201,24 @@ def _convert_office_version(doc, version):
         lo_profile_dir = os.path.join(tmp_dir, "lo_profile_" + uuid.uuid4().hex)
         os.makedirs(lo_profile_dir, exist_ok=True)
 
+        # Disable Java inside the temporary profile so that LibreOffice never
+        # tries to launch javaldx (which fails on minimal server installs and
+        # can cause exit-code 1 even though Java isn't needed for conversion).
+        reg_dir = os.path.join(lo_profile_dir, "user")
+        os.makedirs(reg_dir, exist_ok=True)
+        reg_file = os.path.join(reg_dir, "registrymodifications.xcu")
+        with open(reg_file, "w", encoding="utf-8") as f:
+            f.write(
+                '<?xml version="1.0" encoding="UTF-8"?>\n'
+                '<oor:items xmlns:oor="http://openoffice.org/2001/registry"'
+                ' xmlns:xs="http://www.w3.org/2001/XMLSchema"'
+                ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">\n'
+                '<item oor:path="/org.openoffice.Office.Common/Java">'
+                '<prop oor:name="Enabled" oor:op="fuse">'
+                '<value>false</value></prop></item>\n'
+                '</oor:items>\n'
+            )
+
         # Copy the source into the temp directory so LibreOffice always reads
         # from a location it can access without permission issues.
         src_basename = os.path.basename(file_path)
@@ -212,6 +230,7 @@ def _convert_office_version(doc, version):
             "--headless",
             "--norestore",
             "--nofirststartwizard",
+            "--nolockcheck",
             f"--env:UserInstallation=file://{lo_profile_dir}",
             "--convert-to",
             "pdf",
@@ -220,12 +239,18 @@ def _convert_office_version(doc, version):
             tmp_src,
         ]
 
+        # Set HOME to the temp directory so LibreOffice components that
+        # still read $HOME (e.g. javaldx) don't fail on WSL/Windows paths.
+        env = os.environ.copy()
+        env["HOME"] = tmp_dir
+
         result = subprocess.run(
             command,
             check=False,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
+            env=env,
         )
 
         # LibreOffice may produce a PDF with a slightly different name than
@@ -236,15 +261,20 @@ def _convert_office_version(doc, version):
         # (e.g. "failed to launch javaldx") while still producing the PDF.
         pdf_files = glob.glob(os.path.join(tmp_dir, "*.pdf"))
         if not pdf_files:
-            # No PDF was created — now the exit code / stderr matter.
+            # No PDF was created — combine stderr + stdout for diagnostics.
+            detail = "\n".join(
+                part for part in [
+                    (result.stderr or "").strip(),
+                    (result.stdout or "").strip(),
+                ] if part
+            )
             if result.returncode != 0:
                 raise RuntimeError(
                     _("LibreOffice Error (Code {0}): {1}").format(
                         result.returncode,
-                        result.stderr or result.stdout,
+                        detail or "no output",
                     )
                 )
-            detail = (result.stderr or result.stdout or "").strip()
             raise RuntimeError(
                 _("LibreOffice ran, but the PDF file was not created.{0}").format(
                     " " + detail if detail else ""

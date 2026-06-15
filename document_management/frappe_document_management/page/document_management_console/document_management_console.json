@@ -1,8 +1,10 @@
 {
- "creation": "2026-06-11 12:00:00.000000",
+ "content": null,
+ "creation": "2026-06-11 12:00:00",
  "docstatus": 0,
  "doctype": "Page",
- "modified": "2026-06-11 12:00:00.000000",
+ "idx": 0,
+ "modified": "2026-06-15 09:44:45.849889",
  "modified_by": "Administrator",
  "module": "Frappe Document Management",
  "name": "document-management-console",
@@ -13,6 +15,9 @@
    "role": "All"
   }
  ],
+ "script": null,
  "standard": "Yes",
+ "style": null,
+ "system_page": 0,
  "title": "Document Management Console"
 }

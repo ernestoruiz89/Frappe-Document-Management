@@ -180,49 +180,60 @@ class Document(FrappeDocument):
                         v.preview_attachment = f.file_url
 
 def _convert_office_version(doc, version):
+    import glob
+    import tempfile
     from frappe import _
+
     file_path = get_file_path(version.attachment)
     if not file_path or not os.path.exists(file_path):
         raise FileNotFoundError(
             _("File not found for conversion: {0}").format(file_path)
         )
 
-    out_dir = os.path.dirname(file_path)
-    command = [
-        "libreoffice",
-        "--headless",
-        "--convert-to",
-        "pdf",
-        "--outdir",
-        out_dir,
-        file_path,
-    ]
-    result = subprocess.run(
-        command,
-        check=False,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(
-            _("LibreOffice Error (Code {0}): {1}").format(
-                result.returncode,
-                result.stderr or result.stdout,
-            )
-        )
-
-    filename = os.path.basename(file_path)
-    pdf_filename = os.path.splitext(filename)[0] + ".pdf"
-    pdf_path = os.path.join(out_dir, pdf_filename)
-    if not os.path.exists(pdf_path):
-        raise RuntimeError(
-            _("LibreOffice ran, but the PDF file was not created.")
-        )
-
+    tmp_dir = tempfile.mkdtemp()
     try:
+        command = [
+            "libreoffice",
+            "--headless",
+            "--convert-to",
+            "pdf",
+            "--outdir",
+            tmp_dir,
+            file_path,
+        ]
+        result = subprocess.run(
+            command,
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                _("LibreOffice Error (Code {0}): {1}").format(
+                    result.returncode,
+                    result.stderr or result.stdout,
+                )
+            )
+
+        # LibreOffice may produce a PDF with a slightly different name than
+        # the stem of the source file (e.g. when the name contains special
+        # characters).  Scan the temp directory for any PDF produced.
+        pdf_files = glob.glob(os.path.join(tmp_dir, "*.pdf"))
+        if not pdf_files:
+            detail = (result.stderr or result.stdout or "").strip()
+            raise RuntimeError(
+                _("LibreOffice ran, but the PDF file was not created.{0}").format(
+                    " " + detail if detail else ""
+                )
+            )
+
+        pdf_path = pdf_files[0]
+        pdf_filename = os.path.basename(pdf_path)
+
         with open(pdf_path, "rb") as file_handle:
             file_content = file_handle.read()
+
         file_doc = frappe.get_doc(
             {
                 "doctype": "File",
@@ -248,8 +259,10 @@ def _convert_office_version(doc, version):
         version.preview_attachment = file_doc.file_url
         return file_doc.file_url
     finally:
-        if os.path.exists(pdf_path):
-            os.remove(pdf_path)
+        import shutil as _shutil
+        _shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
 
 
 def convert_office_to_pdf(doc_name):

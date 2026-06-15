@@ -192,15 +192,34 @@ def _convert_office_version(doc, version):
 
     tmp_dir = tempfile.mkdtemp()
     try:
+        import shutil as _shutil
+        import uuid
+
+        # Give LibreOffice a fresh, isolated user-profile directory for each
+        # conversion so that concurrent calls (or a previously crashed process)
+        # cannot leave a stale lock that causes "source file could not be loaded".
+        lo_profile_dir = os.path.join(tmp_dir, "lo_profile_" + uuid.uuid4().hex)
+        os.makedirs(lo_profile_dir, exist_ok=True)
+
+        # Copy the source into the temp directory so LibreOffice always reads
+        # from a location it can access without permission issues.
+        src_basename = os.path.basename(file_path)
+        tmp_src = os.path.join(tmp_dir, src_basename)
+        _shutil.copy2(file_path, tmp_src)
+
         command = [
             "libreoffice",
             "--headless",
+            "--norestore",
+            "--nofirststartwizard",
+            f"--env:UserInstallation=file://{lo_profile_dir}",
             "--convert-to",
             "pdf",
             "--outdir",
             tmp_dir,
-            file_path,
+            tmp_src,
         ]
+
         result = subprocess.run(
             command,
             check=False,

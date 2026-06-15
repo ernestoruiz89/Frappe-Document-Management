@@ -25,6 +25,10 @@ from document_management.frappe_document_management.doctype.document_category.do
 from document_management.frappe_document_management.page.document_management_console.document_management_console import (
     move_documents_to_trash,
 )
+from document_management.frappe_document_management.utils.realtime import (
+    DOCUMENT_CHANGE_EVENT,
+    publish_document_change,
+)
 
 
 def _document(name, versions):
@@ -479,6 +483,49 @@ class TestDocumentValidation(TestCase):
             move_documents_to_trash(["DOC-1"])
 
         authorized.assert_called_once_with(["DOC-1"], "delete")
+
+    def test_document_update_publishes_realtime_change(self):
+        document = _document("DOC-1", [])
+
+        with (
+            patch.object(Document, "enqueue_processing"),
+            patch(
+                "document_management.frappe_document_management.doctype.document.document.publish_document_change"
+            ) as publish,
+        ):
+            document.on_update()
+
+        publish.assert_called_once_with(document)
+
+    def test_document_trash_publishes_deleted_realtime_change(self):
+        document = _document("DOC-1", [])
+
+        with (
+            patch(
+                "document_management.frappe_document_management.doctype.document.document.frappe.db.exists",
+                return_value=False,
+            ),
+            patch(
+                "document_management.frappe_document_management.doctype.document.document.publish_document_change"
+            ) as publish,
+        ):
+            document.on_trash()
+
+        publish.assert_called_once_with(document, deleted=True)
+
+    def test_publish_document_change_waits_for_commit(self):
+        with patch("frappe.publish_realtime") as publish:
+            publish_document_change(document_name="DOC-1")
+
+        publish.assert_called_once_with(
+            DOCUMENT_CHANGE_EVENT,
+            {
+                "doctype": "Document",
+                "name": "DOC-1",
+                "deleted": False,
+            },
+            after_commit=True,
+        )
 
     def test_permission_query_always_includes_owner(self):
         with (

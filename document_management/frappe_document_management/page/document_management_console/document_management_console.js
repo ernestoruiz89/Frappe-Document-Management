@@ -752,6 +752,8 @@ class DocumentManagementConsole {
                 };
 
                 let debounceTimer;
+                let realtimeRefreshTimer;
+                const realtime_event = 'document_management_document_changed';
 
                 const fetch_documents = () => {
                     loading.value = true;
@@ -804,8 +806,10 @@ class DocumentManagementConsole {
                                 }
                             }
                             if (selected_doc.value &&
-                                !documents.value.some((doc) => doc.name === selected_doc.value.name)) {
-                                selected_doc.value = null;
+                                documents.value.some((doc) => doc.name === selected_doc.value.name)) {
+                                sync_selected_doc();
+                            } else if (selected_doc.value) {
+                                select_doc(null);
                             }
                             loading.value = false;
                         },
@@ -948,7 +952,7 @@ class DocumentManagementConsole {
                 const text_preview_content = ref('');
                 const loading_text_preview = ref(false);
 
-                const load_text_preview = async (url) => {
+                async function load_text_preview(url) {
                     if (!url) {
                         text_preview_content.value = '';
                         return;
@@ -967,9 +971,9 @@ class DocumentManagementConsole {
                     } finally {
                         loading_text_preview.value = false;
                     }
-                };
+                }
 
-                const select_doc = (doc) => {
+                function select_doc(doc) {
                     selected_doc.value = doc;
                     const file_path = doc ? (doc.original_file || doc.document_file) : null;
                     if (file_path && (is_txt(file_path) || is_md(file_path, doc))) {
@@ -977,7 +981,28 @@ class DocumentManagementConsole {
                     } else {
                         text_preview_content.value = '';
                     }
-                };
+                }
+
+                function sync_selected_doc() {
+                    if (!selected_doc.value) return;
+                    const refreshed = documents.value.find(
+                        (doc) => doc.name === selected_doc.value.name
+                    );
+                    if (!refreshed) {
+                        select_doc(null);
+                        return;
+                    }
+                    const current_file = selected_doc.value.original_file || selected_doc.value.document_file;
+                    const refreshed_file = refreshed.original_file || refreshed.document_file;
+                    selected_doc.value = {
+                        ...refreshed,
+                        search_terms: refreshed.search_terms || selected_doc.value.search_terms,
+                        search_page: refreshed.search_page || selected_doc.value.search_page
+                    };
+                    if (current_file !== refreshed_file) {
+                        select_doc(selected_doc.value);
+                    }
+                }
 
                 const is_selected = (name) => selected_names.value.has(name);
                 const toggle_selection = (name) => {
@@ -1424,16 +1449,33 @@ class DocumentManagementConsole {
                     });
                 };
 
+                const handle_realtime_document_change = (event) => {
+                    if (!event || event.doctype !== 'Document') return;
+                    clearTimeout(realtimeRefreshTimer);
+                    realtimeRefreshTimer = setTimeout(() => {
+                        fetch_categories();
+                        fetch_tags();
+                        fetch_documents();
+                    }, 250);
+                };
+
                 onMounted(() => {
                     fetch_categories();
                     fetch_folders();
                     fetch_saved_views();
                     fetch_tags();
                     fetch_documents();
+                    if (frappe.realtime && frappe.realtime.on) {
+                        frappe.realtime.on(realtime_event, handle_realtime_document_change);
+                    }
                     window.addEventListener('click', handle_window_click);
                 });
 
                 onBeforeUnmount(() => {
+                    clearTimeout(realtimeRefreshTimer);
+                    if (frappe.realtime && frappe.realtime.off) {
+                        frappe.realtime.off(realtime_event);
+                    }
                     window.removeEventListener('click', handle_window_click);
                 });
 

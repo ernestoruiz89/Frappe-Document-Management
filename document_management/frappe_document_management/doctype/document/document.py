@@ -12,6 +12,9 @@ from document_management.frappe_document_management.utils.document_access import
     matches_access_rules,
     sql_access_parts,
 )
+from document_management.frappe_document_management.utils.realtime import (
+    publish_document_change,
+)
 
 class Document(FrappeDocument):
     def autoname(self):
@@ -26,15 +29,18 @@ class Document(FrappeDocument):
 
     def after_insert(self):
         self.enqueue_processing()
+        publish_document_change(self)
 
     def on_update(self):
         self.enqueue_processing()
+        publish_document_change(self)
 
     def on_trash(self):
         if frappe.db.exists("DocType", "Document Page"):
             frappe.db.delete("Document Page", {"document": self.name})
         if frappe.db.exists("DocType", "Document Share Link"):
             frappe.db.delete("Document Share Link", {"document": self.name})
+        publish_document_change(self, deleted=True)
 
     def get_current_version(self):
         versions = [row for row in (self.get("versions") or []) if row.attachment]

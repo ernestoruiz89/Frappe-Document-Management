@@ -10,7 +10,7 @@
  "page_name": "document-management-console",
  "roles": [
   {
-   "role": "System Manager"
+   "role": "All"
   }
  ],
  "standard": "Yes",

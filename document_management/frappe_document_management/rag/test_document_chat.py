@@ -412,6 +412,65 @@ class TestDocumentChatSecurity(FrappeTestCase):
                 return_value=hits,
             ),
             patch(
+                "document_management.search.indexer.frappe.get_list",
+                return_value=[
+                    frappe._dict(
+                        name="NOTE-PUBLIC",
+                        modified="2026-06-14 10:00:00",
+                    )
+                ],
+            ),
+        ):
+            results = global_search("contract", limit=10)
+
+        self.assertEqual(len(results["exact"]), 1)
+        self.assertEqual(results["exact"][0]["doc_name"], "NOTE-PUBLIC")
+        self.assertEqual(results["exact"][0]["doc_type"], "Note")
+
+    def test_global_search_honors_custom_has_permission_hooks(self):
+        settings = frappe._dict(
+            {
+                "enable_full_text_search": True,
+                "enable_semantic_search": False,
+                "indexed_doctypes": [
+                    frappe._dict(document_type="Note"),
+                ],
+            }
+        )
+        hits = [
+            {
+                "doc_type": "Note",
+                "doc_name": "NOTE-PRIVATE",
+                "title": "Private",
+            },
+            {
+                "doc_type": "Note",
+                "doc_name": "NOTE-PUBLIC",
+                "title": "Public",
+            },
+        ]
+
+        with (
+            patch(
+                "document_management.search.indexer.frappe.get_single",
+                return_value=settings,
+            ),
+            patch(
+                "document_management.search.indexer.tantivy_backend.search",
+                return_value=hits,
+            ),
+            patch(
+                "document_management.search.indexer.frappe.get_list",
+                return_value=[
+                    frappe._dict(name="NOTE-PRIVATE", modified=""),
+                    frappe._dict(name="NOTE-PUBLIC", modified=""),
+                ],
+            ),
+            patch(
+                "document_management.search.indexer.frappe.get_hooks",
+                return_value={"Note": "custom.permission.handler"},
+            ),
+            patch(
                 "document_management.search.indexer.frappe.get_doc",
                 side_effect=[
                     frappe._dict(name="NOTE-PRIVATE"),
@@ -425,9 +484,10 @@ class TestDocumentChatSecurity(FrappeTestCase):
         ):
             results = global_search("contract", limit=10)
 
-        self.assertEqual(len(results["exact"]), 1)
-        self.assertEqual(results["exact"][0]["doc_name"], "NOTE-PUBLIC")
-        self.assertEqual(results["exact"][0]["doc_type"], "Note")
+        self.assertEqual(
+            [row["doc_name"] for row in results["exact"]],
+            ["NOTE-PUBLIC"],
+        )
 
     def test_new_version_resets_aggregate_ocr_state(self):
         category_name = "RAG Version Test Category"

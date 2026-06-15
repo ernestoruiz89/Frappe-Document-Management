@@ -1,5 +1,7 @@
 import json
 import os
+from html import unescape
+from html.parser import HTMLParser
 
 import frappe
 from document_management.search import tantivy_backend, semantic_backend
@@ -29,27 +31,85 @@ SEARCHABLE_FIELD_TYPES = {
 }
 
 
+class _TextExtractor(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.parts = []
+
+    def handle_data(self, data):
+        if data.strip():
+            self.parts.append(data)
+
+
+def _plain_text(value, fieldtype=None):
+    text = str(value or "")
+    if fieldtype == "Text Editor" or ("<" in text and ">" in text):
+        parser = _TextExtractor()
+        try:
+            parser.feed(text)
+            parser.close()
+            text = " ".join(parser.parts)
+        except Exception:
+            pass
+    return " ".join(unescape(text).split())
+
+
+def _is_visible_field(field):
+    try:
+        permlevel = int(getattr(field, "permlevel", 0) or 0)
+    except (TypeError, ValueError):
+        permlevel = 0
+    return permlevel == 0 and not bool(getattr(field, "hidden", False))
+
+
+def _is_searchable_field(field):
+    return (
+        field.fieldtype in SEARCHABLE_FIELD_TYPES
+        and _is_visible_field(field)
+    )
+
+
 def get_document_content(doc):
     content_parts = []
     for field in doc.meta.fields:
-        if field.fieldtype in SEARCHABLE_FIELD_TYPES:
+        if _is_searchable_field(field):
             val = doc.get(field.fieldname)
             if val not in (None, ""):
-                content_parts.append(f"{field.label or field.fieldname}: {val}")
-        elif field.fieldtype == "Table":
+                text = _plain_text(val, field.fieldtype)
+                if text:
+                    content_parts.append(
+                        f"{field.label or field.fieldname}: {text}"
+                    )
+        elif field.fieldtype == "Table" and _is_visible_field(field):
             for row in doc.get(field.fieldname) or []:
                 row_values = []
                 for child_field in row.meta.fields:
-                    if child_field.fieldtype not in SEARCHABLE_FIELD_TYPES:
+                    if not _is_searchable_field(child_field):
                         continue
                     value = row.get(child_field.fieldname)
                     if value not in (None, ""):
-                        row_values.append(
-                            f"{child_field.label or child_field.fieldname}: {value}"
-                        )
+                        text = _plain_text(value, child_field.fieldtype)
+                        if text:
+                            row_values.append(
+                                f"{child_field.label or child_field.fieldname}: {text}"
+                            )
                 if row_values:
                     content_parts.append(" | ".join(row_values))
     return " ".join(content_parts)
+
+
+def get_document_title(doc):
+    title_field = getattr(doc.meta, "title_field", None)
+    if not title_field:
+        return doc.name
+    try:
+        field = doc.meta.get_field(title_field)
+    except Exception:
+        return doc.name
+    if not field or not _is_visible_field(field):
+        return doc.name
+    return _plain_text(doc.get(title_field), field.fieldtype) or doc.name
+
 
 def handle_doc_save(doc, method=None):
     try:
@@ -92,7 +152,7 @@ def run_indexing_background(doc_type, doc_name):
         semantic_backend.remove_document(doc_type, doc_name)
         return
     content = get_document_content(doc)
-    title = doc.get_title() or doc.name
+    title = get_document_title(doc)
 
     if (
         settings.enable_full_text_search
@@ -101,6 +161,17 @@ def run_indexing_background(doc_type, doc_name):
     ):
         try:
             tantivy_backend.index_document(doc_type, doc_name, title, content)
+        except tantivy_backend.IndexBusy:
+            frappe.enqueue(
+                "document_management.search.indexer.run_indexing_background",
+                doc_type=doc_type,
+                doc_name=doc_name,
+                queue="long",
+                timeout=7200,
+            )
+            return
+        except tantivy_backend.IndexRebuildRequired:
+            return
         except Exception as e:
             frappe.log_error(title="Tantivy Indexing Error", message=str(e))
             
@@ -119,12 +190,35 @@ def handle_doc_trash(doc, method=None):
             and doc.doctype != "Document"
             and doc.doctype in indexed_doctypes
         ):
-            tantivy_backend.remove_document(doc.doctype, doc.name)
+            frappe.enqueue(
+                "document_management.search.indexer.remove_from_index_background",
+                doc_type=doc.doctype,
+                doc_name=doc.name,
+                queue="short",
+                timeout=300,
+                enqueue_after_commit=True,
+            )
         if settings.enable_semantic_search and doc.doctype == "Document":
             semantic_backend.remove_document(doc.doctype, doc.name)
             
     except Exception:
         pass
+
+
+def remove_from_index_background(doc_type, doc_name):
+    try:
+        tantivy_backend.remove_document(doc_type, doc_name)
+    except tantivy_backend.IndexBusy:
+        frappe.enqueue(
+            "document_management.search.indexer.remove_from_index_background",
+            doc_type=doc_type,
+            doc_name=doc_name,
+            queue="long",
+            timeout=7200,
+        )
+    except tantivy_backend.IndexRebuildRequired:
+        return
+
 
 def _parse_doctypes(doctypes):
     if not doctypes:
@@ -139,40 +233,62 @@ def _parse_doctypes(doctypes):
     return {str(value).strip() for value in doctypes if str(value).strip()}
 
 
-def _record_result(hit, doc):
-    get_title = getattr(doc, "get_title", None)
-    document_title = get_title() if callable(get_title) else None
+def _record_result(hit, metadata):
     return {
         "source": "full_text",
         "doc_type": hit["doc_type"],
         "doc_name": hit["doc_name"],
-        "title": hit.get("title") or document_title or doc.name,
+        "title": hit.get("title") or hit["doc_name"],
         "excerpt": hit.get("excerpt") or "",
         "score": float(hit.get("score") or 0),
-        "modified": str(doc.get("modified") or ""),
-        "route": f"/app/{hit['doc_type'].lower().replace(' ', '-')}/{doc.name}",
+        "modified": str(metadata.get("modified") or ""),
+        "route": (
+            f"/app/{hit['doc_type'].lower().replace(' ', '-')}/"
+            f"{hit['doc_name']}"
+        ),
     }
 
 
-def _document_result(hit, doc):
-    return {
-        "source": "semantic",
-        "doc_type": "Document",
-        "doc_name": doc.name,
-        "title": doc.title or doc.name,
-        "excerpt": hit.get("excerpt") or "",
-        "page": hit.get("page"),
-        "score": float(hit.get("score") or 0),
-        "modified": str(doc.get("modified") or ""),
-        "route": f"/app/document/{doc.name}",
-    }
+def _permitted_metadata(hits):
+    by_doctype = {}
+    for hit in hits:
+        by_doctype.setdefault(hit["doc_type"], []).append(hit["doc_name"])
+
+    permitted = {}
+    custom_permission_hooks = frappe.get_hooks("has_permission") or {}
+    for doctype, names in by_doctype.items():
+        try:
+            rows = frappe.get_list(
+                doctype,
+                filters={"name": ["in", list(dict.fromkeys(names))]},
+                fields=["name", "modified"],
+                limit_page_length=len(names),
+            )
+        except Exception:
+            continue
+        for row in rows:
+            name = row.get("name") if hasattr(row, "get") else row.name
+            if doctype in custom_permission_hooks:
+                try:
+                    doc = frappe.get_doc(doctype, name)
+                    if not frappe.has_permission(
+                        doctype,
+                        "read",
+                        doc=doc,
+                        user=frappe.session.user,
+                    ):
+                        continue
+                except Exception:
+                    continue
+            permitted[(doctype, name)] = row
+    return permitted
 
 
 @frappe.whitelist()
 def search(query, limit=10, doctypes=None):
     query = (query or "").strip()
     if not query:
-        return {"exact": [], "semantic": []}
+        return {"exact": []}
     try:
         limit = min(max(int(limit), 1), 100)
     except (TypeError, ValueError):
@@ -186,78 +302,48 @@ def search(query, limit=10, doctypes=None):
     }
     requested = _parse_doctypes(doctypes)
     generic_filter = (requested & configured) if requested else configured
-    include_documents = False
     results = {
         "exact": [],
-        "semantic": [],
         "configured_doctypes": sorted(configured),
         "search_language": current_search_language(),
         "terms": significant_terms(query),
     }
-    
+    if not generic_filter:
+        return results
+
     if settings.enable_full_text_search:
         try:
             exact = tantivy_backend.search(
                 query,
                 limit=min(max(limit * 20, 200), 1000),
+                doctypes=sorted(generic_filter),
             )
-            authorized = []
-            for hit in exact:
-                if (
-                    hit["doc_type"] == "Document"
-                    or hit["doc_type"] not in generic_filter
-                ):
-                    continue
-                try:
-                    doc = frappe.get_doc(hit["doc_type"], hit["doc_name"])
-                    if frappe.has_permission(
-                        hit["doc_type"],
-                        "read",
-                        doc=doc,
-                        user=frappe.session.user,
-                    ):
-                        authorized.append(_record_result(hit, doc))
-                except Exception:
-                    continue
-                if len(authorized) >= limit:
-                    break
+            filtered = [
+                hit
+                for hit in exact
+                if hit["doc_type"] != "Document"
+                and hit["doc_type"] in generic_filter
+            ]
+            permitted = _permitted_metadata(filtered)
+            authorized = [
+                _record_result(
+                    hit,
+                    permitted[(hit["doc_type"], hit["doc_name"])],
+                )
+                for hit in filtered
+                if (hit["doc_type"], hit["doc_name"]) in permitted
+            ][:limit]
             results['exact'] = authorized
+        except tantivy_backend.IndexRebuildRequired as exc:
+            results["exact_rebuild_required"] = True
+            results["exact_error"] = str(exc)
         except Exception:
             frappe.log_error(
                 title="Full Text Search Error",
                 message=frappe.get_traceback(),
             )
             results['exact_error'] = "Full-text search is temporarily unavailable."
-            
-    if settings.enable_semantic_search and include_documents:
-        try:
-            semantic = semantic_backend.search(query, limit=limit)
-            authorized = []
-            for hit in semantic:
-                try:
-                    doc = frappe.get_doc("Document", hit["doc_name"])
-                    if frappe.has_permission(
-                        "Document",
-                        "read",
-                        doc=doc,
-                        user=frappe.session.user,
-                    ):
-                        authorized.append(_document_result(hit, doc))
-                except Exception:
-                    continue
-                if len(authorized) >= limit:
-                    break
-            results["semantic"] = authorized
-        except semantic_backend.IndexRebuildRequired as exc:
-            results["semantic_rebuild_required"] = True
-            results["semantic_error"] = str(exc)
-        except Exception:
-            frappe.log_error(
-                title="Semantic Search Error",
-                message=frappe.get_traceback(),
-            )
-            results['semantic_error'] = "Semantic search is temporarily unavailable."
-            
+
     return results
 
 
@@ -275,11 +361,10 @@ def get_search_options():
         except Exception:
             continue
     options = list(options_dict.values())
-    
+
     return {
         "doctypes": sorted(options, key=lambda row: row["label"]),
         "full_text_enabled": bool(settings.enable_full_text_search),
-        "semantic_enabled": False,
         "generic_index_ready": tantivy_backend.index_exists(),
     }
 
@@ -300,89 +385,49 @@ def rebuild_index():
     frappe.has_permission("Document Management Settings", throw=True)
     settings = frappe.get_single('Document Management Settings')
     indexed_doctypes = [d.document_type for d in settings.get("indexed_doctypes", [])]
-    
+
     if not indexed_doctypes and not settings.enable_semantic_search:
         return {"status": "error", "message": "No doctypes configured for indexing"}
-        
-    # Start fresh
-    if settings.enable_full_text_search:
-        import shutil
-        from document_management.search.tantivy_backend import get_tantivy_index_path
 
-        index_path = get_tantivy_index_path()
-        shutil.rmtree(index_path, ignore_errors=True)
-        legacy_path = os.path.join(os.path.dirname(index_path), "tantivy")
-        shutil.rmtree(legacy_path, ignore_errors=True)
-        os.makedirs(index_path, exist_ok=True)
-        
-    total_indexed = 0
-    
-    if settings.enable_full_text_search:
-        import gc
-        import tantivy
-        from document_management.search.tantivy_backend import get_index
-        tantivy_index = get_index()
-        writer = tantivy_index.writer()
-    else:
-        writer = None
+    def records():
+        for dt in indexed_doctypes:
+            if dt == "Document":
+                continue
+            batch_size = 1000
+            offset = 0
+            while True:
+                docs = frappe.get_all(
+                    dt,
+                    fields=["name"],
+                    limit_start=offset,
+                    limit_page_length=batch_size,
+                    order_by="creation asc, name asc",
+                )
+                if not docs:
+                    break
+                for row in docs:
+                    try:
+                        doc = frappe.get_doc(dt, row.name)
+                        yield {
+                            "doc_type": dt,
+                            "doc_name": row.name,
+                            "title": get_document_title(doc),
+                            "content": get_document_content(doc),
+                        }
+                    except Exception:
+                        frappe.log_error(
+                            title=f"Error indexing {dt} {row.name}",
+                            message=frappe.get_traceback(),
+                        )
+                frappe.local.cache = {}
+                if hasattr(frappe.local, "document_cache"):
+                    frappe.local.document_cache = {}
+                offset += batch_size
 
-    for dt in indexed_doctypes:
-        if dt == "Document":
-            continue
-            
-        # Paginate to prevent memory overflow
-        batch_size = 5000
-        offset = 0
-        while True:
-            docs = frappe.get_all(
-                dt,
-                fields=["name"],
-                limit_start=offset,
-                limit_page_length=batch_size,
-                order_by="creation asc"
-            )
-            if not docs:
-                break
-                
-            for d in docs:
-                try:
-                    doc = frappe.get_doc(dt, d.name)
-                    content = get_document_content(doc)
-                    title = doc.get_title() or doc.name
-                    
-                    if writer:
-                        doc_type = str(dt)
-                        doc_name = str(d.name)
-                        t_title = str(title) if title is not None else ""
-                        t_content = str(content) if content is not None else ""
-                        
-                        record_key = f"{doc_type}:{doc_name}"
-                        t_doc = tantivy.Document()
-                        t_doc.add_text("record_key", record_key)
-                        t_doc.add_text("doc_type", doc_type)
-                        t_doc.add_text("doc_name", doc_name)
-                        t_doc.add_text("title", t_title)
-                        t_doc.add_text("content", t_content)
-                        writer.add_document(t_doc)
-                        
-                    total_indexed += 1
-                except Exception as e:
-                    frappe.log_error(
-                        title=f"Error indexing {dt} {d.name}",
-                        message=frappe.get_traceback()
-                    )
-            
-            # Commit batch to disk
-            if writer:
-                writer.commit()
-            
-            # Memory management: Clear cache and garbage collect
-            frappe.local.cache = {}
-            if hasattr(frappe.local, "document_cache"):
-                frappe.local.document_cache = {}
-            gc.collect()
-            
-            offset += batch_size
+    generic_result = None
+    if settings.enable_full_text_search:
+        generic_result = tantivy_backend.rebuild(records())
+    total_indexed = generic_result["count"] if generic_result else 0
 
     rag_result = None
     if settings.enable_semantic_search:
@@ -393,6 +438,7 @@ def rebuild_index():
     return {
         "status": "success",
         "message": f"Rebuilt index for {total_indexed} documents.",
+        "generation": generic_result.get("generation") if generic_result else None,
         "rag": rag_result,
     }
 
@@ -437,10 +483,39 @@ def extract_and_index_ocr(doc_type, doc_name):
     base_content = get_document_content(doc)
     full_content = f"{base_content}\n\n--- OCR TEXT ---\n{extracted_text}"
     
-    title = doc.get_title() or doc.name
+    title = get_document_title(doc)
     settings = frappe.get_single('Document Management Settings')
+    indexed_doctypes = {
+        row.document_type
+        for row in settings.get("indexed_doctypes", [])
+        if row.document_type
+    }
     
-    if settings.enable_full_text_search and doc_type != "Document":
-        tantivy_backend.index_document(doc_type, doc_name, title, full_content)
+    if (
+        settings.enable_full_text_search
+        and doc_type != "Document"
+        and doc_type in indexed_doctypes
+    ):
+        try:
+            tantivy_backend.index_document(
+                doc_type,
+                doc_name,
+                title,
+                full_content,
+            )
+        except tantivy_backend.IndexBusy:
+            frappe.throw(
+                frappe._(
+                    "The search index is rebuilding. "
+                    "Try OCR indexing again shortly."
+                )
+            )
+        except tantivy_backend.IndexRebuildRequired:
+            frappe.throw(
+                frappe._(
+                    "The search index must be rebuilt before OCR content "
+                    "can be indexed."
+                )
+            )
         
     return {"status": "success", "extracted_chars": len(extracted_text)}

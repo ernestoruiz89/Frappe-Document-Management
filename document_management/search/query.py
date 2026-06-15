@@ -444,6 +444,14 @@ def query_tokens(query):
     return TOKEN_RE.findall((query or "").lower())
 
 
+def fold_text(value):
+    return "".join(
+        character
+        for character in unicodedata.normalize("NFKD", str(value or ""))
+        if not unicodedata.combining(character)
+    ).lower()
+
+
 def significant_terms(query, language=None):
     stopwords = stopwords_for_language(language)
     return list(
@@ -476,7 +484,13 @@ def make_excerpt(content, query, maximum=360, language=None):
     return prefix + normalized[start:end].strip() + suffix
 
 
-def build_natural_query(index, query, fields, language=None):
+def build_natural_query(
+    index,
+    query,
+    fields,
+    language=None,
+    require_all=True,
+):
     import tantivy
 
     tokens = query_tokens(query)
@@ -484,18 +498,54 @@ def build_natural_query(index, query, fields, language=None):
     if not terms:
         return tantivy.Query.empty_query()
 
-    clauses = [
-        (tantivy.Occur.Must, index.parse_query(term, fields))
-        for term in terms
-    ]
-    if len(tokens) > 1:
-        phrase = index.parse_query(f'"{" ".join(tokens)}"', fields)
+    field_weights = (
+        fields
+        if isinstance(fields, dict)
+        else {field: 1.0 for field in fields}
+    )
+    clauses = []
+    for term in terms:
+        variants = list(dict.fromkeys([term, fold_text(term)]))
+        alternatives = []
+        for field, weight in field_weights.items():
+            for variant in variants:
+                parsed = index.parse_query(variant, [field])
+                if weight != 1:
+                    parsed = tantivy.Query.boost_query(parsed, float(weight))
+                alternatives.append((tantivy.Occur.Should, parsed))
+        term_query = (
+            alternatives[0][1]
+            if len(alternatives) == 1
+            else tantivy.Query.boolean_query(alternatives)
+        )
         clauses.append(
             (
-                tantivy.Occur.Should,
-                tantivy.Query.boost_query(phrase, 2.0),
+                tantivy.Occur.Must if require_all else tantivy.Occur.Should,
+                term_query,
             )
         )
+
+    if len(tokens) > 1:
+        phrases = list(
+            dict.fromkeys(
+                [
+                    " ".join(tokens),
+                    fold_text(" ".join(tokens)),
+                ]
+            )
+        )
+        for field, weight in field_weights.items():
+            for phrase_text in phrases:
+                phrase = index.parse_query(f'"{phrase_text}"', [field])
+                clauses.append(
+                    (
+                        tantivy.Occur.Should,
+                        tantivy.Query.boost_query(
+                            phrase,
+                            max(float(weight) * 2.0, 2.0),
+                        ),
+                    )
+                )
     if len(clauses) == 1:
         return clauses[0][1]
     return tantivy.Query.boolean_query(clauses)

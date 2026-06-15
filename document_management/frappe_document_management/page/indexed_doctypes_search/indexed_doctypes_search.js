@@ -64,7 +64,6 @@ class IndexedDocTypesSearchController {
         this.renderTypes();
         const modes = [];
         if (options.full_text_enabled) modes.push(__('Full text'));
-        if (options.semantic_enabled) modes.push(__('Semantic documents'));
         let status = modes.length
             ? __('Enabled: {0}', [modes.join(' + ')])
             : __('No search indexes are enabled.');
@@ -120,15 +119,14 @@ class IndexedDocTypesSearchController {
             });
             this.currentTerms = response.terms || [];
             this.renderResults(response);
-            const count = (response.exact || []).length +
-                (response.semantic || []).length;
+            const count = (response.exact || []).length;
             status.text(
-                response.semantic_rebuild_required
-                    ? response.semantic_error
+                response.exact_error
+                    ? response.exact_error
                     : __('{0} results', [count])
             ).toggleClass(
                 'text-danger',
-                Boolean(response.semantic_rebuild_required)
+                Boolean(response.exact_error)
             );
         } catch (error) {
             results.html(
@@ -142,10 +140,10 @@ class IndexedDocTypesSearchController {
 
     renderResults(response) {
         const container = this.wrapper.find('#indexed-doctypes-search-results').empty();
-        if (response.semantic_rebuild_required) {
+        if (response.exact_error) {
             container.append(
                 $('<div class="alert alert-warning"></div>').text(
-                    response.semantic_error
+                    response.exact_error
                 )
             );
         }
@@ -153,11 +151,6 @@ class IndexedDocTypesSearchController {
             container,
             __('Indexed Records'),
             response.exact || []
-        );
-        this.renderSection(
-            container,
-            __('Documents by Meaning'),
-            response.semantic || []
         );
         if (!container.children().length) {
             container.html(

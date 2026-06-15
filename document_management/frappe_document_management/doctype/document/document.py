@@ -208,25 +208,30 @@ def _convert_office_version(doc, version):
             stderr=subprocess.PIPE,
             text=True,
         )
-        if result.returncode != 0:
-            raise RuntimeError(
-                _("LibreOffice Error (Code {0}): {1}").format(
-                    result.returncode,
-                    result.stderr or result.stdout,
-                )
-            )
 
         # LibreOffice may produce a PDF with a slightly different name than
         # the stem of the source file (e.g. when the name contains special
         # characters).  Scan the temp directory for any PDF produced.
+        # NOTE: check the PDF *before* inspecting the exit code because
+        # LibreOffice sometimes exits with code 1 due to harmless warnings
+        # (e.g. "failed to launch javaldx") while still producing the PDF.
         pdf_files = glob.glob(os.path.join(tmp_dir, "*.pdf"))
         if not pdf_files:
+            # No PDF was created — now the exit code / stderr matter.
+            if result.returncode != 0:
+                raise RuntimeError(
+                    _("LibreOffice Error (Code {0}): {1}").format(
+                        result.returncode,
+                        result.stderr or result.stdout,
+                    )
+                )
             detail = (result.stderr or result.stdout or "").strip()
             raise RuntimeError(
                 _("LibreOffice ran, but the PDF file was not created.{0}").format(
                     " " + detail if detail else ""
                 )
             )
+
 
         pdf_path = pdf_files[0]
         pdf_filename = os.path.basename(pdf_path)

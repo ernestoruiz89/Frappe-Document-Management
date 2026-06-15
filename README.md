@@ -23,6 +23,11 @@ sudo apt-get install ocrmypdf tesseract-ocr
 sudo apt-get install libreoffice-core --no-install-recommends
 ```
 
+If LibreOffice reports `failed to launch javaldx` errors during PDF conversion, install the headless Java runtime:
+```bash
+sudo apt-get install default-jre-headless
+```
+
 
 ### 2. Get the App
 

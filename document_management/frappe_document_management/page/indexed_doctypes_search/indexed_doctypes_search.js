@@ -70,7 +70,7 @@ class IndexedDocTypesSearchController {
         const modes = [];
         if (options.full_text_enabled) modes.push(__('Full text'));
         let status = modes.length
-            ? __('Enabled: {0}', [modes.join(' + ')])
+            ? __('Enabled: {0} ({1} documents indexed)', [modes.join(' + '), options.indexed_count || 0])
             : __('No search indexes are enabled.');
         if (options.full_text_enabled && !options.generic_index_ready) {
             status += ` | ${__(

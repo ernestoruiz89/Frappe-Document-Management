@@ -473,11 +473,22 @@ def get_search_options():
             continue
     options = list(options_dict.values())
 
+    indexed_count = 0
+    if settings.enable_full_text_search and tantivy_backend.index_exists():
+        try:
+            index = tantivy_backend.get_index()
+            searcher = index.searcher()
+            indexed_count = searcher.num_docs
+        except Exception:
+            pass
+
     return {
         "doctypes": sorted(options, key=lambda row: row["label"]),
         "full_text_enabled": bool(settings.enable_full_text_search),
         "generic_index_ready": tantivy_backend.index_exists(),
+        "indexed_count": indexed_count,
     }
+
 
 
 @frappe.whitelist()
@@ -637,3 +648,7 @@ def extract_and_index_ocr(doc_type, doc_name):
             )
         
     return {"status": "success", "extracted_chars": len(extracted_text)}
+
+
+
+

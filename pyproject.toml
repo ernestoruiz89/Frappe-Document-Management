@@ -10,8 +10,8 @@ dynamic = ["version"]
 dependencies = [
     "unidecode",
     "pdfplumber",
-    "pikepdf==4.0.0",
-    "ocrmypdf==13.7.0",
+    "pikepdf>=8.0.0",
+    "ocrmypdf>=15.0.0",
     "tantivy",
     "faiss-cpu",
     "sentence-transformers",

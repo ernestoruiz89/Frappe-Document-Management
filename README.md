@@ -20,13 +20,11 @@ You may also need to install system dependencies for OCR and document preview ge
 ```bash
 # Ubuntu/Debian example for OCRmyPDF and LibreOffice
 sudo apt-get install ocrmypdf tesseract-ocr
-sudo apt-get install libreoffice-core --no-install-recommends
+sudo apt-get install -y libreoffice-core libreoffice-writer libreoffice-calc libreoffice-impress default-jre
 ```
 
-If LibreOffice reports `failed to launch javaldx` errors during PDF conversion, install the headless Java runtime:
-```bash
-sudo apt-get install default-jre-headless
-```
+LibreOffice Writer, Calc, and Impress provide the filters used to convert Word,
+Excel, and PowerPoint files to PDF.
 
 
 ### 2. Get the App

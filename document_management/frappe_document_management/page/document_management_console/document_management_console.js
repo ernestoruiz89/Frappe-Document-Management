@@ -1364,7 +1364,10 @@ class DocumentManagementConsole {
                         args: { doc_name: doc_name },
                         callback: function(r) {
                             if (!r.exc) {
-                                frappe.msgprint(r.message);
+                                frappe.show_alert({
+                                    message: r.message || __('PDF generated successfully'),
+                                    indicator: 'green'
+                                });
                                 setTimeout(() => {
                                     fetch_documents();
                                 }, 1500);

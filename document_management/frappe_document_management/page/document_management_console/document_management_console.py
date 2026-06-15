@@ -653,7 +653,7 @@ def force_generate_pdf(doc_name):
         doc.enqueue_ocr(enqueue_after_commit=False)
         return status
     except Exception as e:
-        frappe.throw(_("Fatal Error: {0}").format(str(e)))
+        frappe.throw(str(e))
 
 
 @frappe.whitelist()

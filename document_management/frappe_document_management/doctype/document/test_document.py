@@ -1,6 +1,8 @@
 import hashlib
 import tempfile
+import zipfile
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
@@ -8,6 +10,9 @@ import frappe
 
 from document_management.frappe_document_management.doctype.document.document import (
     Document,
+    _convert_office_version,
+    _ensure_libreoffice_component,
+    _validate_office_source,
     get_permission_query_conditions,
     has_permission,
 )
@@ -82,6 +87,78 @@ class TestDocumentValidation(TestCase):
             version.preview_checksum,
             hashlib.sha256(preview_content).hexdigest(),
         )
+
+    def test_office_conversion_uses_plain_temp_source_name(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source_path = Path(temp_dir) / "Estados Financieros (21).docx"
+            with zipfile.ZipFile(source_path, "w") as archive:
+                archive.writestr("[Content_Types].xml", "<Types/>")
+                archive.writestr("word/document.xml", "<document/>")
+            completed = SimpleNamespace(returncode=0, stdout="", stderr="")
+            version = SimpleNamespace(
+                attachment="/private/files/Estados Financieros (21).docx",
+                name="VERSION-1",
+            )
+
+            with (
+                patch(
+                    "document_management.frappe_document_management.doctype.document.document.get_file_path",
+                    return_value=str(source_path),
+                ),
+                patch(
+                    "document_management.frappe_document_management.doctype.document.document._ensure_libreoffice_component",
+                ),
+                patch(
+                    "document_management.frappe_document_management.doctype.document.document.subprocess.run",
+                    return_value=completed,
+                ) as run,
+                patch(
+                    "glob.glob",
+                    return_value=[],
+                ),
+                self.assertRaisesRegex(
+                    RuntimeError,
+                    "PDF file was not created",
+                ),
+            ):
+                _convert_office_version(SimpleNamespace(), version)
+
+        command = run.call_args.args[0]
+        self.assertTrue(command[-1].endswith("source.docx"))
+        self.assertNotIn("Estados Financieros", command[-1])
+
+    def test_invalid_office_source_is_rejected_before_conversion(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source_path = Path(temp_dir) / "fake.docx"
+            source_path.write_bytes(b"not a zip")
+
+            with self.assertRaisesRegex(
+                RuntimeError,
+                "not a valid Office Open XML",
+            ):
+                _validate_office_source(str(source_path), ".docx")
+
+    def test_missing_libreoffice_writer_reports_install_command(self):
+        completed = SimpleNamespace(
+            returncode=1,
+            stdout="",
+            stderr="no package found",
+        )
+        with (
+            patch(
+                "shutil.which",
+                return_value="/usr/bin/dpkg-query",
+            ),
+            patch(
+                "document_management.frappe_document_management.doctype.document.document.subprocess.run",
+                return_value=completed,
+            ),
+            self.assertRaisesRegex(
+                RuntimeError,
+                "sudo apt-get install libreoffice-writer",
+            ),
+        ):
+            _ensure_libreoffice_component(".docx")
 
     def test_metadata_save_excludes_versions_from_the_same_document(self):
         document = _document(

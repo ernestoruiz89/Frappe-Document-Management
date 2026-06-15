@@ -1,6 +1,8 @@
 import os
 import subprocess
 import hashlib
+import zipfile
+from pathlib import Path
 import frappe
 from frappe.model.document import Document as FrappeDocument
 from frappe.utils.file_manager import get_file_path
@@ -189,6 +191,15 @@ def _convert_office_version(doc, version):
         raise FileNotFoundError(
             _("File not found for conversion: {0}").format(file_path)
         )
+    extension = os.path.splitext(file_path)[1].lower()
+    if extension not in {".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"}:
+        raise RuntimeError(
+            _("Unsupported Office file type for conversion: {0}").format(
+                extension or "(none)"
+            )
+        )
+    _ensure_libreoffice_component(extension)
+    _validate_office_source(file_path, extension)
 
     tmp_dir = tempfile.mkdtemp()
     try:
@@ -219,11 +230,11 @@ def _convert_office_version(doc, version):
                 '</oor:items>\n'
             )
 
-        # Copy the source into the temp directory so LibreOffice always reads
-        # from a location it can access without permission issues.
-        src_basename = os.path.basename(file_path)
-        tmp_src = os.path.join(tmp_dir, src_basename)
+        # Copy the source into the temp directory with a plain ASCII filename.
+        # LibreOffice headless is sensitive to special characters on WSL.
+        tmp_src = os.path.join(tmp_dir, f"source{extension}")
         _shutil.copy2(file_path, tmp_src)
+        os.chmod(tmp_src, 0o600)
 
         command = [
             "libreoffice",
@@ -231,7 +242,7 @@ def _convert_office_version(doc, version):
             "--norestore",
             "--nofirststartwizard",
             "--nolockcheck",
-            f"-env:UserInstallation=file://{lo_profile_dir}",
+            f"-env:UserInstallation={Path(lo_profile_dir).as_uri()}",
             "--convert-to",
             "pdf",
             "--outdir",
@@ -243,6 +254,10 @@ def _convert_office_version(doc, version):
         # still read $HOME (e.g. javaldx) don't fail on WSL/Windows paths.
         env = os.environ.copy()
         env["HOME"] = tmp_dir
+        env["TMPDIR"] = tmp_dir
+        env["TEMP"] = tmp_dir
+        env["TMP"] = tmp_dir
+        env["SAL_USE_VCLPLUGIN"] = "svp"
 
         result = subprocess.run(
             command,
@@ -315,6 +330,82 @@ def _convert_office_version(doc, version):
     finally:
         import shutil as _shutil
         _shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+def _validate_office_source(file_path, extension):
+    from frappe import _
+
+    with open(file_path, "rb") as handle:
+        header = handle.read(8)
+    if not header:
+        raise RuntimeError(_("Office file is empty and cannot be converted."))
+
+    if extension in {".doc", ".xls", ".ppt"}:
+        if header != b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1":
+            raise RuntimeError(
+                _("The file does not look like a valid legacy Office document.")
+            )
+        return
+
+    markers = {
+        ".docx": "word/",
+        ".xlsx": "xl/",
+        ".pptx": "ppt/",
+    }
+    try:
+        with zipfile.ZipFile(file_path) as archive:
+            names = archive.namelist()
+            marker = markers[extension]
+            valid = "[Content_Types].xml" in names and any(
+                name.startswith(marker) for name in names
+            )
+    except zipfile.BadZipFile as exc:
+        raise RuntimeError(
+            _("The file is not a valid Office Open XML document.")
+        ) from exc
+    if not valid:
+        raise RuntimeError(
+            _("The file content does not match the Office extension {0}.").format(
+                extension
+            )
+        )
+
+
+def _ensure_libreoffice_component(extension):
+    import shutil
+    from frappe import _
+
+    requirements = {
+        ".doc": ("libreoffice-writer", "Writer"),
+        ".docx": ("libreoffice-writer", "Writer"),
+        ".xls": ("libreoffice-calc", "Calc"),
+        ".xlsx": ("libreoffice-calc", "Calc"),
+        ".ppt": ("libreoffice-impress", "Impress"),
+        ".pptx": ("libreoffice-impress", "Impress"),
+    }
+    package, component = requirements[extension]
+    if not shutil.which("dpkg-query"):
+        return
+    result = subprocess.run(
+        [
+            "dpkg-query",
+            "-W",
+            "-f=${Status}",
+            package,
+        ],
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    if result.returncode == 0 and "install ok installed" in result.stdout:
+        return
+    raise RuntimeError(
+        _(
+            "LibreOffice {0} is required to convert {1} files. "
+            "Install it on the server with: sudo apt-get install {2}"
+        ).format(component, extension, package)
+    )
 
 
 

@@ -659,6 +659,7 @@ def force_generate_pdf(doc_name):
 @frappe.whitelist()
 def reprocess_ocr(doc_name):
     from document_management.frappe_document_management.utils.ocr_worker import (
+        OFFICE_EXTENSIONS,
         is_ocr_processing_stale,
     )
 
@@ -673,17 +674,39 @@ def reprocess_ocr(doc_name):
     ):
         frappe.throw("OCR is already processing this document.")
 
+    original_ext = (version.attachment or "").lower().rsplit(".", 1)[-1]
+    if original_ext in OFFICE_EXTENSIONS and not version.preview_attachment:
+        # The office-to-PDF conversion never completed (or the preview was deleted).
+        # Reset the preview state and re-enqueue the conversion job; it will
+        # automatically trigger OCR once the PDF is ready.
+        frappe.db.set_value(
+            "Document Version",
+            version.name,
+            {
+                "preview_status": "Pending",
+                "preview_error": "",
+                "ocr_status": "Pending",
+                "ocr_started_at": None,
+            },
+        )
+        frappe.db.set_value("Document", doc.name, "ocr_status", "Pending")
+        frappe.enqueue(
+            "document_management.frappe_document_management.doctype.document.document.convert_office_to_pdf_job",
+            doc_name=doc.name,
+            version_name=version.name,
+            queue="long",
+            timeout=900,
+            enqueue_after_commit=True,
+        )
+        return {"status": "Pending", "document": doc.name}
+
     frappe.db.set_value(
         "Document Version",
         version.name,
-        "ocr_status",
-        "Pending",
-    )
-    frappe.db.set_value(
-        "Document Version",
-        version.name,
-        "ocr_started_at",
-        None,
+        {
+            "ocr_status": "Pending",
+            "ocr_started_at": None,
+        },
     )
     frappe.db.set_value("Document", doc.name, "ocr_status", "Pending")
     frappe.enqueue(

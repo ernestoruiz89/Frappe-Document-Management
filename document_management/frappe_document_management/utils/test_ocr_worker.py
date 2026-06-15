@@ -221,3 +221,143 @@ def test_obsolete_worker_cannot_write_after_lease_replacement():
             pass
         else:
             raise AssertionError("Expected obsolete OCR lease to be rejected")
+
+
+# ---------------------------------------------------------------------------
+# reprocess_ocr routing tests
+# ---------------------------------------------------------------------------
+
+def _make_version(attachment, preview_attachment="", ocr_status="Failed"):
+    return SimpleNamespace(
+        name="VERSION-1",
+        attachment=attachment,
+        preview_attachment=preview_attachment,
+        ocr_status=ocr_status,
+        ocr_started_at=None,
+    )
+
+
+def _make_doc(version):
+    return SimpleNamespace(name="DOC-001", get_current_version=lambda: version)
+
+
+def test_reprocess_ocr_enqueues_pdf_conversion_when_office_preview_missing():
+    """
+    When an office document has no preview_attachment, reprocess_ocr must
+    enqueue convert_office_to_pdf_job (not process_ocr directly).
+    """
+    from unittest.mock import MagicMock
+
+    version = _make_version("source.docx", preview_attachment="")
+    doc = _make_doc(version)
+
+    enqueue_calls = []
+
+    with (
+        patch(
+            "document_management.frappe_document_management.page"
+            ".document_management_console.document_management_console.frappe.get_doc",
+            return_value=doc,
+        ),
+        patch.object(doc, "check_permission"),
+        patch(
+            "document_management.frappe_document_management.page"
+            ".document_management_console.document_management_console.frappe.db"
+        ) as mock_db,
+        patch(
+            "document_management.frappe_document_management.page"
+            ".document_management_console.document_management_console.frappe.enqueue",
+            side_effect=lambda method, **kw: enqueue_calls.append(method),
+        ),
+    ):
+        from document_management.frappe_document_management.page.document_management_console.document_management_console import (
+            reprocess_ocr,
+        )
+
+        result = reprocess_ocr("DOC-001")
+
+    assert result == {"status": "Pending", "document": "DOC-001"}
+    assert len(enqueue_calls) == 1
+    assert "convert_office_to_pdf_job" in enqueue_calls[0], (
+        f"Expected convert_office_to_pdf_job to be enqueued, got: {enqueue_calls[0]}"
+    )
+
+
+def test_reprocess_ocr_enqueues_process_ocr_when_office_preview_exists():
+    """
+    When an office document already has a preview_attachment, reprocess_ocr
+    must enqueue process_ocr directly.
+    """
+    version = _make_version("source.docx", preview_attachment="/files/source.pdf")
+    doc = _make_doc(version)
+
+    enqueue_calls = []
+
+    with (
+        patch(
+            "document_management.frappe_document_management.page"
+            ".document_management_console.document_management_console.frappe.get_doc",
+            return_value=doc,
+        ),
+        patch.object(doc, "check_permission"),
+        patch(
+            "document_management.frappe_document_management.page"
+            ".document_management_console.document_management_console.frappe.db"
+        ),
+        patch(
+            "document_management.frappe_document_management.page"
+            ".document_management_console.document_management_console.frappe.enqueue",
+            side_effect=lambda method, **kw: enqueue_calls.append(method),
+        ),
+    ):
+        from document_management.frappe_document_management.page.document_management_console.document_management_console import (
+            reprocess_ocr,
+        )
+
+        result = reprocess_ocr("DOC-001")
+
+    assert result == {"status": "Pending", "document": "DOC-001"}
+    assert len(enqueue_calls) == 1
+    assert "process_ocr" in enqueue_calls[0], (
+        f"Expected process_ocr to be enqueued, got: {enqueue_calls[0]}"
+    )
+
+
+def test_reprocess_ocr_enqueues_process_ocr_for_pdf():
+    """
+    For a plain PDF (no office extension) reprocess_ocr must always
+    enqueue process_ocr, regardless of preview_attachment.
+    """
+    version = _make_version("scan.pdf", preview_attachment="")
+    doc = _make_doc(version)
+
+    enqueue_calls = []
+
+    with (
+        patch(
+            "document_management.frappe_document_management.page"
+            ".document_management_console.document_management_console.frappe.get_doc",
+            return_value=doc,
+        ),
+        patch.object(doc, "check_permission"),
+        patch(
+            "document_management.frappe_document_management.page"
+            ".document_management_console.document_management_console.frappe.db"
+        ),
+        patch(
+            "document_management.frappe_document_management.page"
+            ".document_management_console.document_management_console.frappe.enqueue",
+            side_effect=lambda method, **kw: enqueue_calls.append(method),
+        ),
+    ):
+        from document_management.frappe_document_management.page.document_management_console.document_management_console import (
+            reprocess_ocr,
+        )
+
+        result = reprocess_ocr("DOC-001")
+
+    assert result == {"status": "Pending", "document": "DOC-001"}
+    assert any("process_ocr" in c for c in enqueue_calls), (
+        f"Expected process_ocr to be enqueued, got: {enqueue_calls}"
+    )
+

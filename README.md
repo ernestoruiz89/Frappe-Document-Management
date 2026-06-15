@@ -16,11 +16,13 @@ Document Management is a standalone app for the Frappe Framework, designed to ar
 ### 1. Prerequisites
 
 Ensure you have a working Frappe bench (version 15+). 
-You may also need to install system dependencies for OCR if you plan to use local OCR extraction:
+You may also need to install system dependencies for OCR and document preview generation (like LibreOffice for converting office documents to PDF):
 ```bash
-# Ubuntu/Debian example for OCRmyPDF
+# Ubuntu/Debian example for OCRmyPDF and LibreOffice
 sudo apt-get install ocrmypdf tesseract-ocr
+sudo apt-get install libreoffice-core --no-install-recommends
 ```
+
 
 ### 2. Get the App
 

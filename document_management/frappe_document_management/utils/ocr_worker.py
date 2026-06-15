@@ -331,12 +331,8 @@ def recover_stale_ocr_jobs():
         )
         frappe.db.set_value("Document", row.parent, "ocr_status", "Pending")
         frappe.db.commit()
-        frappe.enqueue(
-            "document_management.frappe_document_management.utils.ocr_worker.process_ocr",
-            doc_name=row.parent,
-            queue="long",
-            enqueue_after_commit=True,
-        )
+        doc = frappe.get_doc("Document", row.parent)
+        doc.enqueue_processing()
         recovered.append(row.parent)
     return recovered
 

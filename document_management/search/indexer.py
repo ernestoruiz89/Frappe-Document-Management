@@ -352,7 +352,7 @@ def _permitted_metadata(hits):
                         continue
                 except Exception:
                     continue
-            permitted[(doctype, name)] = row
+            permitted[(doctype, str(name))] = row
     return permitted
 
 
@@ -648,7 +648,3 @@ def extract_and_index_ocr(doc_type, doc_name):
             )
         
     return {"status": "success", "extracted_chars": len(extracted_text)}
-
-
-
-

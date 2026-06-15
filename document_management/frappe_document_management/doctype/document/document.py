@@ -231,7 +231,7 @@ def _convert_office_version(doc, version):
             "--norestore",
             "--nofirststartwizard",
             "--nolockcheck",
-            f"--env:UserInstallation=file://{lo_profile_dir}",
+            f"-env:UserInstallation=file://{lo_profile_dir}",
             "--convert-to",
             "pdf",
             "--outdir",

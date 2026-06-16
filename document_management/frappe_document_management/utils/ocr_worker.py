@@ -12,6 +12,10 @@ import frappe
 from frappe.utils import add_to_date, get_datetime, now_datetime
 from frappe.utils.file_manager import get_file_path
 
+from document_management.frappe_document_management.utils.storage_paths import (
+    organize_file_for_version,
+)
+
 
 IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "tiff", "tif"}
 OFFICE_EXTENSIONS = {"doc", "docx", "xls", "xlsx", "ppt", "pptx"}
@@ -454,6 +458,14 @@ def _save_ocr_preview(version, source_url, pdf_path):
             is_private=1 if source_url.startswith("/private") else 0,
             df="preview_attachment",
         )
+        if version.parent:
+            doc = frappe.get_doc("Document", version.parent)
+            saved_file = organize_file_for_version(
+                saved_file,
+                doc,
+                version,
+                "preview_attachment",
+            )
     finally:
         if original_check is None:
             delattr(frappe_file_manager, "check_max_file_size")

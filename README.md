@@ -54,6 +54,31 @@ This app may require additional Python libraries for semantic search and AI inte
 
 After installation, go to the **Document Management Console** in your Frappe interface to get started. You can configure AI providers, OCR settings, and search indices via the **Document Management Settings** page.
 
+### Physical document storage
+
+By default, files keep Frappe's standard `/private/files` storage layout. To
+organize document files into metadata-based folders, set **File Storage Path
+Template** in **Document Management Settings**. The path is always relative to
+`/private/files` and supports these tokens:
+
+```text
+documents/{category}/{year}/{month}
+documents/{department}/{status}
+documents/{document_code}
+```
+
+Supported tokens are `{category}`, `{department}`, `{document}`,
+`{document_code}`, `{status}`, `{year}`, and `{month}`. Existing files are moved
+when a document is saved and new uploads are placed in the configured path.
+
+### Optional ERPNext integration
+
+Department-based document access requires ERPNext/HRMS DocTypes such as
+`Department` and `Employee`. If they are not installed, Document Management keeps
+working as a standalone Frappe app: department fields are hidden in the UI and
+department access rules are ignored. Role, owner, category, share, and standard
+document permissions continue to apply.
+
 ## Archive integrity check
 
 Run a read-only audit of document originals, generated previews, checksums,

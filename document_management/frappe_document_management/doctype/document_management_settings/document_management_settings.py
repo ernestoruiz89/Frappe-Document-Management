@@ -1,6 +1,10 @@
 import frappe
 from frappe.model.document import Document
 
+from document_management.frappe_document_management.utils.storage_paths import (
+    validate_storage_template,
+)
+
 
 class DocumentManagementSettings(Document):
     def validate(self):
@@ -9,6 +13,7 @@ class DocumentManagementSettings(Document):
             frappe.throw("Trash Retention (Days) cannot be negative.")
         if int(self.export_retention_hours or 0) < 0:
             frappe.throw("Export Retention (Hours) cannot be negative.")
+        validate_storage_template(self.get("file_storage_path_template"))
         if (
             self.ocr_processing_timeout_minutes
             and int(self.ocr_processing_timeout_minutes) < 5

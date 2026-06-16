@@ -38,3 +38,29 @@ class TestDocumentConsoleSearch(TestCase):
                 ignore_permissions=True,
                 force=True,
             )
+
+    def test_database_search_is_used_when_rag_returns_no_matches(self):
+        frappe.set_user("Administrator")
+        marker = f"Empty Rag Fallback {uuid.uuid4().hex}"
+        doc = frappe.get_doc(
+            {
+                "doctype": "Document",
+                "title": marker,
+                "status": "Draft",
+            }
+        ).insert(ignore_permissions=True)
+        try:
+            with patch(
+                "document_management.frappe_document_management.rag.index.search_documents",
+                return_value=[],
+            ):
+                rows = get_documents(search_text=marker, limit=10)
+
+            self.assertEqual([row.name for row in rows], [doc.name])
+        finally:
+            frappe.delete_doc(
+                "Document",
+                doc.name,
+                ignore_permissions=True,
+                force=True,
+            )

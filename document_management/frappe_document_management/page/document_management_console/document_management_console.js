@@ -461,7 +461,7 @@ class DocumentManagementConsole {
                                         <div class="meta-value">{{ selected_doc.folder }}</div>
                                     </div>
                                 </div>
-                                <div class="meta-item" v-if="selected_doc.department">
+                                <div class="meta-item" v-if="department_available && selected_doc.department">
                                     <div class="meta-icon"><i class="fa fa-building-o"></i></div>
                                     <div class="meta-content">
                                         <div class="meta-label">${__('Department')}</div>
@@ -616,6 +616,7 @@ class DocumentManagementConsole {
                 const categories = ref([]);
                 const tags = ref([]);
                 const selected_doc = ref(null);
+                const department_available = ref(true);
                 const view_mode = ref('grid');
                 const loading = ref(false);
                 const trash_mode = ref(false);
@@ -1449,6 +1450,19 @@ class DocumentManagementConsole {
                     });
                 };
 
+                const fetch_access_capabilities = () => {
+                    frappe.call({
+                        method: 'document_management.frappe_document_management.utils.document_access.get_document_access_capabilities',
+                        callback: (r) => {
+                            const capabilities = r.message || {};
+                            department_available.value = Boolean(capabilities.department);
+                        },
+                        error: () => {
+                            department_available.value = false;
+                        }
+                    });
+                };
+
                 const handle_realtime_document_change = (event) => {
                     if (!event || event.doctype !== 'Document') return;
                     clearTimeout(realtimeRefreshTimer);
@@ -1460,6 +1474,7 @@ class DocumentManagementConsole {
                 };
 
                 onMounted(() => {
+                    fetch_access_capabilities();
                     fetch_categories();
                     fetch_folders();
                     fetch_saved_views();
@@ -1481,6 +1496,7 @@ class DocumentManagementConsole {
 
                 return {
                     documents, categories, folders, tags, selected_doc, view_mode, loading, filters, is_fullscreen,
+                    department_available,
                     trash_mode, selected_count, all_selected, can_purge,
                     saved_views, selected_saved_view,
                     show_category_dropdown, toggle_category_dropdown, clear_categories,

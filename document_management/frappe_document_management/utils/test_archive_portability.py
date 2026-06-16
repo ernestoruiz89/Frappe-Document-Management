@@ -1,4 +1,5 @@
 import uuid
+import os
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -187,6 +188,72 @@ class TestArchivePortability(TestCase):
 
         self.assertIn(file_doc.name, deleted)
         self.assertFalse(frappe.db.exists("File", file_doc.name))
+
+    def test_permanent_delete_keeps_files_when_document_delete_fails(self):
+        def fail_document_delete(doctype, name, **kwargs):
+            if doctype == "Document":
+                raise RuntimeError("document delete failed")
+
+        with (
+            patch(
+                "document_management.frappe_document_management.utils.archive_lifecycle._document_files",
+                return_value=[],
+            ),
+            patch(
+                "document_management.frappe_document_management.utils.archive_lifecycle.frappe.delete_doc",
+                side_effect=fail_document_delete,
+            ) as delete_doc,
+            self.assertRaisesRegex(RuntimeError, "document delete failed"),
+        ):
+            permanently_delete_document("DOC-1")
+
+        delete_doc.assert_called_once_with(
+            "Document",
+            "DOC-1",
+            ignore_permissions=True,
+            force=True,
+        )
+
+    def test_permanent_delete_removes_file_rows_when_physical_delete_fails(self):
+        document_name = self._upload(
+            "Physical cleanup failure",
+            f"physical-cleanup-{uuid.uuid4().hex}".encode(),
+        )
+        version_name = frappe.db.get_value(
+            "Document Version",
+            {"parent": document_name},
+            "name",
+        )
+        file_data = frappe.db.get_value(
+            "File",
+            {
+                "attached_to_doctype": "Document Version",
+                "attached_to_name": version_name,
+            },
+            ["name", "file_url"],
+            as_dict=True,
+        )
+        file_path = frappe.get_site_path(
+            "private",
+            "files",
+            *file_data.file_url.split("/private/files/", 1)[1].split("/"),
+        )
+
+        try:
+            with patch(
+                "document_management.frappe_document_management.utils.archive_lifecycle.os.remove",
+                side_effect=OSError("locked file"),
+            ):
+                permanently_delete_document(document_name)
+                self.document_names.remove(document_name)
+                frappe.db.commit()
+
+            self.assertFalse(frappe.db.exists("Document", document_name))
+            self.assertFalse(frappe.db.exists("File", file_data.name))
+            self.assertTrue(os.path.exists(file_path))
+        finally:
+            if os.path.exists(file_path):
+                os.remove(file_path)
 
     def test_retention_purges_expired_document_and_file(self):
         document_name = self._upload(

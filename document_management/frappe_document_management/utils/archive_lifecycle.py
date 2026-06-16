@@ -1,3 +1,5 @@
+import os
+
 import frappe
 from frappe.utils import add_days, add_to_date, now_datetime
 
@@ -5,53 +7,85 @@ from document_management.frappe_document_management.utils.archive_portability im
     EXPORT_ATTACHMENT_DOCTYPE,
     EXPORT_ATTACHMENT_NAME,
 )
+from document_management.frappe_document_management.utils.storage_paths import (
+    private_file_path,
+)
 
 
-def _document_file_names(document_name):
+def _document_files(document_name):
     version_names = frappe.get_all(
         "Document Version",
         filters={"parent": document_name},
         pluck="name",
     )
-    file_names = set(
-        frappe.get_all(
-            "File",
-            filters={
-                "attached_to_doctype": "Document",
-                "attached_to_name": document_name,
-            },
-            pluck="name",
-        )
+    files = frappe.get_all(
+        "File",
+        filters={
+            "attached_to_doctype": "Document",
+            "attached_to_name": document_name,
+        },
+        fields=["name", "file_url", "content_hash"],
     )
     if version_names:
-        file_names.update(
+        files.extend(
             frappe.get_all(
                 "File",
                 filters={
                     "attached_to_doctype": "Document Version",
                     "attached_to_name": ["in", version_names],
                 },
-                pluck="name",
+                fields=["name", "file_url", "content_hash"],
             )
         )
-    return file_names
+    return files
+
+
+def _physical_cleanup_paths(files):
+    file_names = {row.name for row in files}
+    paths = []
+    for row in files:
+        path = private_file_path(row.file_url)
+        if not path:
+            continue
+        shared = frappe.db.exists(
+            "File",
+            {
+                "file_url": row.file_url,
+                "name": ["not in", list(file_names)],
+            },
+        )
+        if shared:
+            continue
+        paths.append(path)
+    return list(dict.fromkeys(paths))
+
+
+def _delete_physical_files(paths):
+    for path in paths:
+        try:
+            if path.exists():
+                os.remove(path)
+        except Exception:
+            frappe.log_error(
+                title="Document Physical File Cleanup Error",
+                message=frappe.get_traceback(),
+            )
 
 
 def permanently_delete_document(document_name):
-    for file_name in _document_file_names(document_name):
-        if frappe.db.exists("File", file_name):
-            frappe.delete_doc(
-                "File",
-                file_name,
-                ignore_permissions=True,
-                force=True,
-            )
+    files = _document_files(document_name)
+    file_names = [row.name for row in files]
+    cleanup_paths = _physical_cleanup_paths(files)
+    if file_names:
+        frappe.db.delete("File", {"name": ["in", file_names]})
     frappe.delete_doc(
         "Document",
         document_name,
         ignore_permissions=True,
         force=True,
     )
+    if cleanup_paths:
+        frappe.db.after_commit.add(lambda: _delete_physical_files(cleanup_paths))
 
 
 def purge_expired_trash():

@@ -1,5 +1,6 @@
 import hashlib
 import json
+import os
 import uuid
 from pathlib import Path
 from unittest import TestCase
@@ -132,6 +133,32 @@ class TestDocumentUpload(TestCase):
             hashlib.sha256(second_content).hexdigest(),
         )
 
+    def test_quick_upload_ignores_departments_when_department_doctype_is_missing(self):
+        content = f"no-department-{uuid.uuid4().hex}".encode()
+        self._set_upload("no-department.txt", content)
+
+        with (
+            patch(
+                "document_management.frappe_document_management.page.document_management_console.document_management_console.department_doctype_exists",
+                return_value=False,
+            ),
+            patch(
+                "document_management.frappe_document_management.doctype.document.document.Document.enqueue_processing"
+            ),
+        ):
+            result = quick_upload(
+                title="No Department upload test",
+                category=self.category_name,
+                department="Missing Department",
+                departments=json.dumps(["Missing Department"]),
+            )
+        self.document_names.append(result["docname"])
+        frappe.db.commit()
+
+        document = frappe.get_doc("Document", result["docname"])
+        self.assertFalse(document.department)
+        self.assertEqual(document.departments_with_access, [])
+
     def test_quick_upload_allows_document_without_category(self):
         self._set_upload("uncategorized.txt", b"uncategorized-content")
 
@@ -144,6 +171,43 @@ class TestDocumentUpload(TestCase):
         document = frappe.get_doc("Document", result["docname"])
         self.assertFalse(document.category)
         self.assertEqual(len(document.versions), 1)
+
+    def test_quick_upload_uses_configured_physical_storage_path(self):
+        settings = frappe.get_single("Document Management Settings")
+        original_template = settings.get("file_storage_path_template")
+        settings.file_storage_path_template = "documents/{category}/{year}/{month}"
+        settings.save(ignore_permissions=True)
+        frappe.db.commit()
+        try:
+            self._set_upload(
+                "organized.txt",
+                f"organized-{uuid.uuid4().hex}".encode(),
+            )
+            with patch(
+                "document_management.frappe_document_management.doctype.document.document.Document.enqueue_processing"
+            ):
+                result = quick_upload(
+                    title="Organized upload test",
+                    category=self.category_name,
+                )
+            self.document_names.append(result["docname"])
+            frappe.db.commit()
+        finally:
+            settings.reload()
+            settings.file_storage_path_template = original_template
+            settings.save(ignore_permissions=True)
+            frappe.db.commit()
+
+        document = frappe.get_doc("Document", result["docname"])
+        file_url = document.versions[0].attachment
+        self.assertIn("/private/files/documents/", file_url)
+        self.assertIn(self.category_name.replace(" ", "_"), file_url)
+        relative_path = file_url.split("/private/files/", 1)[1]
+        self.assertTrue(
+            os.path.exists(
+                frappe.get_site_path("private", "files", *relative_path.split("/"))
+            )
+        )
 
     def test_uncategorized_document_is_visible_to_another_normal_user(self):
         self._set_upload("visible-uncategorized.txt", b"visible-content")

@@ -102,6 +102,20 @@ class TestDocumentChatSecurity(FrappeTestCase):
         with self.assertRaises(frappe.ValidationError):
             parse_filters({"category": ["Contracts", "Private"]})
 
+    def test_department_filter_is_ignored_without_department_doctype(self):
+        with patch(
+            "document_management.frappe_document_management.rag.service.department_doctype_exists",
+            return_value=False,
+        ):
+            parsed = parse_filters(
+                {
+                    "category": "Contracts",
+                    "department": "Operations",
+                }
+            )
+
+        self.assertEqual(parsed, {"category": "Contracts"})
+
     def test_document_selection_is_deduplicated_and_bounded(self):
         names = _document_names(
             [f"DOC-{index}" for index in range(120)] + ["DOC-1"],

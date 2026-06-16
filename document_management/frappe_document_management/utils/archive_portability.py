@@ -11,6 +11,10 @@ import frappe
 from frappe.utils import now_datetime
 from frappe.utils.file_manager import get_file_path
 
+from document_management.frappe_document_management.utils.document_access import (
+    department_doctype_exists,
+)
+
 
 ARCHIVE_FORMAT = "frappe-document-management"
 ARCHIVE_VERSION = 2
@@ -270,17 +274,20 @@ def _required_values(manifest):
     users = set()
     roles = set()
     departments = set()
+    has_department = department_doctype_exists()
     for category in manifest.get("dependencies", {}).get("categories", []):
         users.add(category.get("owner"))
         roles.update(category.get("roles_with_access") or [])
-        departments.update(category.get("departments_with_access") or [])
+        if has_department:
+            departments.update(category.get("departments_with_access") or [])
     for entry in manifest.get("documents") or []:
         users.add(entry.get("owner"))
         users.update(share.get("user") for share in entry.get("shares") or [])
         roles.update(entry.get("roles_with_access") or [])
-        departments.update(entry.get("departments_with_access") or [])
+        if has_department:
+            departments.update(entry.get("departments_with_access") or [])
         metadata = entry.get("metadata") or {}
-        if metadata.get("department"):
+        if has_department and metadata.get("department"):
             departments.add(metadata["department"])
     return {
         "User": {value for value in users if value},
@@ -314,6 +321,7 @@ def _validate_prerequisites(manifest):
 
 def _restore_dependencies(manifest):
     dependencies = manifest.get("dependencies") or {}
+    has_department = department_doctype_exists()
     for definition in dependencies.get("categories") or []:
         name = definition["name"]
         if frappe.db.exists("Document Category", name):
@@ -324,8 +332,10 @@ def _restore_dependencies(manifest):
                 "roles_with_access": sorted(
                     row.role for row in existing.roles_with_access
                 ),
-                "departments_with_access": sorted(
-                    row.department for row in existing.departments_with_access
+                "departments_with_access": (
+                    sorted(row.department for row in existing.departments_with_access)
+                    if has_department
+                    else []
                 ),
             }
             expected_signature = {
@@ -334,8 +344,10 @@ def _restore_dependencies(manifest):
                 "roles_with_access": sorted(
                     definition.get("roles_with_access") or []
                 ),
-                "departments_with_access": sorted(
-                    definition.get("departments_with_access") or []
+                "departments_with_access": (
+                    sorted(definition.get("departments_with_access") or [])
+                    if has_department
+                    else []
                 ),
             }
             if existing_signature != expected_signature:
@@ -349,11 +361,12 @@ def _restore_dependencies(manifest):
         category.only_me = definition.get("only_me") or 0
         for role in definition.get("roles_with_access") or []:
             category.append("roles_with_access", {"role": role})
-        for department in definition.get("departments_with_access") or []:
-            category.append(
-                "departments_with_access",
-                {"department": department},
-            )
+        if has_department:
+            for department in definition.get("departments_with_access") or []:
+                category.append(
+                    "departments_with_access",
+                    {"department": department},
+                )
         category.insert(ignore_permissions=True)
 
     for definition in dependencies.get("tags") or []:
@@ -442,9 +455,12 @@ def restore_document_archive(content):
             ):
                 frappe.throw("Unsupported document archive format.")
             _validate_prerequisites(manifest)
+            has_department = department_doctype_exists()
             _restore_dependencies(manifest)
             for entry in manifest.get("documents") or []:
                 metadata = entry.get("metadata") or {}
+                if not has_department:
+                    metadata = {**metadata, "department": None}
                 doc = frappe.new_doc("Document")
                 for field in PARENT_FIELDS:
                     doc.set(field, metadata.get(field))
@@ -453,11 +469,12 @@ def restore_document_archive(content):
                     doc.append("tags", {"tag": tag})
                 for role in entry.get("roles_with_access") or []:
                     doc.append("roles_with_access", {"role": role})
-                for department in entry.get("departments_with_access") or []:
-                    doc.append(
-                        "departments_with_access",
-                        {"department": department},
-                    )
+                if has_department:
+                    for department in entry.get("departments_with_access") or []:
+                        doc.append(
+                            "departments_with_access",
+                            {"department": department},
+                        )
 
                 version_blobs = []
                 for archived_version in entry.get("versions") or []:

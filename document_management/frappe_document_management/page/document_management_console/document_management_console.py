@@ -7,6 +7,16 @@ import zipfile
 import frappe
 from frappe.utils import now_datetime
 
+from document_management.frappe_document_management.utils.document_access import (
+    department_doctype_exists,
+)
+from document_management.frappe_document_management.utils.realtime import (
+    publish_document_change,
+)
+from document_management.frappe_document_management.utils.storage_paths import (
+    organize_file_for_version,
+)
+
 
 DOCUMENT_FIELDS = [
     "name",
@@ -163,6 +173,9 @@ def _save_version_file(version, folder=None, upload=None):
             "is_private": 1,
         }
     ).insert(ignore_permissions=True)
+    if version.parent:
+        doc = frappe.get_doc("Document", version.parent)
+        file_doc = organize_file_for_version(file_doc, doc, version, "attachment")
     frappe.db.set_value(
         "Document Version",
         version.name,
@@ -440,6 +453,8 @@ def get_documents(
             results = search_documents(search_text, allowed_names, limit=limit)
             ranked_names = [row["doc_name"] for row in results]
             search_metadata = {row["doc_name"]: row for row in results}
+            if not ranked_names:
+                ranked_names = _database_search_names(search_text, filters, limit)
         except IndexRebuildRequired as exc:
             frappe.logger("document_search").warning(
                 "RAG index unavailable; using database search: %s",
@@ -593,6 +608,7 @@ def move_documents_to_trash(documents):
                 "deleted_by": frappe.session.user,
             }
         )
+        publish_document_change(document_name=doc.name, deleted=True)
         changed.append(doc.name)
     job_id = _enqueue_index_refresh(changed, remove=True) if changed else None
     return {"deleted": changed, "job_id": job_id}
@@ -613,6 +629,7 @@ def restore_documents(documents):
                 "deleted_by": None,
             }
         )
+        publish_document_change(document_name=doc.name)
         restored.append(doc.name)
     job_id = _enqueue_index_refresh(restored) if restored else None
     return {"restored": restored, "job_id": job_id}
@@ -636,6 +653,7 @@ def permanently_delete_documents(documents):
             frappe.throw("Only documents in trash can be permanently deleted.")
     for doc in docs:
         permanently_delete_document(doc.name)
+        publish_document_change(document_name=doc.name, deleted=True)
     return {"deleted": names}
 
 @frappe.whitelist()
@@ -760,6 +778,7 @@ def quick_upload(
     departments = departments or form.get("departments")
     upload = _upload_metadata()
     frappe.has_permission("Document", "create", throw=True)
+    has_department = department_doctype_exists()
     try:
         doc = frappe.new_doc("Document")
         if document_code:
@@ -769,7 +788,8 @@ def quick_upload(
         doc.status = status if status in {"Draft", "Published", "Obsolete"} else "Draft"
         if folder:
             doc.folder = folder
-        doc.department = department
+        if has_department:
+            doc.department = department
         doc.party_type = party_type
         doc.party_name = party_name if party_type else None
         doc.description = description
@@ -787,7 +807,7 @@ def quick_upload(
                 if not frappe.db.exists("Role", role):
                     frappe.throw(f"Role does not exist: {role}")
                 doc.append("roles_with_access", {"role": role})
-        if departments:
+        if has_department and departments:
             department_list = (
                 json.loads(departments)
                 if isinstance(departments, str)

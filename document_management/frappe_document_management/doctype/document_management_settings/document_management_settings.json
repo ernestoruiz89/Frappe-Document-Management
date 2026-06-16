@@ -43,6 +43,8 @@
   "archive_management_section",
   "trash_retention_days",
   "export_retention_hours",
+  "storage_section",
+  "file_storage_path_template",
   "legacy_section",
   "semantic_model_type",
   "openai_model",
@@ -330,6 +332,17 @@
    "fieldname": "export_retention_hours",
    "fieldtype": "Int",
    "label": "Export Retention (Hours)"
+  },
+  {
+   "fieldname": "storage_section",
+   "fieldtype": "Section Break",
+   "label": "Physical Storage"
+  },
+  {
+   "description": "Optional private file path below /private/files. Supported tokens: {category}, {department}, {document}, {document_code}, {status}, {year}, {month}. Leave empty to keep Frappe's default flat file storage.",
+   "fieldname": "file_storage_path_template",
+   "fieldtype": "Data",
+   "label": "File Storage Path Template"
   }
  ],
  "issingle": 1,

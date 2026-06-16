@@ -15,6 +15,10 @@ from document_management.frappe_document_management.utils.document_access import
 from document_management.frappe_document_management.utils.realtime import (
     publish_document_change,
 )
+from document_management.frappe_document_management.utils.storage_paths import (
+    organize_document_files,
+    organize_file_for_version,
+)
 
 class Document(FrappeDocument):
     def autoname(self):
@@ -23,6 +27,7 @@ class Document(FrappeDocument):
     def before_save(self):
         self.sync_current_version()
         self.force_attachments_private()
+        organize_document_files(self)
         self.populate_version_checksums()
         self.validate_version_numbers()
         self.validate_duplicate_files()
@@ -321,6 +326,12 @@ def _convert_office_version(doc, version):
             }
         )
         file_doc.insert(ignore_permissions=True)
+        file_doc = organize_file_for_version(
+            file_doc,
+            doc,
+            version,
+            "preview_attachment",
+        )
         frappe.db.set_value(
             "Document Version",
             version.name,

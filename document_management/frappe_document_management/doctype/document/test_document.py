@@ -24,10 +24,15 @@ from document_management.frappe_document_management.doctype.document_category.do
 )
 from document_management.frappe_document_management.page.document_management_console.document_management_console import (
     move_documents_to_trash,
+    restore_documents,
 )
 from document_management.frappe_document_management.utils.realtime import (
     DOCUMENT_CHANGE_EVENT,
     publish_document_change,
+)
+from document_management.frappe_document_management.utils.document_access import (
+    get_user_departments as get_access_user_departments,
+    matches_access_rules,
 )
 
 
@@ -369,6 +374,10 @@ class TestDocumentValidation(TestCase):
                 "document_management.frappe_document_management.doctype.document.document.get_user_departments",
                 return_value={"Operations"},
             ),
+            patch(
+                "document_management.frappe_document_management.utils.document_access.department_access_enabled",
+                return_value=True,
+            ),
         ):
             self.assertTrue(
                 has_permission(document, "read", user="employee@example.com")
@@ -395,6 +404,10 @@ class TestDocumentValidation(TestCase):
             patch(
                 "document_management.frappe_document_management.doctype.document.document.get_user_departments",
                 return_value={"Finance"},
+            ),
+            patch(
+                "document_management.frappe_document_management.utils.document_access.department_access_enabled",
+                return_value=True,
             ),
         ):
             self.assertFalse(
@@ -433,6 +446,10 @@ class TestDocumentValidation(TestCase):
                 "document_management.frappe_document_management.doctype.document.document.get_user_departments",
                 return_value={"Operations"},
             ),
+            patch(
+                "document_management.frappe_document_management.utils.document_access.department_access_enabled",
+                return_value=True,
+            ),
         ):
             self.assertTrue(
                 has_permission(document, "read", user="employee@example.com")
@@ -457,6 +474,10 @@ class TestDocumentValidation(TestCase):
                 "document_management.frappe_document_management.doctype.document_category.document_category.get_user_departments",
                 return_value={"Operations"},
             ),
+            patch(
+                "document_management.frappe_document_management.utils.document_access.department_access_enabled",
+                return_value=True,
+            ),
         ):
             self.assertTrue(
                 category_has_permission(
@@ -465,6 +486,43 @@ class TestDocumentValidation(TestCase):
                     user="employee@example.com",
                 )
             )
+
+    def test_department_rules_are_ignored_when_employee_doctype_is_missing(self):
+        document = _document("DOC-1", [])
+        document.owner = "owner@example.com"
+        document.only_me = 0
+        document.roles_with_access = []
+        document.departments_with_access = [
+            frappe._dict(department="Operations")
+        ]
+
+        with patch(
+            "document_management.frappe_document_management.utils.document_access.department_access_enabled",
+            return_value=False,
+        ):
+            has_restrictions, allowed = matches_access_rules(
+                document,
+                {"All"},
+                set(),
+            )
+
+        self.assertFalse(has_restrictions)
+        self.assertFalse(allowed)
+
+    def test_get_user_departments_skips_employee_query_when_unavailable(self):
+        with (
+            patch(
+                "document_management.frappe_document_management.utils.document_access.department_access_enabled",
+                return_value=False,
+            ),
+            patch(
+                "document_management.frappe_document_management.utils.document_access.frappe.get_all"
+            ) as get_all,
+        ):
+            departments = get_access_user_departments("employee@example.com")
+
+        self.assertEqual(departments, set())
+        get_all.assert_not_called()
 
     def test_move_to_trash_requires_delete_permission(self):
         document = frappe._dict(name="DOC-1", is_deleted=0)
@@ -479,10 +537,36 @@ class TestDocumentValidation(TestCase):
                 "document_management.frappe_document_management.page.document_management_console.document_management_console._enqueue_index_refresh",
                 return_value="job-1",
             ),
+            patch(
+                "document_management.frappe_document_management.page.document_management_console.document_management_console.publish_document_change"
+            ) as publish,
         ):
             move_documents_to_trash(["DOC-1"])
 
         authorized.assert_called_once_with(["DOC-1"], "delete")
+        publish.assert_called_once_with(document_name="DOC-1", deleted=True)
+
+    def test_restore_from_trash_publishes_realtime_change(self):
+        document = frappe._dict(name="DOC-1", is_deleted=1)
+        document.db_set = MagicMock()
+
+        with (
+            patch(
+                "document_management.frappe_document_management.page.document_management_console.document_management_console._authorized_documents",
+                return_value=[document],
+            ) as authorized,
+            patch(
+                "document_management.frappe_document_management.page.document_management_console.document_management_console._enqueue_index_refresh",
+                return_value="job-1",
+            ),
+            patch(
+                "document_management.frappe_document_management.page.document_management_console.document_management_console.publish_document_change"
+            ) as publish,
+        ):
+            restore_documents(["DOC-1"])
+
+        authorized.assert_called_once_with(["DOC-1"], "write")
+        publish.assert_called_once_with(document_name="DOC-1")
 
     def test_document_update_publishes_realtime_change(self):
         document = _document("DOC-1", [])
@@ -548,6 +632,27 @@ class TestDocumentValidation(TestCase):
         self.assertIn("`tabDocument`.category IS NULL", condition)
         self.assertIn("`tabDocument`.category = ''", condition)
 
+    def test_permission_query_omits_employee_join_when_hrms_is_missing(self):
+        with (
+            patch(
+                "document_management.frappe_document_management.doctype.document.document.frappe.get_roles",
+                return_value=["All"],
+            ),
+            patch(
+                "document_management.frappe_document_management.doctype.document.document.frappe.db.escape",
+                side_effect=lambda value: f"'{value}'",
+            ),
+            patch(
+                "document_management.frappe_document_management.utils.document_access.department_access_enabled",
+                return_value=False,
+            ),
+        ):
+            condition = get_permission_query_conditions("employee@example.com")
+
+        self.assertNotIn("`tabEmployee`", condition)
+        self.assertNotIn("`tabDocument Department Access`", condition)
+        self.assertIn("`tabDocument Role Access`", condition)
+
     def test_category_permission_query_includes_department_membership(self):
         with (
             patch(
@@ -569,3 +674,26 @@ class TestDocumentValidation(TestCase):
             "access_employee.user_id = 'employee@example.com'",
             condition,
         )
+
+    def test_category_permission_query_omits_employee_join_when_hrms_is_missing(self):
+        with (
+            patch(
+                "document_management.frappe_document_management.doctype.document_category.document_category.frappe.get_roles",
+                return_value=["All"],
+            ),
+            patch(
+                "document_management.frappe_document_management.doctype.document_category.document_category.frappe.db.escape",
+                side_effect=lambda value: f"'{value}'",
+            ),
+            patch(
+                "document_management.frappe_document_management.utils.document_access.department_access_enabled",
+                return_value=False,
+            ),
+        ):
+            condition = get_category_permission_query_conditions(
+                "employee@example.com"
+            )
+
+        self.assertNotIn("`tabEmployee`", condition)
+        self.assertNotIn("`tabDocument Department Access`", condition)
+        self.assertIn("`tabDocument Role Access`", condition)

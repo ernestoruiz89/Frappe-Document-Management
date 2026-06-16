@@ -16,6 +16,7 @@ frappe.ui.form.on("Document", {
 		});
 	},
 	refresh(frm) {
+        apply_department_capabilities(frm);
         if (!frm.is_new()) {
             frm.add_custom_button(__('Upload New Version'), function() {
                 show_upload_version_dialog(frm);
@@ -33,6 +34,24 @@ frappe.ui.form.on("Document", {
         }
 	}
 });
+
+function toggle_field(frm, fieldname, visible) {
+    if (!frm.fields_dict[fieldname]) return;
+    frm.toggle_display(fieldname, visible);
+    frm.toggle_enable(fieldname, visible);
+}
+
+function apply_department_capabilities(frm) {
+    frappe.call({
+        method: 'document_management.frappe_document_management.utils.document_access.get_document_access_capabilities',
+        callback: (r) => {
+            const capabilities = r.message || {};
+            frm.dm_department_available = Boolean(capabilities.department);
+            toggle_field(frm, 'department', frm.dm_department_available);
+            toggle_field(frm, 'departments_with_access', frm.dm_department_available);
+        }
+    });
+}
 
 function show_upload_version_dialog(frm, is_new = false) {
     let d = new frappe.ui.Dialog({
@@ -62,7 +81,6 @@ function show_upload_version_dialog(frm, is_new = false) {
                     folder: frm.doc.folder || '',
                     document_code: frm.doc.document_code || '',
                     tags: JSON.stringify((frm.doc.tags || []).map((row) => row.tag)),
-                    department: frm.doc.department || '',
                     party_type: frm.doc.party_type || '',
                     party_name: frm.doc.party_name || '',
                     description: frm.doc.description || '',
@@ -71,16 +89,19 @@ function show_upload_version_dialog(frm, is_new = false) {
                     roles: JSON.stringify(
                         (frm.doc.roles_with_access || []).map((row) => row.role)
                     ),
-                    departments: JSON.stringify(
-                        (frm.doc.departments_with_access || []).map(
-                            (row) => row.department
-                        )
-                    )
                 }
                 : {
                     doc_name: frm.doc.name,
                     folder: frm.doc.folder || ''
                 };
+            if (is_new && frm.dm_department_available !== false) {
+                args.department = frm.doc.department || '';
+                args.departments = JSON.stringify(
+                    (frm.doc.departments_with_access || []).map(
+                        (row) => row.department
+                    )
+                );
+            }
 
             upload_document_file(d.pending_file, method, args)
                 .then((result) => {

@@ -543,33 +543,52 @@ class DocumentChatController {
             new Promise(resolve => frappe.model.with_doctype('Document Tag Link', resolve)),
             new Promise(resolve => frappe.model.with_doctype('Document Link', resolve))
         ]);
+        const capabilities = await new Promise((resolve) => {
+            frappe.call({
+                method: 'document_management.frappe_document_management.utils.document_access.get_document_access_capabilities',
+                callback: (r) => resolve(r.message || {}),
+                error: () => resolve({})
+            });
+        });
+        const fields = [
+            {fieldname: 'category', fieldtype: 'Link', options: 'Document Category', label: __('Category'), default: current.category},
+            {fieldname: 'party_type', fieldtype: 'Link', options: 'DocType', label: __('Party Type'), default: current.party_type},
+            {fieldname: 'party_name', fieldtype: 'Data', label: __('Party Name'), default: current.party_name},
+            {
+                fieldname: 'tags',
+                fieldtype: 'Table MultiSelect',
+                options: 'Document Tag Link',
+                label: __('Tags'),
+                default: (current.tags || []).map(t => ({ tag: t }))
+            },
+            {
+                fieldname: 'documents',
+                fieldtype: 'Table MultiSelect',
+                options: 'Document Link',
+                label: __('Document IDs'),
+                default: (current.documents || []).map(d => ({ document: d }))
+            }
+        ];
+        if (capabilities.department) {
+            fields.splice(1, 0, {
+                fieldname: 'department',
+                fieldtype: 'Link',
+                options: 'Department',
+                label: __('Department'),
+                default: current.department
+            });
+        }
 
         const dialog = new frappe.ui.Dialog({
             title: __('Document filters'),
-            fields: [
-                {fieldname: 'category', fieldtype: 'Link', options: 'Document Category', label: __('Category'), default: current.category},
-                {fieldname: 'department', fieldtype: 'Link', options: 'Department', label: __('Department'), default: current.department},
-                {fieldname: 'party_type', fieldtype: 'Link', options: 'DocType', label: __('Party Type'), default: current.party_type},
-                {fieldname: 'party_name', fieldtype: 'Data', label: __('Party Name'), default: current.party_name},
-                {
-                    fieldname: 'tags',
-                    fieldtype: 'Table MultiSelect',
-                    options: 'Document Tag Link',
-                    label: __('Tags'),
-                    default: (current.tags || []).map(t => ({ tag: t }))
-                },
-                {
-                    fieldname: 'documents',
-                    fieldtype: 'Table MultiSelect',
-                    options: 'Document Link',
-                    label: __('Document IDs'),
-                    default: (current.documents || []).map(d => ({ document: d }))
-                }
-            ],
+            fields,
             primary_action_label: __('Apply'),
             primary_action: async (values) => {
                 values.tags = (values.tags || []).map(row => row.tag);
                 values.documents = (values.documents || []).map(row => row.document);
+                if (!capabilities.department) {
+                    delete values.department;
+                }
                 const filters = await this.call('update_session_filters', {
                     session: this.session.name,
                     filters: JSON.stringify(values)

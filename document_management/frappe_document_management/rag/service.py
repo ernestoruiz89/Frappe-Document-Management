@@ -11,6 +11,9 @@ from document_management.frappe_document_management.rag.index import (
     search_chunks,
 )
 from document_management.frappe_document_management.rag.providers import complete_chat, stream_chat
+from document_management.frappe_document_management.utils.document_access import (
+    department_doctype_exists,
+)
 
 
 SYSTEM_PROMPT = (
@@ -44,7 +47,10 @@ def parse_filters(raw_filters):
         "documents",
     }
     parsed = {}
-    for key in ("category", "department", "party_type", "party_name"):
+    metadata_keys = ["category", "party_type", "party_name"]
+    if department_doctype_exists():
+        metadata_keys.append("department")
+    for key in metadata_keys:
         value = raw_filters.get(key)
         if value:
             if not isinstance(value, str):
@@ -92,7 +98,10 @@ def get_allowed_documents(filters, user):
         )
 
     db_filters = {}
-    for key in ("category", "department", "party_type", "party_name"):
+    metadata_keys = ["category", "party_type", "party_name"]
+    if department_doctype_exists():
+        metadata_keys.append("department")
+    for key in metadata_keys:
         if filters.get(key):
             db_filters[key] = filters[key]
 

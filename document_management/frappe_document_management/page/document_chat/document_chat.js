@@ -275,15 +275,17 @@ class DocumentChatController {
         const doc_name = source.document;
         frappe.show_alert({message: __('Loading document preview...'), indicator: 'blue'});
 
-        this.call('get_document_pdf_url', {document: doc_name}).then((file_url) => {
-            if (!file_url) {
+        this.call('get_document_pdf_url', {document: doc_name}).then((file_data) => {
+            if (!file_data) {
                 frappe.msgprint(__('This document does not have an attached preview or file.'));
                 return;
             }
 
+            const file_url = typeof file_data === 'string' ? file_data : file_data.file_url;
+            const viewer_url = typeof file_data === 'string' ? file_data : (file_data.url || file_data.file_url);
             if (!file_url.toLowerCase().endsWith('.pdf')) {
                 frappe.msgprint(__('The document preview is not a PDF file. Opening in a new window instead.'));
-                window.open(file_url, '_blank');
+                window.open(viewer_url, '_blank');
                 return;
             }
 
@@ -320,7 +322,7 @@ class DocumentChatController {
                                 </div>
                             `,
                             setup() {
-                                const src = Vue.ref(file_url);
+                                const src = Vue.ref(viewer_url);
                                 const page = Vue.ref(source.page || 1);
                                 const terms = Vue.ref([]);
                                 return { src, page, terms };

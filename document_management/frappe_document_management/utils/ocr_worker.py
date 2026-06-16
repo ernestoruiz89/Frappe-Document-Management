@@ -12,6 +12,10 @@ import frappe
 from frappe.utils import add_to_date, get_datetime, now_datetime
 from frappe.utils.file_manager import get_file_path
 
+from document_management.frappe_document_management.utils.file_crypto import (
+    decrypted_temp_file,
+    encrypt_file_doc,
+)
 from document_management.frappe_document_management.utils.storage_paths import (
     organize_file_for_version,
 )
@@ -466,6 +470,7 @@ def _save_ocr_preview(version, source_url, pdf_path):
                 version,
                 "preview_attachment",
             )
+        encrypt_file_doc(saved_file)
     finally:
         if original_check is None:
             delattr(frappe_file_manager, "check_max_file_size")
@@ -616,6 +621,7 @@ def _apply_tags(doc, extracted_text):
 
 def process_ocr(doc_name):
     temp_dir = None
+    source_context = None
     replaced_preview = ("", "")
     lease_token = None
     try:
@@ -630,9 +636,11 @@ def process_ocr(doc_name):
 
         config = _ocr_config()
         source_url, original_ext = _processing_source(version)
-        source_path = get_file_path(source_url)
-        if not source_path or not os.path.exists(source_path):
-            raise FileNotFoundError(f"File not found: {source_path}")
+        physical_source_path = get_file_path(source_url)
+        if not physical_source_path or not os.path.exists(physical_source_path):
+            raise FileNotFoundError(f"File not found: {physical_source_path}")
+        source_context = decrypted_temp_file(source_url)
+        source_path = source_context.__enter__()
 
         ext = source_url.rsplit(".", 1)[-1].lower()
         if ext in {"txt", "md"}:
@@ -812,5 +820,7 @@ def process_ocr(doc_name):
                 message=frappe.get_traceback(),
             )
     finally:
+        if source_context:
+            source_context.__exit__(None, None, None)
         if temp_dir:
             shutil.rmtree(temp_dir, ignore_errors=True)

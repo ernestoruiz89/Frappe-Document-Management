@@ -44,7 +44,13 @@
   "trash_retention_days",
   "export_retention_hours",
   "storage_section",
+  "enable_file_encryption",
   "file_storage_path_template",
+  "folder_ingestion_section",
+  "enable_folder_ingestion",
+  "ingestion_folder_path",
+  "ingestion_done_folder_path",
+  "ingestion_error_folder_path",
   "legacy_section",
   "semantic_model_type",
   "openai_model",
@@ -339,10 +345,50 @@
    "label": "Physical Storage"
   },
   {
+   "default": "0",
+   "description": "Encrypt new private document files at rest using the site's encryption_key. Keep site_config.json backups safe; losing the key makes encrypted files unreadable.",
+   "fieldname": "enable_file_encryption",
+   "fieldtype": "Check",
+   "label": "Encrypt Document Files at Rest"
+  },
+  {
    "description": "Optional private file path below /private/files. Supported tokens: {category}, {department}, {document}, {document_code}, {status}, {year}, {month}. Leave empty to keep Frappe's default flat file storage.",
    "fieldname": "file_storage_path_template",
    "fieldtype": "Data",
    "label": "File Storage Path Template"
+  },
+  {
+   "fieldname": "folder_ingestion_section",
+   "fieldtype": "Section Break",
+   "label": "Folder Ingestion"
+  },
+  {
+   "default": "0",
+   "description": "Hourly scheduler imports files from the configured folder and then moves them to done or error.",
+   "fieldname": "enable_folder_ingestion",
+   "fieldtype": "Check",
+   "label": "Enable Folder Ingestion"
+  },
+  {
+   "depends_on": "eval:doc.enable_folder_ingestion",
+   "description": "Server-side folder scanned for document files. Files are processed non-recursively.",
+   "fieldname": "ingestion_folder_path",
+   "fieldtype": "Data",
+   "label": "Ingestion Folder Path"
+  },
+  {
+   "depends_on": "eval:doc.enable_folder_ingestion",
+   "description": "Processed files are moved here. Defaults to a done folder inside the ingestion folder.",
+   "fieldname": "ingestion_done_folder_path",
+   "fieldtype": "Data",
+   "label": "Done Folder Path"
+  },
+  {
+   "depends_on": "eval:doc.enable_folder_ingestion",
+   "description": "Failed files are moved here with a .error.txt note. Defaults to an error folder inside the ingestion folder.",
+   "fieldname": "ingestion_error_folder_path",
+   "fieldtype": "Data",
+   "label": "Error Folder Path"
   }
  ],
  "issingle": 1,

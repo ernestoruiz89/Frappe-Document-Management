@@ -276,7 +276,7 @@ class DocumentManagementConsole {
                                 </div>
                                 <div class="large-card-actions">
                                     <button class="btn-action" @click.stop="open_doc(doc.name)" :title="'${__('Open in Frappe')}'"><i class="fa fa-external-link"></i></button>
-                                    <a v-if="doc.original_file || doc.document_file" class="btn-action" :href="doc.original_file || doc.document_file" target="_blank" @click.stop :title="'${__('Download')}'"><i class="fa fa-download"></i></a>
+                                    <a v-if="doc.original_file || doc.document_file" class="btn-action" :href="doc.original_download || doc.document_download || doc.original_file || doc.document_file" target="_blank" @click.stop :title="'${__('Download')}'"><i class="fa fa-download"></i></a>
                                 </div>
                             </div>
                         </div>
@@ -342,13 +342,13 @@ class DocumentManagementConsole {
                                         <strong>${__('Preview Notice:')}</strong> ${__('You are viewing an automatically generated preview from an Office file. Some complex formatting or design elements might not display with 100% accuracy. For perfect fidelity, we recommend downloading the original file from the sidebar.')}
                                     </div>
                                     <loan-pdf-viewer
-                                        :src="selected_doc.document_file"
+                                        :src="selected_doc.document_download || selected_doc.document_file"
                                         :query="filters.search"
                                         :terms="selected_doc.search_terms || []"
                                         :page="selected_doc.search_page || 1">
                                     </loan-pdf-viewer>
                                 </div>
-                                <img v-else-if="is_img(selected_doc.document_file)" :src="selected_doc.document_file" />
+                                <img v-else-if="is_img(selected_doc.document_file)" :src="selected_doc.document_download || selected_doc.document_file" />
                                 
                                 <!-- Txt/Md Viewer -->
                                 <div v-else-if="is_txt(selected_doc.document_file) || is_md(selected_doc.document_file, selected_doc)" class="text-preview-container">
@@ -399,13 +399,13 @@ class DocumentManagementConsole {
                                                 <strong>${__('Preview Notice:')}</strong> ${__('You are viewing an automatically generated preview from an Office file. Some complex formatting or design elements might not display with 100% accuracy. For perfect fidelity, we recommend downloading the original file from the sidebar.')}
                                             </div>
                                             <loan-pdf-viewer
-                                                :src="selected_doc.document_file"
+                                                :src="selected_doc.document_download || selected_doc.document_file"
                                                 :query="filters.search"
                                                 :terms="selected_doc.search_terms || []"
                                                 :page="selected_doc.search_page || 1">
                                             </loan-pdf-viewer>
                                         </div>
-                                        <img v-else-if="is_img(selected_doc.document_file)" :src="selected_doc.document_file" />
+                                        <img v-else-if="is_img(selected_doc.document_file)" :src="selected_doc.document_download || selected_doc.document_file" />
                                         
                                         <!-- Txt/Md Viewer (Fullscreen) -->
                                         <div v-else-if="is_txt(selected_doc.document_file) || is_md(selected_doc.document_file, selected_doc)" class="text-preview-container fullscreen">
@@ -529,7 +529,7 @@ class DocumentManagementConsole {
                             <button v-if="trash_mode && can_purge" class="btn btn-danger" @click="purge_one(selected_doc.name)">
                                 <i class="fa fa-times"></i> ${__('Delete permanently')}
                             </button>
-                            <a v-if="selected_doc.original_file || selected_doc.document_file" :href="selected_doc.original_file || selected_doc.document_file" target="_blank" class="btn btn-download">
+                            <a v-if="selected_doc.original_file || selected_doc.document_file" :href="selected_doc.original_download || selected_doc.original_file || selected_doc.document_download || selected_doc.document_file" target="_blank" class="btn btn-download">
                                 <i class="fa fa-download"></i> ${__('Download Original File')}
                             </a>
                         </div>
@@ -976,7 +976,7 @@ class DocumentManagementConsole {
 
                 function select_doc(doc) {
                     selected_doc.value = doc;
-                    const file_path = doc ? (doc.original_file || doc.document_file) : null;
+                    const file_path = doc ? (doc.original_download || doc.document_download || doc.original_file || doc.document_file) : null;
                     if (file_path && (is_txt(file_path) || is_md(file_path, doc))) {
                         load_text_preview(file_path);
                     } else {

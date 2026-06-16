@@ -6,6 +6,10 @@ import frappe
 from frappe.utils import add_days, get_datetime, now_datetime
 from frappe.utils.file_manager import get_file_path
 
+from document_management.frappe_document_management.utils.file_crypto import (
+    read_path_bytes,
+)
+
 
 def _token_hash(token):
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
@@ -112,8 +116,7 @@ def download_shared_document(token):
     path = get_file_path(file_url)
     if not path or not os.path.isfile(path):
         frappe.throw("Shared file is unavailable.")
-    with open(path, "rb") as handle:
-        frappe.local.response.filecontent = handle.read()
+    frappe.local.response.filecontent = read_path_bytes(path)
     frappe.local.response.filename = os.path.basename(path)
     frappe.local.response.type = "download"
     frappe.local.response.display_content_as = "attachment"

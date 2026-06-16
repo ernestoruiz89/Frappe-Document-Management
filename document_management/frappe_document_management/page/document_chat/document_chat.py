@@ -12,6 +12,9 @@ from document_management.frappe_document_management.rag.service import (
     parse_filters,
     request_cancellation,
 )
+from document_management.frappe_document_management.utils.file_crypto import (
+    document_file_url,
+)
 
 
 def _serialize_message(row):
@@ -316,6 +319,17 @@ def get_document_pdf_url(document):
     doc.check_permission("read")
     latest_version = doc.get_current_version()
     if latest_version:
-        return latest_version.preview_attachment or latest_version.attachment
+        file_url = latest_version.preview_attachment or latest_version.attachment
+        return {
+            "file_url": file_url,
+            "url": document_file_url(
+                doc.name,
+                (
+                    "Searchable PDF"
+                    if latest_version.preview_attachment
+                    else "Original"
+                ),
+            ),
+        }
     return None
 

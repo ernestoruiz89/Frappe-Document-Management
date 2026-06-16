@@ -1,12 +1,17 @@
 import os
 import subprocess
-import hashlib
 import zipfile
 from pathlib import Path
 import frappe
 from frappe.model.document import Document as FrappeDocument
 from frappe.utils.file_manager import get_file_path
 
+from document_management.frappe_document_management.utils.file_crypto import (
+    decrypted_temp_file,
+    encrypt_file_doc,
+    plaintext_size,
+    sha256_path,
+)
 from document_management.frappe_document_management.utils.document_access import (
     get_user_departments,
     matches_access_rules,
@@ -28,6 +33,7 @@ class Document(FrappeDocument):
         self.sync_current_version()
         self.force_attachments_private()
         organize_document_files(self)
+        self.encrypt_document_files()
         self.populate_version_checksums()
         self.validate_version_numbers()
         self.validate_duplicate_files()
@@ -57,7 +63,7 @@ class Document(FrappeDocument):
                 file_path = get_file_path(version.attachment)
                 if file_path and os.path.exists(file_path):
                     version.file_checksum = _sha256_file(file_path)
-                    version.file_size = os.path.getsize(file_path)
+                    version.file_size = plaintext_size(file_path)
             if version.preview_attachment and not version.preview_checksum:
                 preview_path = get_file_path(version.preview_attachment)
                 if preview_path and os.path.exists(preview_path):
@@ -192,30 +198,49 @@ class Document(FrappeDocument):
                     if getattr(v, "preview_attachment", "") == file_data.file_url:
                         v.preview_attachment = f.file_url
 
+    def encrypt_document_files(self):
+        for version in self.get("versions") or []:
+            for fieldname in ("attachment", "preview_attachment"):
+                file_url = version.get(fieldname)
+                if not file_url or file_url.endswith("/pending-upload"):
+                    continue
+                file_name = frappe.db.get_value(
+                    "File",
+                    {
+                        "file_url": file_url,
+                        "attached_to_doctype": "Document Version",
+                        "attached_to_name": version.name,
+                        "attached_to_field": fieldname,
+                    },
+                    "name",
+                )
+                if not file_name:
+                    continue
+                encrypt_file_doc(frappe.get_doc("File", file_name))
+
 def _convert_office_version(doc, version):
     import glob
     import tempfile
     from frappe import _
 
-    file_path = get_file_path(version.attachment)
-    if not file_path or not os.path.exists(file_path):
-        raise FileNotFoundError(
-            _("File not found for conversion: {0}").format(file_path)
-        )
-    extension = os.path.splitext(file_path)[1].lower()
-    if extension not in {".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"}:
-        raise RuntimeError(
-            _("Unsupported Office file type for conversion: {0}").format(
-                extension or "(none)"
-            )
-        )
-    _ensure_libreoffice_component(extension)
-    _validate_office_source(file_path, extension)
-
     tmp_dir = tempfile.mkdtemp()
     try:
         import shutil as _shutil
         import uuid
+
+        source_file_path = get_file_path(version.attachment)
+        if not source_file_path or not os.path.exists(source_file_path):
+            raise FileNotFoundError(
+                _("File not found for conversion: {0}").format(source_file_path)
+            )
+        extension = os.path.splitext(source_file_path)[1].lower()
+        if extension not in {".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"}:
+            raise RuntimeError(
+                _("Unsupported Office file type for conversion: {0}").format(
+                    extension or "(none)"
+                )
+            )
+        _ensure_libreoffice_component(extension)
 
         # Give LibreOffice a fresh, isolated user-profile directory for each
         # conversion so that concurrent calls (or a previously crashed process)
@@ -241,10 +266,17 @@ def _convert_office_version(doc, version):
                 '</oor:items>\n'
             )
 
-        # Copy the source into the temp directory with a plain ASCII filename.
-        # LibreOffice headless is sensitive to special characters on WSL.
-        tmp_src = os.path.join(tmp_dir, f"source{extension}")
-        _shutil.copy2(file_path, tmp_src)
+        with decrypted_temp_file(
+            version.attachment,
+            suffix=extension,
+            path=source_file_path,
+        ) as file_path:
+            _validate_office_source(file_path, extension)
+
+            # Copy the source into the temp directory with a plain ASCII filename.
+            # LibreOffice headless is sensitive to special characters on WSL.
+            tmp_src = os.path.join(tmp_dir, f"source{extension}")
+            _shutil.copy2(file_path, tmp_src)
         os.chmod(tmp_src, 0o600)
 
         command = [
@@ -332,6 +364,7 @@ def _convert_office_version(doc, version):
             version,
             "preview_attachment",
         )
+        encrypt_file_doc(file_doc)
         frappe.db.set_value(
             "Document Version",
             version.name,
@@ -488,14 +521,7 @@ def convert_office_to_pdf_job(doc_name, version_name):
 
 
 def _sha256_file(file_path, block_size=1024 * 1024):
-    digest = hashlib.sha256()
-    with open(file_path, "rb") as file_handle:
-        while True:
-            block = file_handle.read(block_size)
-            if not block:
-                break
-            digest.update(block)
-    return digest.hexdigest()
+    return sha256_path(file_path)
 
 
 def has_permission(doc, ptype="read", user=None):

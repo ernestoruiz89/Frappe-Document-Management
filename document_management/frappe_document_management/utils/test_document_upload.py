@@ -10,7 +10,12 @@ import frappe
 
 from document_management.frappe_document_management.page.document_management_console.document_management_console import (
     add_document_version,
+    download_document_file,
     quick_upload,
+)
+from document_management.frappe_document_management.utils.file_crypto import (
+    MAGIC,
+    read_file_bytes,
 )
 
 
@@ -208,6 +213,42 @@ class TestDocumentUpload(TestCase):
                 frappe.get_site_path("private", "files", *relative_path.split("/"))
             )
         )
+
+    def test_quick_upload_encrypts_private_file_when_enabled(self):
+        settings = frappe.get_single("Document Management Settings")
+        original_encryption = settings.get("enable_file_encryption")
+        settings.enable_file_encryption = 1
+        settings.save(ignore_permissions=True)
+        frappe.db.commit()
+        content = f"encrypted-{uuid.uuid4().hex}".encode()
+        try:
+            self._set_upload("encrypted.txt", content)
+            with patch(
+                "document_management.frappe_document_management.doctype.document.document.Document.enqueue_processing"
+            ):
+                result = quick_upload(title="Encrypted upload test")
+            self.document_names.append(result["docname"])
+            frappe.db.commit()
+        finally:
+            settings.reload()
+            settings.enable_file_encryption = original_encryption
+            settings.save(ignore_permissions=True)
+            frappe.db.commit()
+
+        document = frappe.get_doc("Document", result["docname"])
+        file_url = document.versions[0].attachment
+        file_path = frappe.get_site_path(
+            "private",
+            "files",
+            *file_url.split("/private/files/", 1)[1].split("/"),
+        )
+        with open(file_path, "rb") as handle:
+            stored = handle.read()
+        self.assertTrue(stored.startswith(MAGIC))
+        self.assertEqual(read_file_bytes(file_url), content)
+
+        download_document_file(document.name, "Original", attachment=1)
+        self.assertEqual(frappe.local.response.filecontent, content)
 
     def test_uncategorized_document_is_visible_to_another_normal_user(self):
         self._set_upload("visible-uncategorized.txt", b"visible-content")

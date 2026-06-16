@@ -31,6 +31,7 @@ doc_events = {
 scheduler_events = {
     "hourly": [
         "document_management.frappe_document_management.utils.ocr_worker.recover_stale_ocr_jobs",
+        "document_management.frappe_document_management.utils.folder_ingestion.ingest_configured_folder",
         "document_management.frappe_document_management.utils.archive_lifecycle.purge_expired_exports",
         "document_management.frappe_document_management.utils.document_sharing.cleanup_expired_share_links"
     ],

@@ -1,4 +1,3 @@
-import hashlib
 import os
 from pathlib import Path
 from urllib.parse import unquote
@@ -6,13 +5,13 @@ from urllib.parse import unquote
 import frappe
 from frappe.utils.file_manager import get_file_path
 
+from document_management.frappe_document_management.utils.file_crypto import (
+    sha256_path,
+)
+
 
 def _sha256_file(path, block_size=1024 * 1024):
-    digest = hashlib.sha256()
-    with open(path, "rb") as file_handle:
-        while block := file_handle.read(block_size):
-            digest.update(block)
-    return digest.hexdigest()
+    return sha256_path(path)
 
 
 def _issue(issues, severity, code, message, **context):

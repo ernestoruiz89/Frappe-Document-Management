@@ -10,6 +10,11 @@ from frappe.utils import now_datetime
 from document_management.frappe_document_management.utils.document_access import (
     department_doctype_exists,
 )
+from document_management.frappe_document_management.utils.file_crypto import (
+    document_file_response,
+    document_file_url,
+    encrypt_file_doc,
+)
 from document_management.frappe_document_management.utils.realtime import (
     publish_document_change,
 )
@@ -177,6 +182,7 @@ def _save_version_file(version, folder=None, upload=None):
     if version.parent:
         doc = frappe.get_doc("Document", version.parent)
         file_doc = organize_file_for_version(file_doc, doc, version, "attachment")
+    encrypt_file_doc(file_doc)
     frappe.db.set_value(
         "Document Version",
         version.name,
@@ -190,6 +196,28 @@ def _save_version_file(version, folder=None, upload=None):
     version.file_checksum = checksum
     version.file_size = file_size
     return file_doc
+
+
+@frappe.whitelist()
+def download_document_file(document, file_version="Original", attachment=0):
+    doc = frappe.get_doc("Document", document)
+    doc.check_permission("read")
+    version = doc.get_current_version()
+    if not version:
+        frappe.throw("The document has no file.")
+    if file_version == "Searchable PDF":
+        file_url = version.preview_attachment or version.attachment
+    elif file_version == "Original":
+        file_url = version.attachment
+    else:
+        frappe.throw("Invalid file version.")
+    if not file_url:
+        frappe.throw("The requested file is unavailable.")
+    document_file_response(
+        file_url,
+        filename=os.path.basename(file_url),
+        attachment=bool(int(attachment or 0)),
+    )
 
 
 def _enqueue_index_refresh(names, remove=False):
@@ -369,11 +397,17 @@ def get_documents(
     except (TypeError, ValueError):
         limit = 50
     search_text = (search_text or "").strip()
+    from document_management.search.advanced import (
+        apply_advanced_document_filters,
+        parse_advanced_document_query,
+    )
+
+    advanced_query = parse_advanced_document_query(search_text)
     search_terms = []
     if search_text:
         from document_management.search.query import significant_terms
 
-        search_terms = significant_terms(search_text)
+        search_terms = significant_terms(advanced_query.highlight_query or search_text)
     filters = {}
     try:
         trash = bool(int(trash or 0))
@@ -431,6 +465,8 @@ def get_documents(
             if not matching_parents:
                 return []
             filters["name"] = ["in", matching_parents]
+
+    filters, search_text = apply_advanced_document_filters(filters, advanced_query)
 
     ranked_names = None
     search_metadata = {}
@@ -548,6 +584,28 @@ def get_documents(
             doc.original_file = latest_version.attachment
             doc.document_file = (
                 latest_version.preview_attachment or latest_version.attachment
+            )
+            doc.original_download = document_file_url(
+                doc.name,
+                "Original",
+                attachment=True,
+            )
+            doc.document_download = document_file_url(
+                doc.name,
+                (
+                    "Searchable PDF"
+                    if latest_version.preview_attachment
+                    else "Original"
+                ),
+            )
+            doc.document_download_attachment = document_file_url(
+                doc.name,
+                (
+                    "Searchable PDF"
+                    if latest_version.preview_attachment
+                    else "Original"
+                ),
+                attachment=True,
             )
             doc.preview_status = latest_version.preview_status
             doc.version = latest_version.version_number

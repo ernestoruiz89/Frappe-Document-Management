@@ -14,6 +14,11 @@ from frappe.utils.file_manager import get_file_path
 from document_management.frappe_document_management.utils.document_access import (
     department_doctype_exists,
 )
+from document_management.frappe_document_management.utils.file_crypto import (
+    encrypt_file_doc,
+    read_file_bytes,
+    read_path_bytes,
+)
 
 
 ARCHIVE_FORMAT = "frappe-document-management"
@@ -61,13 +66,8 @@ TAG_FIELDS = (
 
 
 def _sha256_file(path, block_size=1024 * 1024):
-    digest = hashlib.sha256()
-    size = 0
-    with open(path, "rb") as handle:
-        while block := handle.read(block_size):
-            digest.update(block)
-            size += len(block)
-    return digest.hexdigest(), size
+    data = read_path_bytes(path)
+    return hashlib.sha256(data).hexdigest(), len(data)
 
 
 def _archive_file(zf, document_name, version, kind, file_url, checksum):
@@ -76,7 +76,9 @@ def _archive_file(zf, document_name, version, kind, file_url, checksum):
     path = get_file_path(file_url)
     if not path or not os.path.isfile(path):
         frappe.throw(f"Archive source file is missing: {file_url}")
-    actual_checksum, size = _sha256_file(path)
+    content = read_file_bytes(file_url)
+    actual_checksum = hashlib.sha256(content).hexdigest()
+    size = len(content)
     if checksum and actual_checksum != checksum:
         frappe.throw(f"Archive source checksum mismatch: {file_url}")
     filename = os.path.basename(path)
@@ -87,7 +89,7 @@ def _archive_file(zf, document_name, version, kind, file_url, checksum):
         / kind
         / filename
     ).as_posix()
-    zf.write(path, archive_path)
+    zf.writestr(archive_path, content)
     return {
         "path": archive_path,
         "filename": filename,
@@ -411,6 +413,7 @@ def _extract_blob(zf, descriptor, version_name, fieldname):
     )
     try:
         file_doc.insert(ignore_permissions=True)
+        encrypt_file_doc(file_doc)
     except Exception:
         if os.path.isfile(destination):
             os.remove(destination)

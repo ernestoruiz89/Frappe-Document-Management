@@ -71,6 +71,39 @@ Supported tokens are `{category}`, `{department}`, `{document}`,
 `{document_code}`, `{status}`, `{year}`, and `{month}`. Existing files are moved
 when a document is saved and new uploads are placed in the configured path.
 
+Enable **Encrypt Document Files at Rest** to encrypt private document originals
+and generated previews on disk using the site's `encryption_key` from
+`site_config.json`, the same key family Frappe uses for encrypted passwords.
+Back up `site_config.json`; encrypted files cannot be recovered without that key.
+
+### Folder ingestion
+
+Enable **Folder Ingestion** in **Document Management Settings** to import files
+from a server-side folder on the hourly scheduler. The scanner is non-recursive:
+each supported file in **Ingestion Folder Path** is uploaded as a new Document
+using the filename stem as the title. Successfully imported files are moved to
+**Done Folder Path**; failed files are moved to **Error Folder Path** with a
+`.error.txt` note. If done/error paths are blank, `done` and `error` folders are
+created inside the ingestion folder.
+
+### Advanced document search syntax
+
+The Document Management Console search box accepts normal text and optional
+field filters:
+
+```text
+contract status:Published category:Legal
+title:"loan agreement" code:LN-2026
+tag:Urgent -tag:Archived
+department:Finance owner:admin@example.com
+created:2026-01-01..2026-01-31 modified:>=2026-06-01
+description:"retention notes" ocr:"signed by"
+```
+
+Supported fields are `title`, `name`, `code`/`document_code`, `description`,
+`content`/`ocr`, `category`, `status`, `department`, `owner`, `tag`, `created`,
+and `modified`. Prefix a filter with `-` to exclude matches.
+
 ### Optional ERPNext integration
 
 Department-based document access requires ERPNext/HRMS DocTypes such as

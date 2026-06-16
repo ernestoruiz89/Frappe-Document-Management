@@ -11,6 +11,9 @@ import numpy as np
 from filelock import FileLock
 from frappe.utils.file_manager import get_file_path
 
+from document_management.frappe_document_management.utils.file_crypto import (
+    decrypted_temp_file,
+)
 from document_management.frappe_document_management.rag.chunking import chunk_pages
 from document_management.frappe_document_management.rag.config import get_rag_config
 from document_management.frappe_document_management.rag.providers import (
@@ -279,8 +282,12 @@ def extract_document_pages(document):
         if path and os.path.exists(path):
             import pdfplumber
 
-            with pdfplumber.open(path) as pdf:
-                pages = [(page.extract_text() or "").strip() for page in pdf.pages]
+            with decrypted_temp_file(file_url) as readable_path:
+                with pdfplumber.open(readable_path) as pdf:
+                    pages = [
+                        (page.extract_text() or "").strip()
+                        for page in pdf.pages
+                    ]
             if any(pages):
                 return pages, version
 

@@ -69,6 +69,7 @@ def _database_search_names(search_text, filters, limit):
             ["Document", "title", "like", pattern],
             ["Document", "name", "like", pattern],
             ["Document", "document_code", "like", pattern],
+            ["Document", "description", "like", pattern],
             ["Document", "ocr_content", "like", pattern],
         ],
         pluck="name",
@@ -326,6 +327,7 @@ def _get_deleted_documents(search_text, filters, limit):
             ["Document", "title", "like", pattern],
             ["Document", "name", "like", pattern],
             ["Document", "document_code", "like", pattern],
+            ["Document", "description", "like", pattern],
             ["Document", "ocr_content", "like", pattern],
         ]
     candidates = frappe.get_all(

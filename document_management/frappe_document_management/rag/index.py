@@ -307,6 +307,7 @@ def build_document_chunks(document):
             f"Party Type: {document.party_type or ''}",
             f"Party: {document.party_name or ''}",
             f"Tags: {tags}",
+            f"Description: {document.description or ''}",
         ]
     )
     for chunk in chunks:

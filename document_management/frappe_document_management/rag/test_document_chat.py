@@ -11,6 +11,7 @@ from document_management.frappe_document_management.page.document_chat.document_
     get_message,
 )
 from document_management.frappe_document_management.rag.index import (
+    build_document_chunks,
     extract_document_pages,
     _latest_version,
     _remove_document_from_indexes,
@@ -657,6 +658,37 @@ class TestDocumentChatSecurity(FrappeTestCase):
 
         self.assertEqual(pages, ["page one", "", "page three"])
         self.assertEqual(version.name, "VERSION-1")
+
+    def test_document_description_is_included_in_rag_embedding_text(self):
+        document = frappe._dict(
+            name="DOC-1",
+            title="Indexed description",
+            category="",
+            department="",
+            party_type="",
+            party_name="",
+            description="Important retention notes",
+            tags=[],
+            versions=[
+                frappe._dict(
+                    name="VERSION-1",
+                    version_number="1",
+                    attachment="/private/files/one.pdf",
+                )
+            ],
+            ocr_content="page content",
+        )
+
+        with patch(
+            "document_management.frappe_document_management.rag.index.extract_document_pages",
+            return_value=(["page content"], document.versions[0]),
+        ):
+            rows = build_document_chunks(document)
+
+        self.assertIn(
+            "Description: Important retention notes",
+            rows[0]["_embedding_text"],
+        )
 
     def test_page_aggregation_preserves_page_order(self):
         self.assertEqual(

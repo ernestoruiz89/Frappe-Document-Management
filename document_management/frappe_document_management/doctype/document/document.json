@@ -4,33 +4,50 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "tab_details",
+  "sb_identity",
   "document_code",
   "title",
   "status",
+  "cb_identity",
   "category",
   "folder",
   "department",
+  "current_version",
+  "sb_party",
   "party_type",
   "party_name",
-  "current_version",
+  "cb_party",
+  "tags",
   "attachment",
   "preview_attachment",
-  "sb_details",
-  "tags",
-  "ocr_status",
-  "ocr_content",
+  "tab_notes",
+  "sb_notes",
   "description",
-  "is_deleted",
-  "deleted_at",
-  "deleted_by",
-  "sb_versions",
+  "tab_versions",
   "versions",
-  "sb_permissions",
+  "tab_permissions",
   "only_me",
   "roles_with_access",
-  "departments_with_access"
+  "departments_with_access",
+  "tab_ocr",
+  "ocr_status",
+  "ocr_content",
+  "is_deleted",
+  "deleted_at",
+  "deleted_by"
  ],
  "fields": [
+  {
+   "fieldname": "tab_details",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "sb_identity",
+   "fieldtype": "Section Break",
+   "label": "Document Details"
+  },
   {
    "fieldname": "document_code",
    "fieldtype": "Data",
@@ -56,6 +73,10 @@
    "options": "Draft\nPublished\nObsolete"
   },
   {
+   "fieldname": "cb_identity",
+   "fieldtype": "Column Break"
+  },
+  {
    "fieldname": "category",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -78,6 +99,18 @@
    "options": "Department"
   },
   {
+   "fieldname": "current_version",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Current Version",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sb_party",
+   "fieldtype": "Section Break",
+   "label": "Party and Tags"
+  },
+  {
    "fieldname": "party_type",
    "fieldtype": "Link",
    "label": "Party Type",
@@ -91,11 +124,14 @@
    "options": "party_type"
   },
   {
-   "fieldname": "current_version",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Current Version",
-   "read_only": 1
+   "fieldname": "cb_party",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tags",
+   "fieldtype": "Table MultiSelect",
+   "label": "Tags",
+   "options": "Document Tag Link"
   },
   {
    "fieldname": "attachment",
@@ -110,14 +146,60 @@
    "label": "Dummy Preview Attachment"
   },
   {
-   "fieldname": "sb_details",
-   "fieldtype": "Section Break"
+   "fieldname": "tab_notes",
+   "fieldtype": "Tab Break",
+   "label": "Notes"
   },
   {
-   "fieldname": "tags",
+   "fieldname": "sb_notes",
+   "fieldtype": "Section Break",
+   "label": "Description"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "in_global_search": 1,
+   "label": "Description"
+  },
+  {
+   "fieldname": "tab_versions",
+   "fieldtype": "Tab Break",
+   "label": "Versions"
+  },
+  {
+   "fieldname": "versions",
+   "fieldtype": "Table",
+   "label": "Versions",
+   "options": "Document Version"
+  },
+  {
+   "fieldname": "tab_permissions",
+   "fieldtype": "Tab Break",
+   "label": "Permissions"
+  },
+  {
+   "default": "0",
+   "description": "If checked, only the creator can view this document.",
+   "fieldname": "only_me",
+   "fieldtype": "Check",
+   "label": "Only Me"
+  },
+  {
+   "fieldname": "roles_with_access",
    "fieldtype": "Table MultiSelect",
-   "label": "Tags",
-   "options": "Document Tag Link"
+   "label": "Roles with Access",
+   "options": "Document Role Access"
+  },
+  {
+   "fieldname": "departments_with_access",
+   "fieldtype": "Table MultiSelect",
+   "label": "Departments with Access",
+   "options": "Document Department Access"
+  },
+  {
+   "fieldname": "tab_ocr",
+   "fieldtype": "Tab Break",
+   "label": "OCR"
   },
   {
    "default": "Pending",
@@ -132,12 +214,6 @@
    "fieldname": "ocr_content",
    "fieldtype": "Long Text",
    "label": "OCR Content"
-  },
-  {
-   "fieldname": "description",
-   "fieldtype": "Text Editor",
-   "in_global_search": 1,
-   "label": "Description"
   },
   {
    "default": "0",
@@ -161,41 +237,6 @@
    "label": "Deleted By",
    "options": "User",
    "read_only": 1
-  },
-  {
-   "fieldname": "sb_versions",
-   "fieldtype": "Section Break",
-   "label": "Versions"
-  },
-  {
-   "fieldname": "versions",
-   "fieldtype": "Table",
-   "label": "Versions",
-   "options": "Document Version"
-  },
-  {
-   "fieldname": "sb_permissions",
-   "fieldtype": "Tab Break",
-   "label": "Permissions"
-  },
-  {
-   "default": "0",
-   "description": "If checked, only the creator can view this document.",
-   "fieldname": "only_me",
-   "fieldtype": "Check",
-   "label": "Only Me"
-  },
-  {
-   "fieldname": "roles_with_access",
-   "fieldtype": "Table MultiSelect",
-   "label": "Roles with Access",
-   "options": "Document Role Access"
-  },
-  {
-   "fieldname": "departments_with_access",
-   "fieldtype": "Table MultiSelect",
-   "label": "Departments with Access",
-   "options": "Document Department Access"
   }
  ],
  "index_web_pages_for_search": 1,

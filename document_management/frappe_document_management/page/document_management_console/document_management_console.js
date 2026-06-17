@@ -976,9 +976,10 @@ class DocumentManagementConsole {
 
                 function select_doc(doc) {
                     selected_doc.value = doc;
-                    const file_path = doc ? (doc.original_download || doc.document_download || doc.original_file || doc.document_file) : null;
+                    const file_path = doc ? (doc.original_file || doc.document_file) : null;
+                    const preview_url = doc ? (doc.original_download || doc.document_download || file_path) : null;
                     if (file_path && (is_txt(file_path) || is_md(file_path, doc))) {
-                        load_text_preview(file_path);
+                        load_text_preview(preview_url);
                     } else {
                         text_preview_content.value = '';
                     }

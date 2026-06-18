@@ -14,6 +14,7 @@ from document_management.frappe_document_management.utils.document_sharing impor
     _token_hash,
     create_share_link,
     download_shared_document,
+    get_shared_document_context,
     revoke_share_link,
 )
 
@@ -31,8 +32,12 @@ class TestDocumentSharing(TestCase):
         frappe.local.form_dict = frappe._dict()
         frappe.local.uploaded_filename = f"{uuid.uuid4().hex}.txt"
         frappe.local.uploaded_file = b"shared document"
-        with patch(
-            "document_management.frappe_document_management.doctype.document.document.Document.enqueue_processing"
+        with (
+            patch(
+                "document_management.frappe_document_management.doctype.document.document.Document.enqueue_processing"
+            ),
+            patch("frappe.enqueue"),
+            patch("frappe.model.document.update_global_search"),
         ):
             result = quick_upload(title="Shared document")
         self.document_name = result["docname"]
@@ -57,6 +62,11 @@ class TestDocumentSharing(TestCase):
 
         download_shared_document(token)
         self.assertEqual(frappe.local.response.filecontent, b"shared document")
+        self.assertEqual(frappe.local.response.display_content_as, "attachment")
+
+        download_shared_document(token, download=0)
+        self.assertEqual(frappe.local.response.filecontent, b"shared document")
+        self.assertEqual(frappe.local.response.display_content_as, "inline")
 
         revoke_share_link(link.name)
         link.reload()
@@ -66,6 +76,19 @@ class TestDocumentSharing(TestCase):
             "invalid or revoked",
         ):
             download_shared_document(token)
+
+    def test_share_link_opens_viewer_page_with_download_url(self):
+        result = create_share_link(self.document_name, 7, "Original")
+        self.assertIn("/document_share?token=", result["url"])
+        token = result["url"].split("token=", 1)[1]
+
+        context = get_shared_document_context(token)
+
+        self.assertEqual(context["document"].name, self.document_name)
+        self.assertEqual(context["kind"], "text")
+        self.assertIn("download_shared_document", context["preview_url"])
+        self.assertIn("download=0", context["preview_url"])
+        self.assertIn("download=1", context["download_url"])
 
     def test_searchable_pdf_link_requires_preview(self):
         with self.assertRaisesRegex(

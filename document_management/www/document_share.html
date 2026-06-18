@@ -1,0 +1,306 @@
+<style>
+    html,
+    body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #0f172a;
+    }
+
+    .shared-document-shell {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        background: #0f172a;
+        color: #f8fafc;
+        z-index: 9999;
+    }
+
+    .shared-document-toolbar {
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 0 18px;
+        background: rgba(15, 23, 42, 0.96);
+        border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+        flex-shrink: 0;
+    }
+
+    .shared-document-title {
+        min-width: 0;
+    }
+
+    .shared-document-title strong,
+    .shared-document-title span {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .shared-document-title strong {
+        font-size: 15px;
+        line-height: 1.2;
+    }
+
+    .shared-document-title span {
+        color: #cbd5e1;
+        font-size: 12px;
+        margin-top: 2px;
+    }
+
+    .shared-document-download {
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 8px;
+        background: #2563eb;
+        color: #ffffff;
+        padding: 8px 12px;
+        text-decoration: none;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .shared-document-download:hover,
+    .shared-document-download:focus {
+        color: #ffffff;
+        background: #1d4ed8;
+        text-decoration: none;
+    }
+
+    .shared-document-viewer {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        background: #111827;
+    }
+
+    .shared-document-viewer .loan-pdf-container {
+        height: 100%;
+    }
+
+    .shared-document-image-wrap {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: auto;
+        padding: 24px;
+    }
+
+    .shared-document-image-wrap img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    .shared-document-text {
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background: #ffffff;
+        color: #0f172a;
+        padding: 28px;
+    }
+
+    .shared-document-text pre {
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 14px;
+        line-height: 1.55;
+        margin: 0;
+    }
+
+    .shared-document-markdown {
+        max-width: 980px;
+        margin: 0 auto;
+        font-size: 15px;
+        line-height: 1.65;
+    }
+
+    .shared-document-markdown pre {
+        background: #f1f5f9;
+        border-radius: 8px;
+        padding: 12px;
+        overflow: auto;
+    }
+
+    .shared-document-empty {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: #cbd5e1;
+        padding: 24px;
+    }
+</style>
+
+<div
+    id="shared-document-app"
+    class="shared-document-shell"
+    data-kind="{{ kind | e }}"
+    data-preview-url="{{ preview_url | e }}"
+    data-download-url="{{ download_url | e }}"
+>
+    <div class="shared-document-toolbar">
+        <div class="shared-document-title">
+            <strong>{{ document_title | e }}</strong>
+            <span>{{ filename | e }}</span>
+        </div>
+        <a class="shared-document-download" href="{{ download_url | e }}">
+            Descargar
+        </a>
+    </div>
+    <div class="shared-document-viewer" id="shared-document-viewer">
+        <div class="shared-document-empty">Cargando documento...</div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const root = document.getElementById('shared-document-app');
+        const viewer = document.getElementById('shared-document-viewer');
+        const kind = root.dataset.kind;
+        const previewUrl = root.dataset.previewUrl;
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function sanitizeHtml(html) {
+            const documentFragment = new DOMParser().parseFromString(html || '', 'text/html');
+            documentFragment.querySelectorAll('script, iframe, object, embed, style').forEach((node) => node.remove());
+            documentFragment.querySelectorAll('*').forEach((node) => {
+                Array.from(node.attributes).forEach((attribute) => {
+                    const name = attribute.name.toLowerCase();
+                    const value = attribute.value.trim().toLowerCase();
+                    if (name.startsWith('on')) {
+                        node.removeAttribute(attribute.name);
+                    }
+                    if ((name === 'href' || name === 'src') && value.startsWith('javascript:')) {
+                        node.removeAttribute(attribute.name);
+                    }
+                });
+            });
+            return documentFragment.body.innerHTML;
+        }
+
+        function renderPlainText(text) {
+            viewer.innerHTML = '<div class="shared-document-text"><pre></pre></div>';
+            viewer.querySelector('pre').textContent = text || '';
+        }
+
+        function renderMarkdown(text) {
+            if (window.marked && typeof window.marked.parse === 'function') {
+                viewer.innerHTML = (
+                    '<div class="shared-document-text">' +
+                    '<div class="shared-document-markdown">' +
+                    sanitizeHtml(window.marked.parse(text || '')) +
+                    '</div></div>'
+                );
+                return;
+            }
+            viewer.innerHTML = (
+                '<div class="shared-document-text">' +
+                '<div class="shared-document-markdown">' +
+                escapeHtml(text).replace(/\n/g, '<br>') +
+                '</div></div>'
+            );
+        }
+
+        async function renderText(markdown) {
+            try {
+                const response = await fetch(previewUrl, {credentials: 'same-origin'});
+                if (!response.ok) {
+                    throw new Error(response.statusText || 'Unable to load file');
+                }
+                const text = await response.text();
+                if (markdown) {
+                    renderMarkdown(text);
+                } else {
+                    renderPlainText(text);
+                }
+            } catch (error) {
+                viewer.innerHTML = '<div class="shared-document-empty">No se pudo cargar la vista previa.</div>';
+                console.error(error);
+            }
+        }
+
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        function renderPdf() {
+            const start = () => {
+                const app = Vue.createApp({
+                    template: '<loan-pdf-viewer :src="src"></loan-pdf-viewer>',
+                    setup() {
+                        return {src: Vue.ref(previewUrl)};
+                    }
+                });
+                app.component(
+                    'loan-pdf-viewer',
+                    window.LoanManagerPdfSearchViewer.createVueComponent(Vue)
+                );
+                viewer.innerHTML = '';
+                app.mount(viewer);
+            };
+
+            const loaders = [];
+            if (typeof Vue === 'undefined') {
+                loaders.push(loadScript('https://unpkg.com/vue@3/dist/vue.global.prod.js'));
+            }
+            if (!window.LoanManagerPdfSearchViewer) {
+                loaders.push(loadScript('/assets/document_management/js/pdf_search_viewer.v5_7_284_7.js'));
+            }
+            Promise.all(loaders).then(start).catch((error) => {
+                viewer.innerHTML = '<div class="shared-document-empty">No se pudo cargar el visor PDF.</div>';
+                console.error(error);
+            });
+        }
+
+        if (kind === 'pdf') {
+            renderPdf();
+        } else if (kind === 'image') {
+            const image = document.createElement('img');
+            image.src = previewUrl;
+            image.alt = '';
+            const wrapper = document.createElement('div');
+            wrapper.className = 'shared-document-image-wrap';
+            wrapper.appendChild(image);
+            viewer.innerHTML = '';
+            viewer.appendChild(wrapper);
+        } else if (kind === 'markdown') {
+            loadScript('https://cdn.jsdelivr.net/npm/marked/marked.min.js')
+                .catch(() => null)
+                .then(() => renderText(true));
+        } else if (kind === 'text') {
+            renderText(false);
+        } else {
+            viewer.innerHTML = (
+                '<div class="shared-document-empty">' +
+                '<div><h3>Vista previa no disponible</h3>' +
+                '<p>Use el boton Descargar para abrir este archivo.</p></div>' +
+                '</div>'
+            );
+        }
+    })();
+</script>

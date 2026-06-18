@@ -170,6 +170,18 @@
         const kind = root.dataset.kind;
         const previewUrl = root.dataset.previewUrl;
 
+        if (typeof window.__ !== 'function') {
+            window.__ = function(message, values) {
+                let text = String(message || '');
+                if (Array.isArray(values)) {
+                    values.forEach((value, index) => {
+                        text = text.replace(new RegExp('\\{' + index + '\\}', 'g'), value);
+                    });
+                }
+                return text;
+            };
+        }
+
         function escapeHtml(value) {
             return String(value || '')
                 .replace(/&/g, '&amp;')

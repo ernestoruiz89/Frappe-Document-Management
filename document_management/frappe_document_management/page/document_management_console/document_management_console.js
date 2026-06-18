@@ -1327,6 +1327,11 @@ class DocumentManagementConsole {
                                 reqd: 1
                             },
                             {
+                                fieldname: 'hide_download_button',
+                                fieldtype: 'Check',
+                                label: __('Hide download button')
+                            },
+                            {
                                 fieldname: 'links_html',
                                 fieldtype: 'HTML',
                                 label: __('Existing links')
@@ -1339,7 +1344,8 @@ class DocumentManagementConsole {
                                 args: {
                                     document: doc.name,
                                     expiration_days: values.expiration_days,
-                                    file_version: values.file_version
+                                    file_version: values.file_version,
+                                    hide_download_button: values.hide_download_button ? 1 : 0
                                 },
                                 callback: (r) => {
                                     if (!r.exc && r.message?.url) {

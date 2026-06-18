@@ -20,5 +20,6 @@ def get_context(context):
     context.kind = shared["kind"]
     context.preview_url = shared["preview_url"]
     context.download_url = shared["download_url"]
+    context.show_download_button = shared["show_download_button"]
     context.expires_at = shared["link"].expires_at
     return context

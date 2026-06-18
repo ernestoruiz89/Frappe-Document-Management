@@ -4,7 +4,7 @@ import secrets
 from urllib.parse import quote
 
 import frappe
-from frappe.utils import add_days, get_datetime, now_datetime
+from frappe.utils import add_days, cint, get_datetime, now_datetime
 from frappe.utils.file_manager import get_file_path
 
 from document_management.frappe_document_management.utils.file_crypto import (
@@ -80,11 +80,17 @@ def get_shared_document_context(token):
         "kind": _file_kind(file_url),
         "preview_url": _shared_download_url(token, download=0),
         "download_url": _shared_download_url(token, download=1),
+        "show_download_button": not bool(cint(link.get("hide_download_button"))),
     }
 
 
 @frappe.whitelist()
-def create_share_link(document, expiration_days=7, file_version="Original"):
+def create_share_link(
+    document,
+    expiration_days=7,
+    file_version="Original",
+    hide_download_button=0,
+):
     doc = frappe.get_doc("Document", document)
     doc.check_permission("share")
     if doc.is_deleted:
@@ -111,6 +117,7 @@ def create_share_link(document, expiration_days=7, file_version="Original"):
             "token_hash": _token_hash(token),
             "expires_at": add_days(now_datetime(), expiration_days),
             "file_version": file_version,
+            "hide_download_button": cint(hide_download_button),
             "enabled": 1,
         }
     )
@@ -142,6 +149,7 @@ def get_share_links(document):
             "name",
             "expires_at",
             "file_version",
+            "hide_download_button",
             "enabled",
             "creation",
             "owner",
@@ -153,12 +161,18 @@ def get_share_links(document):
 @frappe.whitelist(allow_guest=True)
 def download_shared_document(token, download=1):
     context = get_shared_document_context(token)
+    download_requested = bool(cint(download))
+    if download_requested and not context["show_download_button"]:
+        frappe.throw(
+            "Download is disabled for this share link.",
+            frappe.PermissionError,
+        )
     path = get_file_path(context["file_url"])
     frappe.local.response.filecontent = read_path_bytes(path)
     frappe.local.response.filename = context["filename"]
     frappe.local.response.type = "download"
     frappe.local.response.display_content_as = (
-        "attachment" if int(download or 0) else "inline"
+        "attachment" if download_requested else "inline"
     )
 
 

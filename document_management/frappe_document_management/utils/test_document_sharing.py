@@ -89,6 +89,29 @@ class TestDocumentSharing(TestCase):
         self.assertIn("download_shared_document", context["preview_url"])
         self.assertIn("download=0", context["preview_url"])
         self.assertIn("download=1", context["download_url"])
+        self.assertTrue(context["show_download_button"])
+
+    def test_share_link_can_hide_download_button(self):
+        result = create_share_link(
+            self.document_name,
+            7,
+            "Original",
+            hide_download_button=1,
+        )
+        link = frappe.get_doc("Document Share Link", result["name"])
+        token = result["url"].split("token=", 1)[1]
+        context = get_shared_document_context(token)
+
+        self.assertTrue(link.hide_download_button)
+        self.assertFalse(context["show_download_button"])
+        download_shared_document(token, download=0)
+        self.assertEqual(frappe.local.response.filecontent, b"shared document")
+        self.assertEqual(frappe.local.response.display_content_as, "inline")
+        with self.assertRaisesRegex(
+            frappe.PermissionError,
+            "Download is disabled",
+        ):
+            download_shared_document(token, download=1)
 
     def test_searchable_pdf_link_requires_preview(self):
         with self.assertRaisesRegex(

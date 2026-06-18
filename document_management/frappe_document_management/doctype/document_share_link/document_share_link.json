@@ -8,6 +8,7 @@
   "token_hash",
   "expires_at",
   "file_version",
+  "hide_download_button",
   "enabled"
  ],
  "fields": [
@@ -40,6 +41,12 @@
    "label": "File Version",
    "options": "Original\nSearchable PDF",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_download_button",
+   "fieldtype": "Check",
+   "label": "Hide Download Button"
   },
   {
    "default": "1",

@@ -432,9 +432,11 @@
             <strong>{{ document_title | e }}</strong>
             <span>{{ filename | e }}</span>
         </div>
-        <a class="shared-document-download" href="{{ download_url | e }}">
-            Descargar
-        </a>
+        {% if show_download_button %}
+            <a class="shared-document-download" href="{{ download_url | e }}">
+                Descargar
+            </a>
+        {% endif %}
     </div>
     <div class="shared-document-viewer" id="shared-document-viewer">
         <div class="shared-document-empty">Cargando documento...</div>

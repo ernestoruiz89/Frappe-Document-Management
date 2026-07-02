@@ -28,6 +28,7 @@ class PdfSearchViewer {
         this.loadingTask = null;
         this.pdf = null;
         this.lastFindQuery = null;
+        this.fallbackPages = new Set();
 
         this.maxScale = Number(options.maxScale) || 1.5;
 
@@ -66,7 +67,10 @@ class PdfSearchViewer {
             );
             this.dispatchFind(true);
         };
-        this.onPageRendered = () => this.dispatchFind(false);
+        this.onPageRendered = ({pageNumber}) => {
+            this.renderFallbackIfBlank(pageNumber);
+            this.dispatchFind(false);
+        };
         this.onPageChanging = ({pageNumber}) => {
             options.onPageChange?.(pageNumber, this.viewer.pagesCount);
         };
@@ -109,6 +113,71 @@ class PdfSearchViewer {
         this.pdf = await this.loadingTask.promise;
         this.linkService.setDocument(this.pdf);
         this.viewer.setDocument(this.pdf);
+    }
+
+    getFallbackUrl(pageNumber) {
+        try {
+            const url = new URL(this.source, window.location.origin);
+            const documentName = url.searchParams.get("document");
+            if (!documentName) {
+                return "";
+            }
+            const fileVersion = url.searchParams.get("file_version")
+                || "Searchable PDF";
+            const fallback = new URL(
+                "/api/method/document_management.frappe_document_management.page.document_management_console.document_management_console.render_document_pdf_page",
+                window.location.origin,
+            );
+            fallback.searchParams.set("document", documentName);
+            fallback.searchParams.set("file_version", fileVersion);
+            fallback.searchParams.set("page", pageNumber);
+            return fallback.toString();
+        } catch {
+            return "";
+        }
+    }
+
+    isCanvasBlank(canvas) {
+        const context = canvas?.getContext?.("2d", {willReadFrequently: true});
+        if (!context || !canvas.width || !canvas.height) {
+            return false;
+        }
+        const sampleSize = 64;
+        const stepX = Math.max(1, Math.floor(canvas.width / sampleSize));
+        const stepY = Math.max(1, Math.floor(canvas.height / sampleSize));
+        let samples = 0;
+        let nonWhite = 0;
+        for (let y = Math.floor(stepY / 2); y < canvas.height; y += stepY) {
+            for (let x = Math.floor(stepX / 2); x < canvas.width; x += stepX) {
+                const data = context.getImageData(x, y, 1, 1).data;
+                samples += 1;
+                if (data[3] > 8 && (data[0] < 245 || data[1] < 245 || data[2] < 245)) {
+                    nonWhite += 1;
+                }
+            }
+        }
+        return samples > 0 && (nonWhite / samples) < 0.002;
+    }
+
+    renderFallbackIfBlank(pageNumber) {
+        const page = this.viewerElement.querySelector(
+            `.page[data-page-number="${pageNumber}"]`,
+        );
+        const canvas = page?.querySelector(".canvasWrapper canvas");
+        if (!page || !canvas || !this.isCanvasBlank(canvas)) {
+            return;
+        }
+        const fallbackUrl = this.getFallbackUrl(pageNumber);
+        if (!fallbackUrl || this.fallbackPages.has(pageNumber)) {
+            return;
+        }
+        this.fallbackPages.add(pageNumber);
+        const image = document.createElement("img");
+        image.className = "loan-pdf-page-fallback";
+        image.alt = "";
+        image.src = fallbackUrl;
+        const wrapper = page.querySelector(".canvasWrapper");
+        wrapper?.append(image);
     }
 
     setQuery(query) {

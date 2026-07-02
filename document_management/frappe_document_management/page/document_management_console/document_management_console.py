@@ -2,6 +2,9 @@ import hashlib
 import io
 import json
 import os
+import shutil
+import subprocess
+import tempfile
 import zipfile
 
 import frappe
@@ -11,6 +14,7 @@ from document_management.frappe_document_management.utils.document_access import
     department_doctype_exists,
 )
 from document_management.frappe_document_management.utils.file_crypto import (
+    decrypted_temp_file,
     document_file_response,
     document_file_url,
     encrypt_file_doc,
@@ -218,6 +222,71 @@ def download_document_file(document, file_version="Original", attachment=0):
         filename=os.path.basename(file_url),
         attachment=bool(int(attachment or 0)),
     )
+
+
+@frappe.whitelist()
+def render_document_pdf_page(document, page=1, file_version="Searchable PDF"):
+    doc = frappe.get_doc("Document", document)
+    doc.check_permission("read")
+    version = doc.get_current_version()
+    if not version:
+        frappe.throw("The document has no file.")
+
+    if file_version == "Searchable PDF":
+        file_url = version.preview_attachment or version.attachment
+    elif file_version == "Original":
+        file_url = version.attachment
+    else:
+        frappe.throw("Invalid file version.")
+    if not file_url or not file_url.lower().endswith(".pdf"):
+        frappe.throw("The requested file is not a PDF.")
+
+    try:
+        page_number = max(1, int(page or 1))
+    except (TypeError, ValueError):
+        page_number = 1
+
+    pdftoppm = shutil.which("pdftoppm")
+    if not pdftoppm:
+        frappe.throw("pdftoppm is required to render PDF preview pages.")
+
+    with decrypted_temp_file(file_url=file_url, suffix=".pdf") as pdf_path:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_prefix = os.path.join(temp_dir, "page")
+            subprocess.run(
+                [
+                    pdftoppm,
+                    "-f",
+                    str(page_number),
+                    "-l",
+                    str(page_number),
+                    "-png",
+                    "-r",
+                    "144",
+                    pdf_path,
+                    output_prefix,
+                ],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=60,
+            )
+            image_path = f"{output_prefix}-{page_number}.png"
+            if not os.path.exists(image_path):
+                generated = [
+                    os.path.join(temp_dir, name)
+                    for name in os.listdir(temp_dir)
+                    if name.endswith(".png")
+                ]
+                image_path = generated[0] if generated else image_path
+            if not os.path.exists(image_path):
+                frappe.throw("PDF preview page could not be rendered.")
+            with open(image_path, "rb") as handle:
+                frappe.local.response.filecontent = handle.read()
+            frappe.local.response.filename = f"{doc.name}-page-{page_number}.png"
+            frappe.local.response.type = "download"
+            frappe.local.response.display_content_as = "inline"
+            frappe.local.response.content_type = "image/png"
 
 
 def _enqueue_index_refresh(names, remove=False):

@@ -5,6 +5,9 @@ app_description = "Standalone Document Management module for Frappe"
 app_email = "eruiz@wbapps.com"
 app_license = "mit"
 
+after_install = "document_management.install.ensure_document_management_settings"
+after_migrate = "document_management.install.ensure_document_management_settings"
+
 permission_query_conditions = {
     "Document": "document_management.frappe_document_management.doctype.document.document.get_permission_query_conditions",
     "Document Category": "document_management.frappe_document_management.doctype.document_category.document_category.get_permission_query_conditions",

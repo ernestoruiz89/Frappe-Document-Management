@@ -17,6 +17,14 @@ def ensure_document_management_settings():
         "document_management_settings",
     )
 
+    frappe.db.delete(
+        "Singles",
+        {
+            "doctype": SETTINGS_DOCTYPE,
+            "field": "name",
+        },
+    )
+
     defaults = {
         "enable_full_text_search": 1,
         "enable_semantic_search": 1,

@@ -12,7 +12,7 @@ import {
 } from "pdfjs-dist/web/pdf_viewer.mjs";
 
 
-const VIEWER_VERSION = "5.7.284-7";
+const VIEWER_VERSION = "5.7.284-8";
 
 // Keep the worker implementation in this bundle so deployments do not depend
 // on web-server MIME configuration for PDF.js module workers.
@@ -27,8 +27,11 @@ class PdfSearchViewer {
         this.initialPage = Number(options.page) || 1;
         this.loadingTask = null;
         this.pdf = null;
-        this.lastFindQuery = null;
+        this.lastFindKey = null;
         this.fallbackPages = new Set();
+        this.fallbackTimers = new Map();
+        this.prefetchTimer = null;
+        this.resizeTimer = null;
 
         this.maxScale = Number(options.maxScale) || 1.5;
 
@@ -39,7 +42,6 @@ class PdfSearchViewer {
             linkService: this.linkService,
             updateMatchesCountOnProgress: true,
         });
-        this.findController.onIsPageVisible = () => true;
 
         this.viewerElement = document.createElement("div");
         this.viewerElement.className = "pdfViewer";
@@ -57,22 +59,20 @@ class PdfSearchViewer {
 
         this.onPagesInit = () => {
             this.goToPage(this.initialPage);
-            this.viewer.currentScaleValue = "page-width";
-            if (this.viewer.currentScale > this.maxScale) {
-                this.viewer.currentScale = this.maxScale;
-            }
+            this.fitWidthToContainer();
             options.onPageChange?.(
                 this.viewer.currentPageNumber,
                 this.viewer.pagesCount,
             );
             this.dispatchFind(true);
+            this.scheduleNeighborPrefetch(this.viewer.currentPageNumber);
         };
         this.onPageRendered = ({pageNumber}) => {
-            this.renderFallbackIfBlank(pageNumber);
-            this.dispatchFind(false);
+            this.scheduleFallbackCheck(pageNumber);
         };
         this.onPageChanging = ({pageNumber}) => {
             options.onPageChange?.(pageNumber, this.viewer.pagesCount);
+            this.scheduleNeighborPrefetch(pageNumber);
         };
         this.onMatchesCount = ({matchesCount}) => {
             options.onMatchesChange?.(
@@ -91,12 +91,11 @@ class PdfSearchViewer {
         this.eventBus.on("scalechanging", this.onScaleChanging);
 
         this.resizeObserver = new ResizeObserver(() => {
-            if (this.viewer.pagesCount) {
-                this.viewer.currentScaleValue = "page-width";
-                if (this.viewer.currentScale > this.maxScale) {
-                    this.viewer.currentScale = this.maxScale;
-                }
-            }
+            window.clearTimeout(this.resizeTimer);
+            this.resizeTimer = window.setTimeout(
+                () => this.fitWidthToContainer(),
+                120,
+            );
         });
         this.resizeObserver.observe(this.container);
         this.load().catch((error) => options.onError?.(error));
@@ -113,6 +112,16 @@ class PdfSearchViewer {
         this.pdf = await this.loadingTask.promise;
         this.linkService.setDocument(this.pdf);
         this.viewer.setDocument(this.pdf);
+    }
+
+    fitWidthToContainer() {
+        if (!this.viewer.pagesCount) {
+            return;
+        }
+        this.viewer.currentScaleValue = "page-width";
+        if (this.viewer.currentScale > this.maxScale) {
+            this.viewer.currentScale = this.maxScale;
+        }
     }
 
     getFallbackUrl(pageNumber) {
@@ -142,7 +151,7 @@ class PdfSearchViewer {
         if (!context || !canvas.width || !canvas.height) {
             return false;
         }
-        const sampleSize = 64;
+        const sampleSize = 24;
         const stepX = Math.max(1, Math.floor(canvas.width / sampleSize));
         const stepY = Math.max(1, Math.floor(canvas.height / sampleSize));
         let samples = 0;
@@ -159,7 +168,30 @@ class PdfSearchViewer {
         return samples > 0 && (nonWhite / samples) < 0.002;
     }
 
-    renderFallbackIfBlank(pageNumber) {
+    scheduleFallbackCheck(pageNumber) {
+        if (
+            this.fallbackPages.has(pageNumber)
+            || this.fallbackTimers.has(pageNumber)
+        ) {
+            return;
+        }
+        const fallbackUrl = this.getFallbackUrl(pageNumber);
+        if (!fallbackUrl) {
+            return;
+        }
+        const schedule = window.requestIdleCallback
+            || ((callback) => window.setTimeout(callback, 80));
+        const timer = schedule(
+            () => {
+                this.fallbackTimers.delete(pageNumber);
+                this.renderFallbackIfBlank(pageNumber, fallbackUrl);
+            },
+            {timeout: 700},
+        );
+        this.fallbackTimers.set(pageNumber, timer);
+    }
+
+    renderFallbackIfBlank(pageNumber, fallbackUrl) {
         const page = this.viewerElement.querySelector(
             `.page[data-page-number="${pageNumber}"]`,
         );
@@ -167,8 +199,7 @@ class PdfSearchViewer {
         if (!page || !canvas || !this.isCanvasBlank(canvas)) {
             return;
         }
-        const fallbackUrl = this.getFallbackUrl(pageNumber);
-        if (!fallbackUrl || this.fallbackPages.has(pageNumber)) {
+        if (this.fallbackPages.has(pageNumber)) {
             return;
         }
         this.fallbackPages.add(pageNumber);
@@ -180,13 +211,29 @@ class PdfSearchViewer {
         wrapper?.append(image);
     }
 
+    scheduleNeighborPrefetch(pageNumber) {
+        if (!this.pdf || !this.viewer.pagesCount) {
+            return;
+        }
+        window.clearTimeout(this.prefetchTimer);
+        this.prefetchTimer = window.setTimeout(() => {
+            const pages = [
+                Number(pageNumber) + 1,
+                Number(pageNumber) - 1,
+            ].filter((page) => page >= 1 && page <= this.viewer.pagesCount);
+            pages.forEach((page) => {
+                this.pdf.getPage(page).catch(() => null);
+            });
+        }, 160);
+    }
+
     setQuery(query) {
         const normalized = this.normalizeQuery(query);
         if (JSON.stringify(normalized) === JSON.stringify(this.query)) {
             return;
         }
         this.query = normalized;
-        this.lastFindQuery = null;
+        this.lastFindKey = null;
         this.dispatchFind(true);
     }
 
@@ -221,20 +268,23 @@ class PdfSearchViewer {
     }
 
     fitWidth() {
-        if (this.viewer.pagesCount) {
-            this.viewer.currentScaleValue = "page-width";
-        }
+        this.fitWidthToContainer();
     }
 
     dispatchFind(force) {
         if (!this.viewer.pagesCount) {
             return;
         }
-        if (!force && this.query === this.lastFindQuery) {
+        const findKey = this.queryKey(this.query);
+        if (!force && findKey === this.lastFindKey) {
             return;
         }
-        this.lastFindQuery = this.query;
+        this.lastFindKey = findKey;
         this.eventBus.dispatch("find", this.findOptions("", false));
+    }
+
+    queryKey(query) {
+        return Array.isArray(query) ? JSON.stringify(query) : String(query || "");
     }
 
     findOptions(type, findPrevious) {
@@ -267,6 +317,11 @@ class PdfSearchViewer {
     }
 
     destroy() {
+        window.clearTimeout(this.resizeTimer);
+        window.clearTimeout(this.prefetchTimer);
+        const cancelIdle = window.cancelIdleCallback || window.clearTimeout;
+        this.fallbackTimers.forEach((timer) => cancelIdle(timer));
+        this.fallbackTimers.clear();
         this.resizeObserver?.disconnect();
         this.eventBus.off("pagesinit", this.onPagesInit);
         this.eventBus.off("pagerendered", this.onPageRendered);
@@ -303,6 +358,7 @@ function createVueComponent(Vue) {
                 ? props.terms.join(" ")
                 : props.query;
             const searchQuery = Vue.ref(initialQuery());
+            let searchTimer = 0;
 
             Vue.onMounted(() => {
                 viewer.value = new PdfSearchViewer(root.value, {
@@ -341,7 +397,23 @@ function createVueComponent(Vue) {
                 {deep: true},
             );
             Vue.watch(() => props.page, (value) => viewer.value?.setPage(value));
-            Vue.onBeforeUnmount(() => viewer.value?.destroy());
+            Vue.onBeforeUnmount(() => {
+                window.clearTimeout(searchTimer);
+                viewer.value?.destroy();
+            });
+
+            const runSearch = () => {
+                window.clearTimeout(searchTimer);
+                viewer.value?.setQuery(searchQuery.value);
+            };
+            const runSearchAndNext = () => {
+                runSearch();
+                viewer.value?.nextMatch(false);
+            };
+            const scheduleSearch = () => {
+                window.clearTimeout(searchTimer);
+                searchTimer = window.setTimeout(runSearch, 220);
+            };
 
             return {
                 root,
@@ -355,8 +427,11 @@ function createVueComponent(Vue) {
                 hasSearch: Vue.computed(
                     () => Boolean(searchQuery.value.trim())
                 ),
-                runSearch: () => viewer.value?.setQuery(searchQuery.value),
+                runSearch,
+                runSearchAndNext,
+                scheduleSearch,
                 clearSearch: () => {
+                    window.clearTimeout(searchTimer);
                     searchQuery.value = "";
                     viewer.value?.setQuery("");
                 },
@@ -397,7 +472,7 @@ function createVueComponent(Vue) {
                         <i class="fa fa-search"></i>
                         <input v-model="searchQuery" type="search"
                             placeholder="${__("Search in document")}"
-                            @input="runSearch" @keyup.enter="nextMatch">
+                            @input="scheduleSearch" @keyup.enter="runSearchAndNext">
                         <button v-if="hasSearch" type="button" class="loan-pdf-clear"
                             @click="clearSearch" title="${__("Clear search")}">
                             <i class="fa fa-times"></i>

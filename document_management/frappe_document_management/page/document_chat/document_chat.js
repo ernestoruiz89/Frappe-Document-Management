@@ -363,13 +363,13 @@ class DocumentChatController {
     }
 
     loadPdfViewerLibrary(callback) {
-        const viewer_version = "5.7.284-7";
+        const viewer_version = "5.7.284-8";
         if (window.LoanManagerPdfSearchViewer?.version === viewer_version) {
             callback();
             return;
         }
         frappe.require(
-            "/assets/document_management/js/pdf_search_viewer.v5_7_284_7.js",
+            "/assets/document_management/js/pdf_search_viewer.v5_7_284_8.js",
             () => callback()
         );
     }

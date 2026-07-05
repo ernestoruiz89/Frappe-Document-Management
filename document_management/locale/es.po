@@ -10,56 +10,56 @@ msgstr ""
 "POT-Creation-Date: 2026-07-05 13:20+0000\n"
 "PO-Revision-Date: 2026-07-05 13:20+0000\n"
 "Last-Translator: eruiz@wbapps.com\n"
-"Language: es\n"
 "Language-Team: eruiz@wbapps.com\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.13.1\n"
 
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:145
 msgid "0 results"
-msgstr ""
+msgstr "0 resultados"
 
 #. Label of a Section Break field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "1. Chat Answer Provider"
-msgstr ""
+msgstr "1. Proveedor de respuestas del chat"
 
 #. Label of a Section Break field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "2. Document Embedding Provider"
-msgstr ""
+msgstr "2. Proveedor de embeddings de documentos"
 
 #. Label of a Section Break field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "3. API Credentials and Network"
-msgstr ""
+msgstr "3. Credenciales de API y red"
 
 #. Header text in the Document Management Workspace
 #: document_management/frappe_document_management/workspace/document_management/document_management.json
 msgid "<span class=\"h4\">Document Management</span>"
-msgstr ""
+msgstr "<span class=\"h4\">Gestión de documentos</span>"
 
 #. Option for the 'Status' (Select) field in DocType 'Document Chat Session'
 #: document_management/frappe_document_management/doctype/document_chat_session/document_chat_session.json
 msgid "Active"
-msgstr ""
+msgstr "Activo"
 
 #. Label of a Section Break field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Active AI Providers"
-msgstr ""
+msgstr "Proveedores de IA activos"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:1057
 msgid "Add tags (comma separated)"
-msgstr ""
+msgstr "Agregar etiquetas (separadas por comas)"
 
 #. Name of a role
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Administrator"
-msgstr ""
+msgstr "Administrador"
 
 #. Name of a role
 #: document_management/frappe_document_management/doctype/document/document.json
@@ -68,86 +68,96 @@ msgstr ""
 #: document_management/frappe_document_management/doctype/document_tag/document_tag.json
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:86
 msgid "All"
-msgstr ""
+msgstr "Todos"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:87
 msgid "All Categories"
-msgstr ""
+msgstr "Todas las categorías"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:107
 msgid "All Statuses"
-msgstr ""
+msgstr "Todos los estados"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:135
 msgid "All Tags"
-msgstr ""
+msgstr "Todas las etiquetas"
 
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:320
 msgid "All terms"
-msgstr ""
+msgstr "Todos los términos"
 
-#. Option for the 'Matching Algorithm' (Select) field in DocType 'Document Tag'
+#. Option for the 'Matching Algorithm' (Select) field in DocType 'Document
+#. Tag'
 #: document_management/frappe_document_management/doctype/document_tag/document_tag.json
 msgid "All words"
-msgstr ""
+msgstr "Todas las palabras"
 
 #. Label of a Check field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Allow Internal AI Endpoints"
-msgstr ""
+msgstr "Permitir endpoints internos de IA"
 
 #. Description of the 'Allow Internal AI Endpoints' (Check) field in DocType
 #. 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Allow generic OpenAI-compatible endpoints that resolve to private or local IP addresses. Ollama and LM Studio local endpoints are always allowed."
+msgid ""
+"Allow generic OpenAI-compatible endpoints that resolve to private or local "
+"IP addresses. Ollama and LM Studio local endpoints are always allowed."
 msgstr ""
+"Permitir endpoints genéricos compatibles con OpenAI que se resuelvan en "
+"direcciones IP privadas o locales. Los endpoints locales de Ollama y LM "
+"Studio siempre están permitidos."
 
 #. Option for the 'Searchable PDF Generation' (Select) field in DocType
 #. 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Always"
-msgstr ""
+msgstr "Siempre"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.html:15
 msgid "Answers use only permitted document evidence."
 msgstr ""
+"Las respuestas utilizan únicamente evidencia de documentos permitidos."
 
-#. Option for the 'Matching Algorithm' (Select) field in DocType 'Document Tag'
+#. Option for the 'Matching Algorithm' (Select) field in DocType 'Document
+#. Tag'
 #: document_management/frappe_document_management/doctype/document_tag/document_tag.json
 msgid "Any word"
-msgstr ""
+msgstr "Cualquier palabra"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:587
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:1060
 msgid "Apply"
-msgstr ""
+msgstr "Aplicar"
 
 #. Label of a Section Break field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Archive Lifecycle"
-msgstr ""
+msgstr "Ciclo de vida de archivado"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:1107
 msgid "Archive import failed."
-msgstr ""
+msgstr "Error al importar el archivo."
 
 #. Option for the 'Status' (Select) field in DocType 'Document Chat Session'
 #: document_management/frappe_document_management/doctype/document_chat_session/document_chat_session.json
 msgid "Archived"
-msgstr ""
+msgstr "Archivado"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:176
 msgid "Ask a question. Only documents you can read will be searched."
 msgstr ""
+"Haga una pregunta. Solo se buscará en los documentos que tenga permiso para "
+"leer."
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.html:33
 msgid "Ask about your documents..."
-msgstr ""
+msgstr "Pregunte sobre sus documentos..."
 
 #. Label of a Attach field in DocType 'Document Version'
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "Attachment"
-msgstr ""
+msgstr "Adjunto"
 
 #. Option for the 'OCR Mode' (Select) field in DocType 'Document Management
 #. Settings'
@@ -155,54 +165,66 @@ msgstr ""
 #. 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Auto"
-msgstr ""
+msgstr "Automático"
 
-#. Option for the 'Matching Algorithm' (Select) field in DocType 'Document Tag'
+#. Option for the 'Matching Algorithm' (Select) field in DocType 'Document
+#. Tag'
 #: document_management/frappe_document_management/doctype/document_tag/document_tag.json
 msgid "Auto (Machine Learning)"
-msgstr ""
+msgstr "Automático (Aprendizaje automático)"
 
-#. Description of the 'OCR Mode' (Select) field in DocType 'Document Management
+#. Description of the 'OCR Mode' (Select) field in DocType 'Document
+#. Management
 #. Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Auto extracts text directly from digital PDFs and runs OCR only for scanned or mixed documents."
+msgid ""
+"Auto extracts text directly from digital PDFs and runs OCR only for scanned "
+"or mixed documents."
 msgstr ""
+"Extrae automáticamente el texto de los PDF digitales y ejecuta el OCR solo "
+"en documentos escaneados o mixtos."
 
 #. Description of the 'Searchable PDF Generation' (Select) field in DocType
 #. 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Auto stores a searchable PDF only for scanned PDFs and images."
 msgstr ""
+"Almacena automáticamente un PDF con capacidad de búsqueda solo para PDF "
+"escaneados e imágenes."
 
 #. Description of the 'Embedding Endpoint' (Data) field in DocType 'Document
 #. Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Base URL for the embeddings API. Required for OpenAI Compatible. LM Studio defaults to http://localhost:1234/v1."
+msgid ""
+"Base URL for the embeddings API. Required for OpenAI Compatible. LM Studio "
+"defaults to http://localhost:1234/v1."
 msgstr ""
+"URL base para la API de embeddings. Requerido para compatible con OpenAI. LM"
+" Studio usa por defecto http://localhost:1234/v1."
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.html:34
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:591
 msgid "Cancel"
-msgstr ""
+msgstr "Cancelar"
 
 #. Label of a Check field in DocType 'Document Chat Message'
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 msgid "Cancel Requested"
-msgstr ""
+msgstr "Cancelación solicitada"
 
 #. Option for the 'Status' (Select) field in DocType 'Document Chat Message'
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:213
 msgid "Cancelled"
-msgstr ""
+msgstr "Cancelado"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:477
 msgid "Cancelling..."
-msgstr ""
+msgstr "Cancelando..."
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:88
 msgid "Categories"
-msgstr ""
+msgstr "Categorías"
 
 #. Label of a Link field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
@@ -212,157 +234,158 @@ msgstr ""
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:575
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:1056
 msgid "Category"
-msgstr ""
+msgstr "Categoría"
 
 #. Label of a Data field in DocType 'Document Category'
 #: document_management/frappe_document_management/doctype/document_category/document_category.json
 msgid "Category Name"
-msgstr ""
+msgstr "Nombre de la categoría"
 
 #. Label of a Small Text field in DocType 'Document Version'
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "Change Log / Notes"
-msgstr ""
+msgstr "Registro de cambios / Notas"
 
 #. Label of a Data field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Chat Endpoint"
-msgstr ""
+msgstr "Endpoint del chat"
 
 #. Label of a Select field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Chat Provider"
-msgstr ""
+msgstr "Proveedor de chat"
 
 #. Label of a Int field in DocType 'Document Chunk'
 #: document_management/frappe_document_management/doctype/document_chunk/document_chunk.json
 msgid "Chunk Index"
-msgstr ""
+msgstr "Índice de fragmento"
 
 #. Label of a Int field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Chunk Overlap"
-msgstr ""
+msgstr "Solapamiento de fragmentos"
 
 #. Label of a Int field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Chunk Size (Approx. Tokens)"
-msgstr ""
+msgstr "Tamaño de fragmento (Tokens aprox.)"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:94
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:114
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:142
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:202
 msgid "Clear"
-msgstr ""
+msgstr "Limpiar"
 
 #: document_management/public/js/pdf_search_viewer.source.js:477
 msgid "Clear search"
-msgstr ""
+msgstr "Limpiar búsqueda"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:380
 msgid "Click here to exit fullscreen."
-msgstr ""
+msgstr "Haga clic aquí para salir de pantalla completa."
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:392
 msgid "Close Fullscreen"
-msgstr ""
+msgstr "Cerrar pantalla completa"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:446
 msgid "Code"
-msgstr ""
+msgstr "Código"
 
 #. Label of a Color field in DocType 'Document Tag'
 #: document_management/frappe_document_management/doctype/document_tag/document_tag.json
 msgid "Color"
-msgstr ""
+msgstr "Color"
 
 #. Option for the 'OCR Status' (Select) field in DocType 'Document'
 #. Option for the 'Status' (Select) field in DocType 'Document Chat Message'
-#. Option for the 'Preview Status' (Select) field in DocType 'Document Version'
+#. Option for the 'Preview Status' (Select) field in DocType 'Document
+#. Version'
 #. Option for the 'OCR Status' (Select) field in DocType 'Document Version'
 #: document_management/frappe_document_management/doctype/document/document.json
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "Completed"
-msgstr ""
+msgstr "Completado"
 
 #. Label of a Datetime field in DocType 'Document Chat Message'
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 msgid "Completed At"
-msgstr ""
+msgstr "Completado el"
 
 #. Label of a Int field in DocType 'Document Chat Message'
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 msgid "Completion Tokens"
-msgstr ""
+msgstr "Tokens de finalización"
 
 #. Label of a Long Text field in DocType 'Document Chat Message'
 #. Label of a Long Text field in DocType 'Document Chunk'
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 #: document_management/frappe_document_management/doctype/document_chunk/document_chunk.json
 msgid "Content"
-msgstr ""
+msgstr "Contenido"
 
 #. Label of a Data field in DocType 'Document Chunk'
 #. Label of a Data field in DocType 'Document Page'
 #: document_management/frappe_document_management/doctype/document_chunk/document_chunk.json
 #: document_management/frappe_document_management/doctype/document_page/document_page.json
 msgid "Content Hash"
-msgstr ""
+msgstr "Hash de contenido"
 
 #. Label of a Int field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Context Size"
-msgstr ""
+msgstr "Tamaño de contexto"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.html:4
 msgid "Conversations"
-msgstr ""
+msgstr "Conversaciones"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:509
 msgid "Copy Link"
-msgstr ""
+msgstr "Copiar enlace"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:488
 msgid "Correspondent"
-msgstr ""
+msgstr "Corresponsal"
 
 #. Label of a Data field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 msgid "Current Version"
-msgstr ""
+msgstr "Versión actual"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:294
 msgid "Date"
-msgstr ""
+msgstr "Fecha"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:200
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:530
 msgid "Delete permanently"
-msgstr ""
+msgstr "Eliminar permanentemente"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:161
 msgid "Delete saved view"
-msgstr ""
+msgstr "Eliminar vista guardada"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:673
 msgid "Delete this conversation?"
-msgstr ""
+msgstr "¿Eliminar esta conversación?"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:934
 msgid "Delete this saved view?"
-msgstr ""
+msgstr "¿Eliminar esta vista guardada?"
 
 #. Label of a Datetime field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 msgid "Deleted At"
-msgstr ""
+msgstr "Eliminado el"
 
 #. Label of a Link field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 msgid "Deleted By"
-msgstr ""
+msgstr "Eliminado por"
 
 #. Label of a Link field in DocType 'Document'
 #. Label of a Link field in DocType 'Document Department Access'
@@ -371,30 +394,30 @@ msgstr ""
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:579
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:467
 msgid "Department"
-msgstr ""
+msgstr "Departamento"
 
 #. Label of a Table MultiSelect field in DocType 'Document'
 #. Label of a Table MultiSelect field in DocType 'Document Category'
 #: document_management/frappe_document_management/doctype/document/document.json
 #: document_management/frappe_document_management/doctype/document_category/document_category.json
 msgid "Departments with Access"
-msgstr ""
+msgstr "Departamentos con acceso"
 
 #. Label of a Section Break field in DocType 'Document'
 #. Label of a Text Editor field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 msgid "Description"
-msgstr ""
+msgstr "Descripción"
 
 #. Label of a Tab Break field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 msgid "Details"
-msgstr ""
+msgstr "Detalles"
 
 #. Label of a Int field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Digital PDF Text Threshold"
-msgstr ""
+msgstr "Umbral de texto en PDF digital"
 
 #. Name of a DocType
 #. Label of a Data field in DocType 'Document Chunk'
@@ -409,18 +432,18 @@ msgstr ""
 #: document_management/frappe_document_management/doctype/document_share_link/document_share_link.json
 #: document_management/frappe_document_management/workspace/document_management/document_management.json
 msgid "Document"
-msgstr ""
+msgstr "Documento"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:439
 msgid "Document #"
-msgstr ""
+msgstr "Documento N.º"
 
 #. Name of a DocType
 #. Label of a Link in the Document Management Workspace
 #: document_management/frappe_document_management/doctype/document_category/document_category.json
 #: document_management/frappe_document_management/workspace/document_management/document_management.json
 msgid "Document Category"
-msgstr ""
+msgstr "Categoría de documento"
 
 #. Label of a Link in the Document Management Workspace
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:179
@@ -428,582 +451,626 @@ msgstr ""
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:4
 #: document_management/frappe_document_management/workspace/document_management/document_management.json
 msgid "Document Chat"
-msgstr ""
+msgstr "Chat de documentos"
 
 #. Name of a DocType
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 msgid "Document Chat Message"
-msgstr ""
+msgstr "Mensaje del chat de documentos"
 
 #. Name of a DocType
 #: document_management/frappe_document_management/doctype/document_chat_session/document_chat_session.json
 msgid "Document Chat Session"
-msgstr ""
+msgstr "Sesión de chat de documentos"
 
 #. Name of a DocType
 #: document_management/frappe_document_management/doctype/document_chunk/document_chunk.json
 msgid "Document Chunk"
-msgstr ""
+msgstr "Fragmento de documento"
 
 #. Label of a Data field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 msgid "Document Code"
-msgstr ""
+msgstr "Código de documento"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:567
 msgid "Document Code (Optional)"
-msgstr ""
+msgstr "Código de documento (Opcional)"
 
 #. Name of a DocType
 #: document_management/frappe_document_management/doctype/document_department_access/document_department_access.json
 msgid "Document Department Access"
-msgstr ""
+msgstr "Acceso por departamento al documento"
 
 #. Label of a Section Break field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 msgid "Document Details"
-msgstr ""
+msgstr "Detalles del documento"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:570
 msgid "Document IDs"
-msgstr ""
+msgstr "ID de documentos"
 
 #. Name of a DocType
 #: document_management/frappe_document_management/doctype/document_link/document_link.json
 msgid "Document Link"
-msgstr ""
+msgstr "Enlace de documento"
 
 #. Name of a Workspace
 #: document_management/frappe_document_management/workspace/document_management/document_management.json
 msgid "Document Management"
-msgstr ""
+msgstr "Gestión de documentos"
 
 #. Label of a Link in the Document Management Workspace
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:4
 #: document_management/frappe_document_management/workspace/document_management/document_management.json
 msgid "Document Management Console"
-msgstr ""
+msgstr "Consola de gestión de documentos"
 
 #. Name of a DocType
 #. Label of a Link in the Document Management Workspace
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 #: document_management/frappe_document_management/workspace/document_management/document_management.json
 msgid "Document Management Settings"
-msgstr ""
+msgstr "Configuración de gestión de documentos"
 
 #. Label of a Section Break field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Document OCR"
-msgstr ""
+msgstr "OCR de documento"
 
 #. Linked DocType in Document's connections
 #. Name of a DocType
 #: document_management/frappe_document_management/doctype/document/document.json
 #: document_management/frappe_document_management/doctype/document_page/document_page.json
 msgid "Document Page"
-msgstr ""
+msgstr "Página del documento"
 
 #. Name of a DocType
 #: document_management/frappe_document_management/doctype/document_role_access/document_role_access.json
 msgid "Document Role Access"
-msgstr ""
+msgstr "Acceso por rol al documento"
 
 #. Name of a DocType
 #: document_management/frappe_document_management/doctype/document_saved_view/document_saved_view.json
 msgid "Document Saved View"
-msgstr ""
+msgstr "Vista guardada del documento"
 
 #. Name of a DocType
 #: document_management/frappe_document_management/doctype/document_share_link/document_share_link.json
 msgid "Document Share Link"
-msgstr ""
+msgstr "Enlace para compartir documento"
 
 #. Name of a DocType
 #. Label of a Link in the Document Management Workspace
 #: document_management/frappe_document_management/doctype/document_tag/document_tag.json
 #: document_management/frappe_document_management/workspace/document_management/document_management.json
 msgid "Document Tag"
-msgstr ""
+msgstr "Etiqueta del documento"
 
 #. Name of a DocType
 #: document_management/frappe_document_management/doctype/document_tag_link/document_tag_link.json
 msgid "Document Tag Link"
-msgstr ""
+msgstr "Enlace de etiqueta del documento"
 
 #. Name of a DocType
 #: document_management/frappe_document_management/doctype/document_tag_role/document_tag_role.json
 msgid "Document Tag Role"
-msgstr ""
+msgstr "Rol de etiqueta del documento"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:572
 msgid "Document Title"
-msgstr ""
+msgstr "Título del documento"
 
 #. Label of a Link field in DocType 'Indexed DocType'
 #: document_management/frappe_document_management/doctype/indexed_doctype/indexed_doctype.json
 msgid "Document Type"
-msgstr ""
+msgstr "Tipo de documento"
 
 #. Name of a DocType
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "Document Version"
-msgstr ""
+msgstr "Versión del documento"
 
 #. Label of a Data field in DocType 'Document Chunk'
 #. Label of a Data field in DocType 'Document Page'
 #: document_management/frappe_document_management/doctype/document_chunk/document_chunk.json
 #: document_management/frappe_document_management/doctype/document_page/document_page.json
 msgid "Document Version Row"
-msgstr ""
+msgstr "Fila de versión del documento"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:585
 msgid "Document filters"
-msgstr ""
+msgstr "Filtros de documentos"
 
 #: document_management/frappe_document_management/doctype/document/document_list.js:70
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:747
 msgid "Document uploaded successfully"
-msgstr ""
+msgstr "Documento subido correctamente"
 
 #. Label of a Card Break in the Document Management Workspace
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:169
 #: document_management/frappe_document_management/workspace/document_management/document_management.json
 msgid "Documents"
-msgstr ""
+msgstr "Documentos"
 
-#. Description of the 'Trash Retention (Days)' (Int) field in DocType 'Document
+#. Description of the 'Trash Retention (Days)' (Int) field in DocType
+#. 'Document
 #. Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Documents in trash are permanently deleted after this many days. Set to 0 to disable automatic deletion."
+msgid ""
+"Documents in trash are permanently deleted after this many days. Set to 0 to"
+" disable automatic deletion."
 msgstr ""
+"Los documentos en la papelera se eliminan permanentemente después de esta "
+"cantidad de días. Establezca en 0 para desactivar la eliminación automática."
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:1117
 msgid "Documents moved to trash"
-msgstr ""
+msgstr "Documentos trasladados a la papelera"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:1129
 msgid "Documents permanently deleted"
-msgstr ""
+msgstr "Documentos eliminados permanentemente"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:1123
 msgid "Documents restored"
-msgstr ""
+msgstr "Documentos restaurados"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:1069
 msgid "Documents updated"
-msgstr ""
+msgstr "Documentos actualizados"
 
 #. Label of a Data field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Done Folder Path"
-msgstr ""
+msgstr "Ruta de la carpeta de finalizados"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:279
 msgid "Download"
-msgstr ""
+msgstr "Descargar"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:533
 msgid "Download Original File"
-msgstr ""
+msgstr "Descargar archivo original"
 
 #. Option for the 'Status' (Select) field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:119
 msgid "Draft"
-msgstr ""
+msgstr "Borrador"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:557
 msgid "Drag & Drop your file here or click to browse"
-msgstr ""
+msgstr "Arrastre y suelte su archivo aquí o haga clic para examinar"
 
 #. Label of a Attach field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 msgid "Dummy Attachment"
-msgstr ""
+msgstr "Adjunto ficticio"
 
 #. Label of a Attach field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 msgid "Dummy Preview Attachment"
-msgstr ""
+msgstr "Vista previa de adjunto ficticia"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.py:794
-msgid "ERROR: LibreOffice is not installed on the server ('libreoffice' command not found). Please install it using: sudo apt-get install libreoffice-core --no-install-recommends"
+msgid ""
+"ERROR: LibreOffice is not installed on the server ('libreoffice' command not"
+" found). Please install it using: sudo apt-get install libreoffice-core "
+"--no-install-recommends"
 msgstr ""
+"ERROR: LibreOffice no está instalado en el servidor (no se encontró el "
+"comando 'libreoffice'). Instálelo usando: sudo apt-get install libreoffice-"
+"core --no-install-recommends"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:188
 msgid "Edit"
-msgstr ""
+msgstr "Editar"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:1053
 msgid "Edit selected documents"
-msgstr ""
+msgstr "Editar documentos seleccionados"
 
 #. Label of a Data field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Embedding Endpoint"
-msgstr ""
+msgstr "Endpoint de embeddings"
 
 #. Label of a Data field in DocType 'Document Chunk'
 #. Label of a Data field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_chunk/document_chunk.json
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Embedding Model"
-msgstr ""
+msgstr "Modelo de embeddings"
 
 #. Label of a Select field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Embedding Provider"
-msgstr ""
+msgstr "Proveedor de embeddings"
 
 #. Label of a Check field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Enable Folder Ingestion"
-msgstr ""
+msgstr "Habilitar ingesta de carpetas"
 
 #. Label of a Check field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Enable Full Text Search (Tantivy)"
-msgstr ""
+msgstr "Habilitar búsqueda de texto completo (Tantivy)"
 
 #. Label of a Check field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Enable Local Reranker"
-msgstr ""
+msgstr "Habilitar reclasificador local (Reranker)"
 
 #. Label of a Check field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Enable Semantic Search (AI/FAISS)"
-msgstr ""
+msgstr "Habilitar búsqueda semántica (IA/FAISS)"
 
 #. Label of a Check field in DocType 'Document Share Link'
 #: document_management/frappe_document_management/doctype/document_share_link/document_share_link.json
 msgid "Enabled"
-msgstr ""
+msgstr "Habilitado"
 
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:73
 msgid "Enabled: {0} ({1} documents indexed)"
-msgstr ""
+msgstr "Habilitado: {0} ({1} documentos indexados)"
 
 #. Label of a Check field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Encrypt Document Files at Rest"
-msgstr ""
+msgstr "Cifrar archivos de documentos en reposo"
 
-#. Description of the 'Encrypt Document Files at Rest' (Check) field in DocType
+#. Description of the 'Encrypt Document Files at Rest' (Check) field in
+#. DocType
 #. 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Encrypt new private document files at rest using the site's encryption_key. Keep site_config.json backups safe; losing the key makes encrypted files unreadable."
+msgid ""
+"Encrypt new private document files at rest using the site's encryption_key. "
+"Keep site_config.json backups safe; losing the key makes encrypted files "
+"unreadable."
 msgstr ""
+"Cifrar los nuevos archivos privados de documentos en reposo utilizando la "
+"clave de cifrado (encryption_key) del sitio. Mantenga seguras las copias de "
+"seguridad de site_config.json; perder la clave hará que los archivos "
+"cifrados sean ilegibles."
 
 #. Label of a Data field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Error Folder Path"
-msgstr ""
+msgstr "Ruta de la carpeta de errores"
 
 #. Label of a Small Text field in DocType 'Document Chat Message'
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 msgid "Error Message"
-msgstr ""
+msgstr "Mensaje de error"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:75
 msgid "Evaluate generated answers and citations"
-msgstr ""
+msgstr "Evaluar respuestas generadas y citas"
 
-#. Option for the 'Matching Algorithm' (Select) field in DocType 'Document Tag'
+#. Option for the 'Matching Algorithm' (Select) field in DocType 'Document
+#. Tag'
 #: document_management/frappe_document_management/doctype/document_tag/document_tag.json
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:317
 msgid "Exact match"
-msgstr ""
+msgstr "Coincidencia exacta"
 
 #. Label of a Datetime field in DocType 'Document Share Link'
 #: document_management/frappe_document_management/doctype/document_share_link/document_share_link.json
 msgid "Expires At"
-msgstr ""
+msgstr "Vence el"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:191
 msgid "Export Archive"
-msgstr ""
+msgstr "Exportar archivo"
 
 #. Label of a Int field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Export Retention (Hours)"
-msgstr ""
+msgstr "Retención de exportación (Horas)"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:512
 msgid "External Share"
-msgstr ""
+msgstr "Compartir de forma externa"
 
 #. Label of a Data field in DocType 'Document Page'
 #: document_management/frappe_document_management/doctype/document_page/document_page.json
 msgid "Extraction Method"
-msgstr ""
+msgstr "Método de extracción"
 
 #. Option for the 'OCR Status' (Select) field in DocType 'Document'
 #. Option for the 'Status' (Select) field in DocType 'Document Chat Message'
-#. Option for the 'Preview Status' (Select) field in DocType 'Document Version'
+#. Option for the 'Preview Status' (Select) field in DocType 'Document
+#. Version'
 #. Option for the 'OCR Status' (Select) field in DocType 'Document Version'
 #: document_management/frappe_document_management/doctype/document/document.json
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:215
 msgid "Failed"
-msgstr ""
+msgstr "Fallido"
 
 #. Description of the 'Error Folder Path' (Data) field in DocType 'Document
 #. Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Failed files are moved here with a .error.txt note. Defaults to an error folder inside the ingestion folder."
+msgid ""
+"Failed files are moved here with a .error.txt note. Defaults to an error "
+"folder inside the ingestion folder."
 msgstr ""
+"Los archivos fallidos se mueven aquí con una nota .error.txt. Por defecto, "
+"se crea una carpeta de errores dentro de la carpeta de ingesta."
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:819
 msgid "Failed to load documents. Please try again."
-msgstr ""
+msgstr "Error al cargar los documentos. Inténtelo de nuevo."
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:351
 msgid "Failed to load the document preview."
-msgstr ""
+msgstr "Error al cargar la vista previa del documento."
 
 #. Label of a Data field in DocType 'Document Version'
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "File SHA-256"
-msgstr ""
+msgstr "SHA-256 del archivo"
 
 #. Label of a Int field in DocType 'Document Version'
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "File Size"
-msgstr ""
+msgstr "Tamaño de archivo"
 
 #. Label of a Data field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "File Storage Path Template"
-msgstr ""
+msgstr "Plantilla de ruta de almacenamiento de archivos"
 
 #. Label of a Select field in DocType 'Document Share Link'
 #: document_management/frappe_document_management/doctype/document_share_link/document_share_link.json
 msgid "File Version"
-msgstr ""
+msgstr "Versión de archivo"
 
 #: document_management/frappe_document_management/doctype/document/document.py:234
 msgid "File not found for conversion: {0}"
-msgstr ""
+msgstr "Archivo no encontrado para conversión: {0}"
 
 #: document_management/frappe_document_management/doctype/document/document.js:196
 #: document_management/frappe_document_management/doctype/document/document_list.js:159
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:36
 msgid "File upload failed."
-msgstr ""
+msgstr "Error al subir el archivo."
 
 #: document_management/frappe_document_management/doctype/document/document.js:115
 msgid "File uploaded successfully"
-msgstr ""
+msgstr "Archivo subido correctamente"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.html:19
 msgid "Filters"
-msgstr ""
+msgstr "Filtros"
 
 #. Label of a Long Text field in DocType 'Document Chat Session'
 #. Label of a Code field in DocType 'Document Saved View'
 #: document_management/frappe_document_management/doctype/document_chat_session/document_chat_session.json
 #: document_management/frappe_document_management/doctype/document_saved_view/document_saved_view.json
 msgid "Filters JSON"
-msgstr ""
+msgstr "JSON de filtros"
 
 #: document_management/public/js/pdf_search_viewer.source.js:465
 msgid "Fit to width"
-msgstr ""
+msgstr "Ajustar al ancho"
 
 #. Label of a Link field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:460
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:582
 msgid "Folder"
-msgstr ""
+msgstr "Carpeta"
 
 #. Label of a Section Break field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Folder Ingestion"
-msgstr ""
+msgstr "Ingesta de carpetas"
 
 #. Option for the 'OCR Mode' (Select) field in DocType 'Document Management
 #. Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Force"
-msgstr ""
+msgstr "Forzar"
 
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:71
 msgid "Full text"
-msgstr ""
+msgstr "Texto completo"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:379
 msgid "Fullscreen mode active"
-msgstr ""
+msgstr "Modo de pantalla completa activo"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:518
 msgid "Generate PDF (LibreOffice)"
-msgstr ""
+msgstr "Generar PDF (LibreOffice)"
 
 #. Description of the 'Export Retention (Hours)' (Int) field in DocType
 #. 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Generated portable ZIP exports are deleted automatically after this many hours. Set to 0 to disable cleanup."
+msgid ""
+"Generated portable ZIP exports are deleted automatically after this many "
+"hours. Set to 0 to disable cleanup."
 msgstr ""
+"Las exportaciones ZIP portátiles generadas se eliminan automáticamente "
+"después de esta cantidad de horas. Establezca en 0 para desactivar la "
+"limpieza."
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:893
 msgid "Grid"
-msgstr ""
+msgstr "Cuadrícula"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:173
 msgid "Grid View"
-msgstr ""
+msgstr "Vista de cuadrícula"
 
 #. Label of a Check field in DocType 'Document Share Link'
 #: document_management/frappe_document_management/doctype/document_share_link/document_share_link.json
 msgid "Hide Download Button"
-msgstr ""
+msgstr "Ocultar botón de descarga"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:584
 msgid "Home/Attachments (Default)"
-msgstr ""
+msgstr "Inicio/Adjuntos (Por defecto)"
 
 #. Description of the 'Enable Folder Ingestion' (Check) field in DocType
 #. 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Hourly scheduler imports files from the configured folder and then moves them to done or error."
+msgid ""
+"Hourly scheduler imports files from the configured folder and then moves "
+"them to done or error."
 msgstr ""
+"El programador horario importa los archivos de la carpeta configurada y "
+"luego los mueve a finalizados o a errores."
 
 #. Description of the 'Only Me' (Check) field in DocType 'Document Category'
 #: document_management/frappe_document_management/doctype/document_category/document_category.json
 msgid "If checked, only the creator can view this category and its contents."
 msgstr ""
+"Si está marcado, solo el creador puede ver esta categoría y su contenido."
 
 #. Description of the 'Only Me' (Check) field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 msgid "If checked, only the creator can view this document."
-msgstr ""
+msgstr "Si está marcado, solo el creador puede ver este documento."
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:181
 msgid "Import Archive"
-msgstr ""
+msgstr "Importar archivo"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:1102
 msgid "Imported {0} documents"
-msgstr ""
+msgstr "Se importaron {0} documentos"
 
 #. Label of a Check field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 msgid "In Trash"
-msgstr ""
+msgstr "En la papelera"
 
 #. Label of a Data field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Index Path (Relative to site private files)"
-msgstr ""
+msgstr "Ruta del índice (Relativa a los archivos privados del sitio)"
 
 #. Name of a DocType
 #: document_management/frappe_document_management/doctype/indexed_doctype/indexed_doctype.json
 msgid "Indexed DocType"
-msgstr ""
+msgstr "DocType indexado"
 
 #. Label of a Link in the Document Management Workspace
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:4
 #: document_management/frappe_document_management/workspace/document_management/document_management.json
 msgid "Indexed DocTypes Search"
-msgstr ""
+msgstr "Búsqueda en DocTypes indexados"
 
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:177
 msgid "Indexed Records"
-msgstr ""
+msgstr "Registros indexados"
 
 #. Label of a Data field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Ingestion Folder Path"
-msgstr ""
+msgstr "Ruta de la carpeta de ingesta"
 
 #. Label of a Check field in DocType 'Document Tag'
 #: document_management/frappe_document_management/doctype/document_tag/document_tag.json
 msgid "Is Active"
-msgstr ""
+msgstr "Está activo"
 
 #. Label of a Check field in DocType 'Document Version'
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "Is Markdown"
-msgstr ""
+msgstr "Es Markdown"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:293
 msgid "Keywords"
-msgstr ""
+msgstr "Palabras clave"
 
 #. Option for the 'Chat Provider' (Select) field in DocType 'Document
 #. Management Settings'
 #. Option for the 'Embedding Provider' (Select) field in DocType 'Document
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "LM Studio"
-msgstr ""
+msgstr "LM Studio"
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:115
 msgid "LM Studio OpenAI-compatible server"
-msgstr ""
+msgstr "Servidor compatible con OpenAI de LM Studio"
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:136
 msgid "LM Studio embeddings API"
-msgstr ""
+msgstr "API de embeddings de LM Studio"
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:208
-msgid "LM Studio must be reachable from the Frappe worker. localhost refers to the Frappe server, not the browser computer."
+msgid ""
+"LM Studio must be reachable from the Frappe worker. localhost refers to the "
+"Frappe server, not the browser computer."
 msgstr ""
+"LM Studio debe ser accesible desde el trabajador (worker) de Frappe. "
+"localhost se refiere al servidor de Frappe, no a la computadora del "
+"navegador."
 
 #. Label of a Datetime field in DocType 'Document Chat Session'
 #: document_management/frappe_document_management/doctype/document_chat_session/document_chat_session.json
 msgid "Last Message At"
-msgstr ""
+msgstr "Último mensaje el"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:95
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:105
 msgid "Latest RAG Evaluation"
-msgstr ""
+msgstr "Última evaluación RAG"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:568
 msgid "Leave blank to auto-generate"
-msgstr ""
+msgstr "Deje en blanco para generar automáticamente"
 
 #. Label of a Section Break field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Legacy Provider Settings"
-msgstr ""
+msgstr "Configuraciones del proveedor heredado"
 
 #. Label of a Data field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Legacy Shared AI Endpoint"
-msgstr ""
+msgstr "Endpoint de IA compartido heredado"
 
 #: document_management/frappe_document_management/doctype/document/document.py:331
 msgid "LibreOffice Error (Code {0}): {1}"
-msgstr ""
+msgstr "Error de LibreOffice (Código {0}): {1}"
 
 #: document_management/frappe_document_management/doctype/document/document.py:337
 msgid "LibreOffice ran, but the PDF file was not created.{0}"
-msgstr ""
+msgstr "LibreOffice se ejecutó, pero no se creó el archivo PDF.{0}"
 
 #: document_management/frappe_document_management/doctype/document/document.py:454
-msgid "LibreOffice {0} is required to convert {1} files. Install it on the server with: sudo apt-get install {2}"
+msgid ""
+"LibreOffice {0} is required to convert {1} files. Install it on the server "
+"with: sudo apt-get install {2}"
 msgstr ""
+"Se requiere LibreOffice {0} para convertir archivos {1}. Instálelo en el "
+"servidor con: sudo apt-get install {2}"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:894
 msgid "List Card"
-msgstr ""
+msgstr "Tarjeta de lista"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:174
 msgid "List Cards"
-msgstr ""
+msgstr "Tarjetas de lista"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:276
 msgid "Loading document preview..."
-msgstr ""
+msgstr "Cargando vista previa del documento..."
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:356
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:413
 msgid "Loading text..."
-msgstr ""
+msgstr "Cargando texto..."
 
 #. Option for the 'Semantic Model Execution' (Select) field in DocType
 #. 'Document Management Settings'
@@ -1011,139 +1078,158 @@ msgstr ""
 #. Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Local (sentence-transformers)"
-msgstr ""
+msgstr "Local (sentence-transformers)"
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:197
 msgid "Local OCR + OpenAI fallback"
-msgstr ""
+msgstr "OCR local + alternativa (fallback) de OpenAI"
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:198
 msgid "Local OCR only"
-msgstr ""
+msgstr "Solo OCR local"
 
 #. Description of the 'Embedding Provider' (Select) field in DocType 'Document
 #. Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Local runs Sentence Transformers on the worker. OpenAI calls the official OpenAI API. OpenAI Compatible and LM Studio send document chunks and queries to an embeddings API."
+msgid ""
+"Local runs Sentence Transformers on the worker. OpenAI calls the official "
+"OpenAI API. OpenAI Compatible and LM Studio send document chunks and queries"
+" to an embeddings API."
 msgstr ""
+"El modo local ejecuta Sentence Transformers en el trabajador (worker) de "
+"Frappe. OpenAI llama a la API oficial de OpenAI. Compatible con OpenAI y LM "
+"Studio envían fragmentos de documentos y consultas a una API de embeddings."
 
 #. Label of a Small Text field in DocType 'Document Tag'
 #: document_management/frappe_document_management/doctype/document_tag/document_tag.json
 msgid "Match Pattern"
-msgstr ""
+msgstr "Patrón de coincidencia"
 
 #. Label of a Select field in DocType 'Document Tag'
 #: document_management/frappe_document_management/doctype/document_tag/document_tag.json
 msgid "Matching Algorithm"
-msgstr ""
+msgstr "Algoritmo de coincidencia"
 
 #. Label of a Float field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Minimum Semantic Score"
-msgstr ""
+msgstr "Puntuación semántica mínima"
 
 #. Description of the 'Minimum Semantic Score' (Float) field in DocType
 #. 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Minimum cosine similarity required for semantic-only evidence. Lexical matches are not affected."
+msgid ""
+"Minimum cosine similarity required for semantic-only evidence. Lexical "
+"matches are not affected."
 msgstr ""
+"Similitud de coseno mínima requerida para la evidencia puramente semántica. "
+"Las coincidencias léxicas no se ven afectadas."
 
 #. Description of the 'Digital PDF Text Threshold' (Int) field in DocType
 #. 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Minimum non-whitespace characters used to identify a PDF as digital text."
+msgid ""
+"Minimum non-whitespace characters used to identify a PDF as digital text."
 msgstr ""
+"Mínimo de caracteres que no sean espacios en blanco utilizados para "
+"identificar un PDF como texto digital."
 
 #. Label of a Data field in DocType 'Document Chat Message'
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 msgid "Model"
-msgstr ""
+msgstr "Modelo"
 
 #. Description of the 'RAG Chat Model' (Data) field in DocType 'Document
 #. Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Model used to rewrite follow-up questions and generate Document Chat answers. For LM Studio use an identifier returned by /v1/models."
+msgid ""
+"Model used to rewrite follow-up questions and generate Document Chat "
+"answers. For LM Studio use an identifier returned by /v1/models."
 msgstr ""
+"Modelo utilizado para reformular las preguntas de seguimiento y generar "
+"respuestas en el Chat de documentos. Para LM Studio, use un identificador "
+"devuelto por /v1/models."
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:1114
 msgid "Move selected documents to trash?"
-msgstr ""
+msgstr "¿Mover los documentos seleccionados a la papelera?"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:194
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:524
 msgid "Move to trash"
-msgstr ""
+msgstr "Mover a la papelera"
 
 #. Option for the 'Searchable PDF Generation' (Select) field in DocType
 #. 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Never"
-msgstr ""
+msgstr "Nunca"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:404
 msgid "New conversation"
-msgstr ""
+msgstr "Nueva conversación"
 
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:201
 msgid "Next"
-msgstr ""
+msgstr "Siguiente"
 
 #: document_management/public/js/pdf_search_viewer.source.js:489
 msgid "Next match"
-msgstr ""
+msgstr "Siguiente coincidencia"
 
 #: document_management/public/js/pdf_search_viewer.source.js:457
 msgid "Next page"
-msgstr ""
+msgstr "Siguiente página"
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:118
 msgid "No API key is required."
-msgstr ""
+msgstr "No se requiere clave API."
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:113
 msgid "No API key is used for chat."
-msgstr ""
+msgstr "No se utiliza ninguna clave API para el chat."
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:577
 msgid "No Category"
-msgstr ""
+msgstr "Sin categoría"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:98
 msgid "No RAG evaluation report exists yet."
-msgstr ""
+msgstr "Aún no existe ningún informe de evaluación RAG."
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:222
 msgid "No documents found"
-msgstr ""
+msgstr "No se encontraron documentos"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:385
 msgid "No file attached"
-msgstr ""
+msgstr "No hay ningún archivo adjunto"
 
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:183
 msgid "No permitted results found."
-msgstr ""
+msgstr "No se encontraron resultados permitidos."
 
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:74
 msgid "No search indexes are enabled."
-msgstr ""
+msgstr "No hay índices de búsqueda habilitados."
 
-#. Option for the 'Matching Algorithm' (Select) field in DocType 'Document Tag'
+#. Option for the 'Matching Algorithm' (Select) field in DocType 'Document
+#. Tag'
 #: document_management/frappe_document_management/doctype/document_tag/document_tag.json
 msgid "None"
-msgstr ""
+msgstr "Ninguno"
 
 #. Label of a Tab Break field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 msgid "Notes"
-msgstr ""
+msgstr "Notas"
 
 #. Label of a Tab Break field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:195
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:268
 msgid "OCR"
-msgstr ""
+msgstr "OCR"
 
 #. Label of a Long Text field in DocType 'Document'
 #. Label of a Long Text field in DocType 'Document Page'
@@ -1152,497 +1238,559 @@ msgstr ""
 #: document_management/frappe_document_management/doctype/document_page/document_page.json
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "OCR Content"
-msgstr ""
+msgstr "Contenido OCR"
 
 #. Label of a Datetime field in DocType 'Document Version'
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "OCR Heartbeat At"
-msgstr ""
+msgstr "Latido (Heartbeat) de OCR el"
 
 #. Label of a Data field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "OCR Languages"
-msgstr ""
+msgstr "Idiomas de OCR"
 
 #. Label of a Data field in DocType 'Document Version'
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "OCR Lease Token"
-msgstr ""
+msgstr "Token de arrendamiento de OCR"
 
 #. Label of a Select field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "OCR Mode"
-msgstr ""
+msgstr "Modo OCR"
 
 #. Label of a Int field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "OCR Processing Timeout (Minutes)"
-msgstr ""
+msgstr "Tiempo de espera de procesamiento OCR (Minutos)"
 
 #. Label of a Datetime field in DocType 'Document Version'
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "OCR Started At"
-msgstr ""
+msgstr "OCR iniciado el"
 
 #. Label of a Select field in DocType 'Document'
 #. Label of a Select field in DocType 'Document Version'
 #: document_management/frappe_document_management/doctype/document/document.json
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "OCR Status"
-msgstr ""
+msgstr "Estado de OCR"
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:155
 msgid "OCR is local only. OpenAI Vision fallback is disabled."
 msgstr ""
+"OCR es únicamente local. La alternativa (fallback) de OpenAI Vision está "
+"desactivada."
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:1423
 msgid "OCR reprocessing queued"
-msgstr ""
+msgstr "Reprocesamiento OCR en cola"
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:152
-msgid "OCRmyPDF runs locally first. OpenAI Vision is called only for pages that still have no extracted text."
+msgid ""
+"OCRmyPDF runs locally first. OpenAI Vision is called only for pages that "
+"still have no extracted text."
 msgstr ""
+"OCRmyPDF se ejecuta localmente primero. Se llama a OpenAI Vision solo para "
+"las páginas que aún no tienen texto extraído."
 
 #. Option for the 'Status' (Select) field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:127
 msgid "Obsolete"
-msgstr ""
+msgstr "Obsoleto"
 
 #. Option for the 'OCR Mode' (Select) field in DocType 'Document Management
 #. Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Off"
-msgstr ""
+msgstr "Apagado"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:365
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:421
 msgid "Office Preview"
-msgstr ""
+msgstr "Vista previa de Office"
 
 #: document_management/frappe_document_management/doctype/document/document.py:391
 msgid "Office file is empty and cannot be converted."
-msgstr ""
+msgstr "El archivo de Office está vacío y no se puede convertir."
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:122
 msgid "Official OpenAI API"
-msgstr ""
+msgstr "API oficial de OpenAI"
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:143
 msgid "Official OpenAI embeddings API"
-msgstr ""
+msgstr "API oficial de embeddings de OpenAI"
 
 #. Option for the 'Chat Provider' (Select) field in DocType 'Document
 #. Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Ollama"
-msgstr ""
+msgstr "Ollama"
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:110
 msgid "Ollama server"
-msgstr ""
+msgstr "Servidor de Ollama"
 
 #. Label of a Check field in DocType 'Document'
 #. Label of a Check field in DocType 'Document Category'
 #: document_management/frappe_document_management/doctype/document/document.json
 #: document_management/frappe_document_management/doctype/document_category/document_category.json
 msgid "Only Me"
-msgstr ""
+msgstr "Solo yo"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:278
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:521
 msgid "Open in Frappe"
-msgstr ""
+msgstr "Abrir en Frappe"
 
 #. Option for the 'Chat Provider' (Select) field in DocType 'Document
 #. Management Settings'
 #. Option for the 'Embedding Provider' (Select) field in DocType 'Document
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "OpenAI"
-msgstr ""
+msgstr "OpenAI"
 
 #. Option for the 'Semantic Model Execution' (Select) field in DocType
 #. 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "OpenAI API"
-msgstr ""
+msgstr "API de OpenAI"
 
 #. Label of a Password field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "OpenAI API Key"
-msgstr ""
+msgstr "Clave API de OpenAI"
 
 #. Option for the 'Chat Provider' (Select) field in DocType 'Document
 #. Management Settings'
 #. Option for the 'Embedding Provider' (Select) field in DocType 'Document
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "OpenAI Compatible"
-msgstr ""
+msgstr "Compatible con OpenAI"
 
 #. Label of a Password field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "OpenAI Compatible API Key"
-msgstr ""
+msgstr "Clave API compatible con OpenAI"
 
 #. Label of a Data field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "OpenAI Embedding Model"
-msgstr ""
+msgstr "Modelo de embeddings de OpenAI"
 
 #. Label of a Data field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "OpenAI Vision Model"
-msgstr ""
+msgstr "Modelo de OpenAI Vision"
 
 #. Description of the 'Chat Provider' (Select) field in DocType 'Document
 #. Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "OpenAI calls the official OpenAI API. OpenAI Compatible calls another remote API endpoint. Ollama uses its native API. LM Studio uses its local OpenAI-compatible server."
+msgid ""
+"OpenAI calls the official OpenAI API. OpenAI Compatible calls another remote"
+" API endpoint. Ollama uses its native API. LM Studio uses its local OpenAI-"
+"compatible server."
 msgstr ""
+"OpenAI llama a la API oficial de OpenAI. Compatible con OpenAI llama a otro "
+"endpoint de API remoto. Ollama utiliza su API nativa. LM Studio utiliza su "
+"servidor local compatible con OpenAI."
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:124
 msgid "OpenAI-compatible API"
-msgstr ""
+msgstr "API compatible con OpenAI"
 
 #. Description of the 'Chat Endpoint' (Data) field in DocType 'Document
 #. Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "OpenAI-compatible base URL, Ollama server URL, or LM Studio URL. LM Studio defaults to http://localhost:1234/v1."
+msgid ""
+"OpenAI-compatible base URL, Ollama server URL, or LM Studio URL. LM Studio "
+"defaults to http://localhost:1234/v1."
 msgstr ""
+"URL base compatible con OpenAI, URL del servidor Ollama o URL de LM Studio. "
+"LM Studio usa por defecto http://localhost:1234/v1."
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:145
 msgid "OpenAI-compatible embeddings API"
-msgstr ""
+msgstr "API de embeddings compatible con OpenAI"
 
 #. Description of the 'Operational Indexed DocTypes' (Table) field in DocType
 #. 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Operational DocTypes indexed in Tantivy for fast full-text lookup. Document records use the separate semantic RAG index. Rebuild Indexed DocTypes Search after changing this list."
+msgid ""
+"Operational DocTypes indexed in Tantivy for fast full-text lookup. Document "
+"records use the separate semantic RAG index. Rebuild Indexed DocTypes Search"
+" after changing this list."
 msgstr ""
+"DocTypes operativos indexados en Tantivy para una búsqueda rápida de texto "
+"completo. Los registros de documentos utilizan el índice semántico RAG "
+"independiente. Reconstruya la búsqueda en DocTypes indexados después de "
+"cambiar esta lista."
 
 #. Label of a Table field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Operational Indexed DocTypes"
-msgstr ""
+msgstr "DocTypes operativos indexados"
 
 #. Description of the 'Use OpenAI Vision as OCR Fallback' (Check) field in
 #. DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Optional fallback only for pages where local OCR produced no text. It does not answer Document Chat questions."
+msgid ""
+"Optional fallback only for pages where local OCR produced no text. It does "
+"not answer Document Chat questions."
 msgstr ""
+"Alternativa (fallback) opcional solo para páginas donde el OCR local no "
+"produjo texto. No responde a preguntas del Chat de documentos."
 
 #. Description of the 'File Storage Path Template' (Data) field in DocType
 #. 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Optional private file path below /private/files. Supported tokens: {category}, {department}, {document}, {document_code}, {status}, {year}, {month}. Leave empty to keep Frappe's default flat file storage."
+msgid ""
+"Optional private file path below /private/files. Supported tokens: "
+"{category}, {department}, {document}, {document_code}, {status}, {year}, "
+"{month}. Leave empty to keep Frappe's default flat file storage."
 msgstr ""
+"Ruta de archivo privada opcional debajo de /private/files. Tokens admitidos:"
+" {category}, {department}, {document}, {document_code}, {status}, {year}, "
+"{month}. Deje vacío para mantener el almacenamiento de archivos plano "
+"predeterminado de Frappe."
 
 #. Option for the 'File Version' (Select) field in DocType 'Document Share
 #. Link'
 #: document_management/frappe_document_management/doctype/document_share_link/document_share_link.json
 msgid "Original"
-msgstr ""
+msgstr "Original"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:1401
 msgid "PDF generated successfully"
-msgstr ""
+msgstr "PDF generado correctamente"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:267
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:242
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:274
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:309
 msgid "Page"
-msgstr ""
+msgstr "Página"
 
 #. Label of a Int field in DocType 'Document Chunk'
 #. Label of a Int field in DocType 'Document Page'
 #: document_management/frappe_document_management/doctype/document_chunk/document_chunk.json
 #: document_management/frappe_document_management/doctype/document_page/document_page.json
 msgid "Page Number"
-msgstr ""
+msgstr "Número de página"
 
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:198
 msgid "Page {0}"
-msgstr ""
+msgstr "Página {0}"
 
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:323
 msgid "Partial {0}%"
-msgstr ""
+msgstr "Parcial {0}%"
 
 #. Label of a Dynamic Link field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:558
 msgid "Party Name"
-msgstr ""
+msgstr "Nombre de la parte"
 
 #. Label of a Link field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:557
 msgid "Party Type"
-msgstr ""
+msgstr "Tipo de parte"
 
 #. Label of a Section Break field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 msgid "Party and Tags"
-msgstr ""
+msgstr "Parte y etiquetas"
 
 #. Option for the 'OCR Status' (Select) field in DocType 'Document'
-#. Option for the 'Preview Status' (Select) field in DocType 'Document Version'
+#. Option for the 'Preview Status' (Select) field in DocType 'Document
+#. Version'
 #. Option for the 'OCR Status' (Select) field in DocType 'Document Version'
 #: document_management/frappe_document_management/doctype/document/document.json
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "Pending"
-msgstr ""
+msgstr "Pendiente"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:1126
 msgid "Permanently delete selected documents and their versions?"
 msgstr ""
+"¿Eliminar permanentemente los documentos seleccionados y sus versiones?"
 
 #. Label of a Tab Break field in DocType 'Document'
 #. Label of a Section Break field in DocType 'Document Category'
 #: document_management/frappe_document_management/doctype/document/document.json
 #: document_management/frappe_document_management/doctype/document_category/document_category.json
 msgid "Permissions"
-msgstr ""
+msgstr "Permisos"
 
 #. Label of a Section Break field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Physical Storage"
-msgstr ""
+msgstr "Almacenamiento físico"
 
 #: document_management/frappe_document_management/doctype/document/document.js:69
 #: document_management/frappe_document_management/doctype/document/document_list.js:53
 msgid "Please select a file first"
-msgstr ""
+msgstr "Seleccione un archivo primero"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:367
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:423
-msgid "Please wait a few seconds and refresh the page, or download the original file using the sidebar button."
+msgid ""
+"Please wait a few seconds and refresh the page, or download the original "
+"file using the sidebar button."
 msgstr ""
+"Espere unos segundos y actualice la página, o descargue el archivo original "
+"con el botón de la barra lateral."
 
 #. Label of a Attach field in DocType 'Document Version'
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "Preview Attachment (PDF)"
-msgstr ""
+msgstr "Adjunto de vista previa (PDF)"
 
 #. Label of a Small Text field in DocType 'Document Version'
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "Preview Error"
-msgstr ""
+msgstr "Error de vista previa"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:342
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:399
 msgid "Preview Notice:"
-msgstr ""
+msgstr "Aviso de vista previa:"
 
 #. Label of a Data field in DocType 'Document Version'
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "Preview SHA-256"
-msgstr ""
+msgstr "SHA-256 de la vista previa"
 
 #. Label of a Select field in DocType 'Document Version'
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "Preview Status"
-msgstr ""
+msgstr "Estado de vista previa"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:371
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:427
 msgid "Preview not available"
-msgstr ""
+msgstr "Vista previa no disponible"
 
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:194
 msgid "Previous"
-msgstr ""
+msgstr "Anterior"
 
 #: document_management/public/js/pdf_search_viewer.source.js:485
 msgid "Previous match"
-msgstr ""
+msgstr "Coincidencia anterior"
 
 #: document_management/public/js/pdf_search_viewer.source.js:451
 msgid "Previous page"
-msgstr ""
+msgstr "Página anterior"
 
 #. Description of the 'Done Folder Path' (Data) field in DocType 'Document
 #. Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Processed files are moved here. Defaults to a done folder inside the ingestion folder."
+msgid ""
+"Processed files are moved here. Defaults to a done folder inside the "
+"ingestion folder."
 msgstr ""
+"Los archivos procesados se mueven aquí. Por defecto, se crea una carpeta de "
+"finalizados dentro de la carpeta de ingesta."
 
 #. Option for the 'OCR Status' (Select) field in DocType 'Document'
 #. Option for the 'Status' (Select) field in DocType 'Document Chat Message'
-#. Option for the 'Preview Status' (Select) field in DocType 'Document Version'
+#. Option for the 'Preview Status' (Select) field in DocType 'Document
+#. Version'
 #. Option for the 'OCR Status' (Select) field in DocType 'Document Version'
 #: document_management/frappe_document_management/doctype/document/document.json
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "Processing"
-msgstr ""
+msgstr "Procesando"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:238
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:305
 msgid "Processing OCR"
-msgstr ""
+msgstr "Procesando OCR"
 
-#. Description of the 'OCR Processing Timeout (Minutes)' (Int) field in DocType
+#. Description of the 'OCR Processing Timeout (Minutes)' (Int) field in
+#. DocType
 #. 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Processing jobs older than this are considered interrupted and can be queued again."
+msgid ""
+"Processing jobs older than this are considered interrupted and can be queued"
+" again."
 msgstr ""
+"Los trabajos de procesamiento más antiguos que este se consideran "
+"interrumpidos y se pueden volver a poner en cola."
 
 #. Label of a Int field in DocType 'Document Chat Message'
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 msgid "Prompt Tokens"
-msgstr ""
+msgstr "Tokens de prompt"
 
 #. Label of a HTML field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Provider Summary"
-msgstr ""
+msgstr "Resumen del proveedor"
 
 #. Label of a Int field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Provider Timeout (Seconds)"
-msgstr ""
+msgstr "Tiempo de espera del proveedor (Segundos)"
 
 #. Option for the 'Status' (Select) field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:123
 msgid "Published"
-msgstr ""
+msgstr "Publicado"
 
 #. Label of a Int field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Questions per User per Minute"
-msgstr ""
+msgstr "Preguntas por usuario por minuto"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:80
 msgid "Queue Evaluation"
-msgstr ""
+msgstr "Encolar evaluación"
 
 #. Option for the 'Status' (Select) field in DocType 'Document Chat Message'
-#. Option for the 'Preview Status' (Select) field in DocType 'Document Version'
+#. Option for the 'Preview Status' (Select) field in DocType 'Document
+#. Version'
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "Queued"
-msgstr ""
+msgstr "En cola"
 
 #: document_management/frappe_document_management/doctype/document/document_list.js:3
 msgid "Quick Upload"
-msgstr ""
+msgstr "Subida rápida"
 
 #. Label of a Data field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "RAG Chat Model"
-msgstr ""
+msgstr "Modelo de chat RAG"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:56
 msgid "RAG Index Status"
-msgstr ""
+msgstr "Estado del índice RAG"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:87
 msgid "RAG evaluation queued"
-msgstr ""
+msgstr "Evaluación RAG en cola"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:65
 msgid "RAG rebuild queued"
-msgstr ""
+msgstr "Reconstrucción RAG en cola"
 
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:29
 msgid "Rebuild Indexed DocTypes Search Index"
-msgstr ""
+msgstr "Reconstruir el índice de búsqueda de DocTypes indexados"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:61
 msgid "Rebuild RAG Index"
-msgstr ""
+msgstr "Reconstruir índice RAG"
 
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:31
 msgid "Rebuild all configured search indexes?"
-msgstr ""
+msgstr "¿Reconstruir todos los índices de búsqueda configurados?"
 
 #. Option for the 'OCR Mode' (Select) field in DocType 'Document Management
 #. Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Redo"
-msgstr ""
+msgstr "Rehacer"
 
 #. Label of a Long Text field in DocType 'Document Chat Message'
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 msgid "References JSON"
-msgstr ""
+msgstr "JSON de referencias"
 
-#. Option for the 'Matching Algorithm' (Select) field in DocType 'Document Tag'
+#. Option for the 'Matching Algorithm' (Select) field in DocType 'Document
+#. Tag'
 #: document_management/frappe_document_management/doctype/document_tag/document_tag.json
 msgid "Regular expression"
-msgstr ""
+msgstr "Expresión regular"
 
 #. Label of a Date field in DocType 'Document Version'
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "Release Date"
-msgstr ""
+msgstr "Fecha de publicación"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:1058
 msgid "Remove tags (comma separated)"
-msgstr ""
+msgstr "Eliminar etiquetas (separadas por comas)"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:667
 msgid "Rename conversation"
-msgstr ""
+msgstr "Renombrar conversación"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:515
 msgid "Reprocess OCR"
-msgstr ""
+msgstr "Reprocesar OCR"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:1414
 msgid "Reprocess OCR from the original file and rebuild page-level text?"
 msgstr ""
+"¿Reprocesar OCR desde el archivo original y reconstruir el texto a nivel de "
+"página?"
 
 #. Description of the 'OpenAI Compatible API Key' (Password) field in DocType
 #. 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Required when chat or embeddings use an OpenAI Compatible provider with authentication."
+msgid ""
+"Required when chat or embeddings use an OpenAI Compatible provider with "
+"authentication."
 msgstr ""
+"Requerido cuando el chat o los embeddings utilizan un proveedor compatible "
+"con OpenAI con autentización."
 
 #. Description of the 'OpenAI API Key' (Password) field in DocType 'Document
 #. Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Required when chat, embeddings, or OCR fallback uses official OpenAI services."
+msgid ""
+"Required when chat, embeddings, or OCR fallback uses official OpenAI "
+"services."
 msgstr ""
+"Requerido cuando el chat, los embeddings o la alternativa de OCR utilizan "
+"los servicios oficiales de OpenAI."
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:139
 msgid "Requires an embedding model loaded in LM Studio."
-msgstr ""
+msgstr "Requiere un modelo de embeddings cargado en LM Studio."
 
 #. Label of a Data field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Reranker Model"
-msgstr ""
+msgstr "Modelo de reclasificación (Reranker)"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:197
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:527
 msgid "Restore"
-msgstr ""
+msgstr "Restaurar"
 
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:141
 msgid "Results {0}-{1}"
-msgstr ""
+msgstr "Resultados {0}-{1}"
 
 #. Label of a Section Break field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Retrieval and Indexing"
-msgstr ""
+msgstr "Recuperación e indexación"
 
 #. Label of a Int field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Retrieved Chunks"
-msgstr ""
+msgstr "Fragmentos recuperados"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:216
 msgid "Retry"
-msgstr ""
+msgstr "Reintentar"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:1377
 msgid "Revoke"
-msgstr ""
+msgstr "Revocar"
 
 #. Label of a Select field in DocType 'Document Chat Message'
 #. Label of a Link field in DocType 'Document Role Access'
@@ -1651,126 +1799,134 @@ msgstr ""
 #: document_management/frappe_document_management/doctype/document_role_access/document_role_access.json
 #: document_management/frappe_document_management/doctype/document_tag_role/document_tag_role.json
 msgid "Role"
-msgstr ""
+msgstr "Rol"
 
 #. Label of a Table MultiSelect field in DocType 'Document'
 #. Label of a Table MultiSelect field in DocType 'Document Category'
 #: document_management/frappe_document_management/doctype/document/document.json
 #: document_management/frappe_document_management/doctype/document_category/document_category.json
 msgid "Roles with Access"
-msgstr ""
+msgstr "Roles con acceso"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:69
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:71
 msgid "Run RAG Evaluation"
-msgstr ""
+msgstr "Ejecutar evaluación RAG"
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:132
 msgid "Runs Sentence Transformers inside the worker."
-msgstr ""
+msgstr "Ejecuta Sentence Transformers dentro del trabajador (worker)."
 
 #. Description of the 'Enable Local Reranker' (Check) field in DocType
 #. 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Runs locally after hybrid retrieval. It does not call OpenAI or Ollama."
+msgid ""
+"Runs locally after hybrid retrieval. It does not call OpenAI or Ollama."
 msgstr ""
+"Se ejecuta localmente después de la recuperación híbrida. No llama a OpenAI "
+"ni a Ollama."
 
 #: document_management/frappe_document_management/doctype/document/document.py:474
 msgid "SUCCESS: PDF generated for version {0}."
-msgstr ""
+msgstr "ÉXITO: PDF generado para la versión {0}."
 
 #: document_management/frappe_document_management/doctype/document/document.js:27
 msgid "Save & Upload File"
-msgstr ""
+msgstr "Guardar y subir archivo"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:158
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:927
 msgid "Save current view"
-msgstr ""
+msgstr "Guardar vista actual"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:851
 msgid "Saved view is invalid."
-msgstr ""
+msgstr "La vista guardada no es válida."
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:155
 msgid "Saved views"
-msgstr ""
+msgstr "Vistas guardadas"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:82
 msgid "Search documents..."
-msgstr ""
+msgstr "Buscar documentos..."
 
 #: document_management/public/js/pdf_search_viewer.source.js:474
 msgid "Search in document"
-msgstr ""
+msgstr "Buscar en el documento"
 
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:34
 msgid "Search index rebuild queued"
-msgstr ""
+msgstr "Reconstrucción del índice de búsqueda en cola"
 
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:153
 msgid "Search is temporarily unavailable."
-msgstr ""
+msgstr "La búsqueda no está disponible temporalmente."
 
 #. Option for the 'File Version' (Select) field in DocType 'Document Share
 #. Link'
 #: document_management/frappe_document_management/doctype/document_share_link/document_share_link.json
 msgid "Searchable PDF"
-msgstr ""
+msgstr "PDF con capacidad de búsqueda"
 
 #. Label of a Select field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Searchable PDF Generation"
-msgstr ""
+msgstr "Generación de PDF con capacidad de búsqueda"
 
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:124
 msgid "Searching..."
-msgstr ""
+msgstr "Buscando..."
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:93
 msgid "Select Categories"
-msgstr ""
+msgstr "Seleccionar categorías"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:113
 msgid "Select Statuses"
-msgstr ""
+msgstr "Seleccionar estados"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:141
 msgid "Select Tags"
-msgstr ""
+msgstr "Seleccionar etiquetas"
 
 #. Label of a Select field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Semantic Model Execution"
-msgstr ""
+msgstr "Ejecución del modelo semántico"
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:186
 msgid "Semantic Search"
-msgstr ""
+msgstr "Búsqueda semántica"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.html:37
 msgid "Send"
-msgstr ""
+msgstr "Enviar"
 
-#. Description of the 'Ingestion Folder Path' (Data) field in DocType 'Document
+#. Description of the 'Ingestion Folder Path' (Data) field in DocType
+#. 'Document
 #. Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Server-side folder scanned for document files. Files are processed non-recursively."
+msgid ""
+"Server-side folder scanned for document files. Files are processed non-"
+"recursively."
 msgstr ""
+"Carpeta del lado del servidor escaneada en busca de archivos de documentos. "
+"Los archivos se procesan de forma no recursiva."
 
 #. Label of a Link field in DocType 'Document Chat Message'
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 msgid "Session"
-msgstr ""
+msgstr "Sesión"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:258
 msgid "Sources"
-msgstr ""
+msgstr "Fuentes"
 
 #. Label of a Datetime field in DocType 'Document Chat Message'
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 msgid "Started At"
-msgstr ""
+msgstr "Iniciado el"
 
 #. Label of a Select field in DocType 'Document'
 #. Label of a Select field in DocType 'Document Chat Message'
@@ -1781,11 +1937,11 @@ msgstr ""
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:474
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:1055
 msgid "Status"
-msgstr ""
+msgstr "Estado"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:108
 msgid "Statuses"
-msgstr ""
+msgstr "Estados"
 
 #. Name of a role
 #: document_management/frappe_document_management/doctype/document/document.json
@@ -1798,25 +1954,25 @@ msgstr ""
 #: document_management/frappe_document_management/doctype/document_share_link/document_share_link.json
 #: document_management/frappe_document_management/doctype/document_tag/document_tag.json
 msgid "System Manager"
-msgstr ""
+msgstr "Administrador del sistema"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:895
 msgid "Table"
-msgstr ""
+msgstr "Tabla"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:175
 msgid "Table View"
-msgstr ""
+msgstr "Vista de tabla"
 
 #. Label of a Link field in DocType 'Document Tag Link'
 #: document_management/frappe_document_management/doctype/document_tag_link/document_tag_link.json
 msgid "Tag"
-msgstr ""
+msgstr "Etiqueta"
 
 #. Label of a Data field in DocType 'Document Tag'
 #: document_management/frappe_document_management/doctype/document_tag/document_tag.json
 msgid "Tag Name"
-msgstr ""
+msgstr "Nombre de la etiqueta"
 
 #. Label of a Table MultiSelect field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
@@ -1824,57 +1980,69 @@ msgstr ""
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:136
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:499
 msgid "Tags"
-msgstr ""
+msgstr "Etiquetas"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:366
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:422
-msgid "The PDF file for secure preview has not been generated yet or is processing."
+msgid ""
+"The PDF file for secure preview has not been generated yet or is processing."
 msgstr ""
+"El archivo PDF para la vista previa segura aún no se ha generado o está "
+"procesándose."
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:287
-msgid "The document preview is not a PDF file. Opening in a new window instead."
+msgid ""
+"The document preview is not a PDF file. Opening in a new window instead."
 msgstr ""
+"La vista previa del documento no es un archivo PDF. Se abrirá en una nueva "
+"ventana en su lugar."
 
 #: document_management/frappe_document_management/doctype/document/document.py:418
 msgid "The file content does not match the Office extension {0}."
-msgstr ""
+msgstr "El contenido del archivo no coincide con la extensión de Office {0}."
 
 #: document_management/frappe_document_management/doctype/document/document.py:396
 msgid "The file does not look like a valid legacy Office document."
-msgstr ""
+msgstr "El archivo no parece ser un documento de Office heredado válido."
 
 #: document_management/frappe_document_management/doctype/document/document.py:414
 msgid "The file is not a valid Office Open XML document."
-msgstr ""
+msgstr "El archivo no es un documento de Office Open XML válido."
 
 #: document_management/frappe_document_management/page/indexed_doctypes_search/indexed_doctypes_search.js:76
 msgid "The operational record index must be rebuilt before first use."
 msgstr ""
+"El índice de registros operativos debe reconstruirse antes del primer uso."
 
 #: document_management/search/indexer.py:637
 msgid "The search index is rebuilding. Try OCR indexing again shortly."
 msgstr ""
+"El índice de búsqueda se está reconstruyendo. Intente la indexación OCR de "
+"nuevo en breve."
 
 #: document_management/search/indexer.py:644
 msgid "The search index must be rebuilt before OCR content can be indexed."
 msgstr ""
+"El índice de búsqueda debe reconstruirse antes de poder indexar el contenido"
+" OCR."
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:280
 msgid "This document does not have an attached preview or file."
-msgstr ""
+msgstr "Este documento no tiene una vista previa o un archivo adjunto."
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:386
 msgid "This document does not have any file attached yet."
-msgstr ""
+msgstr "Este documento aún no tiene ningún archivo adjunto."
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:372
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:428
 msgid "This file type cannot be previewed. Please download it to view."
 msgstr ""
+"Este tipo de archivo no se puede previsualizar. Descárguelo para verlo."
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:63
 msgid "This replaces the current RAG index. Continue?"
-msgstr ""
+msgstr "Esto reemplaza el índice RAG actual. ¿Continuar?"
 
 #. Label of a Data field in DocType 'Document'
 #. Label of a Data field in DocType 'Document Chat Session'
@@ -1883,121 +2051,139 @@ msgstr ""
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:660
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:291
 msgid "Title"
-msgstr ""
+msgstr "Título"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:571
 msgid "Title *"
-msgstr ""
+msgstr "Título *"
 
 #: document_management/frappe_document_management/doctype/document/document.js:29
 msgid "Title is required before uploading."
-msgstr ""
+msgstr "El título es requerido antes de subir el archivo."
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:334
 msgid "Toggle Full Screen"
-msgstr ""
+msgstr "Alternar pantalla completa"
 
 #. Label of a Data field in DocType 'Document Share Link'
 #: document_management/frappe_document_management/doctype/document_share_link/document_share_link.json
 msgid "Token Hash"
-msgstr ""
+msgstr "Hash del token"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:169
 msgid "Trash"
-msgstr ""
+msgstr "Papelera"
 
 #. Label of a Int field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Trash Retention (Days)"
-msgstr ""
+msgstr "Retención en papelera (Días)"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:223
 msgid "Try adjusting your search or filters to find what you are looking for."
-msgstr ""
+msgstr "Intente ajustar su búsqueda o filtros para encontrar lo que busca."
 
 #: document_management/public/js/pdf_search_viewer.source.js:384
 #: document_management/public/js/pdf_search_viewer.source.js:385
 #: document_management/public/js/pdf_search_viewer.v5_7_284_7.js:611
 #: document_management/public/js/pdf_search_viewer.v5_7_284_8.js:611
 msgid "Unable to load PDF preview."
-msgstr ""
+msgstr "No se pudo cargar la vista previa en PDF."
 
 #: document_management/frappe_document_management/doctype/document/document.py:239
 msgid "Unsupported Office file type for conversion: {0}"
-msgstr ""
+msgstr "Tipo de archivo de Office no admitido para la conversión: {0}"
 
 #: document_management/frappe_document_management/doctype/document/document.js:118
 #: document_management/frappe_document_management/doctype/document/document_list.js:73
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:178
 msgid "Upload"
-msgstr ""
+msgstr "Subir"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:595
 msgid "Upload & Save"
-msgstr ""
+msgstr "Subir y guardar"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:545
 msgid "Upload Document"
-msgstr ""
+msgstr "Subir documento"
 
 #: document_management/frappe_document_management/doctype/document/document.js:21
 msgid "Upload New Version"
-msgstr ""
+msgstr "Subir nueva versión"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:595
 msgid "Uploading..."
-msgstr ""
+msgstr "Subiendo..."
 
 #. Label of a Check field in DocType 'Document Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
 msgid "Use OpenAI Vision as OCR Fallback"
-msgstr ""
+msgstr "Usar OpenAI Vision como alternativa de OCR"
 
 #. Description of the 'Embedding Model' (Data) field in DocType 'Document
 #. Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Use a multilingual Sentence Transformers model for Local, an official OpenAI embedding model for OpenAI, an API model for OpenAI Compatible, or an LM Studio model identifier. Rebuild the RAG index after changing this value."
+msgid ""
+"Use a multilingual Sentence Transformers model for Local, an official OpenAI"
+" embedding model for OpenAI, an API model for OpenAI Compatible, or an LM "
+"Studio model identifier. Rebuild the RAG index after changing this value."
 msgstr ""
+"Use un modelo Sentence Transformers multilingüe para Local, un modelo de "
+"embedding oficial de OpenAI para OpenAI, un modelo de API para compatible "
+"con OpenAI, o un identificador de modelo de LM Studio. Reconstruya el índice"
+" RAG después de cambiar este valor."
 
 #. Description of the 'OpenAI Vision Model' (Data) field in DocType 'Document
 #. Management Settings'
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.json
-msgid "Used only when OpenAI Vision OCR fallback is enabled and local OCR leaves a page without text."
+msgid ""
+"Used only when OpenAI Vision OCR fallback is enabled and local OCR leaves a "
+"page without text."
 msgstr ""
+"Se utiliza únicamente cuando la alternativa de OCR de OpenAI Vision está "
+"habilitada y el OCR local deja una página sin texto."
 
 #. Label of a Link field in DocType 'Document Chat Session'
 #. Label of a Link field in DocType 'Document Saved View'
 #: document_management/frappe_document_management/doctype/document_chat_session/document_chat_session.json
 #: document_management/frappe_document_management/doctype/document_saved_view/document_saved_view.json
 msgid "User"
-msgstr ""
+msgstr "Usuario"
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:122
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:143
 msgid "Uses the OpenAI API Key below."
-msgstr ""
+msgstr "Utiliza la clave API de OpenAI de abajo."
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:127
-msgid "Uses the OpenAI Compatible API Key below when authentication is required."
+msgid ""
+"Uses the OpenAI Compatible API Key below when authentication is required."
 msgstr ""
+"Utiliza la clave API compatible con OpenAI de abajo cuando se requiere "
+"autenticación."
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:148
 msgid "Uses the OpenAI Compatible API Key below."
-msgstr ""
+msgstr "Utiliza la clave API compatible con OpenAI de abajo."
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:76
-msgid "Uses the configured embedding, reranking and chat providers and may incur cost."
+msgid ""
+"Uses the configured embedding, reranking and chat providers and may incur "
+"cost."
 msgstr ""
+"Utiliza los proveedores configurados de embedding, reclasificación y chat, y"
+" puede incurrir en costos."
 
 #. Label of a Data field in DocType 'Document Chunk'
 #: document_management/frappe_document_management/doctype/document_chunk/document_chunk.json
 msgid "Vector ID"
-msgstr ""
+msgstr "ID del vector"
 
 #: document_management/frappe_document_management/page/document_chat/document_chat.js:267
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:481
 msgid "Version"
-msgstr ""
+msgstr "Versión"
 
 #. Label of a Data field in DocType 'Document Chunk'
 #. Label of a Data field in DocType 'Document Page'
@@ -2006,73 +2192,80 @@ msgstr ""
 #: document_management/frappe_document_management/doctype/document_page/document_page.json
 #: document_management/frappe_document_management/doctype/document_version/document_version.json
 msgid "Version Number"
-msgstr ""
+msgstr "Número de versión"
 
 #. Label of a Tab Break field in DocType 'Document'
 #. Label of a Table field in DocType 'Document'
 #: document_management/frappe_document_management/doctype/document/document.json
 msgid "Versions"
-msgstr ""
+msgstr "Versiones"
 
 #. Label of a Data field in DocType 'Document Saved View'
 #: document_management/frappe_document_management/doctype/document_saved_view/document_saved_view.json
 msgid "View Name"
-msgstr ""
+msgstr "Nombre de la vista"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:891
 msgid "View Type"
-msgstr ""
+msgstr "Tipo de vista"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:885
 msgid "View name"
-msgstr ""
+msgstr "Nombre de la vista"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:920
 msgid "View saved"
-msgstr ""
+msgstr "Vista guardada"
 
 #: document_management/frappe_document_management/doctype/document/document.py:477
 msgid "WARNING: No pending attachments found to convert."
-msgstr ""
+msgstr "ADVERTENCIA: No se encontraron adjuntos pendientes para convertir."
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:342
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:399
-msgid "You are viewing an automatically generated preview from an Office file. Some complex formatting or design elements might not display with 100% accuracy. For perfect fidelity, we recommend downloading the original file from the sidebar."
+msgid ""
+"You are viewing an automatically generated preview from an Office file. Some"
+" complex formatting or design elements might not display with 100% accuracy."
+" For perfect fidelity, we recommend downloading the original file from the "
+"sidebar."
 msgstr ""
+"Está viendo una vista previa generada automáticamente a partir de un archivo"
+" de Office. Es posible que algunos elementos de diseño o formato complejos "
+"no se muestren con total precisión. Para una fidelidad perfecta, "
+"recomendamos descargar el archivo original desde la barra lateral."
 
 #: document_management/public/js/pdf_search_viewer.source.js:468
 msgid "Zoom in"
-msgstr ""
+msgstr "Acercar"
 
 #: document_management/public/js/pdf_search_viewer.source.js:461
 msgid "Zoom out"
-msgstr ""
+msgstr "Alejar"
 
 #. Option for the 'Role' (Select) field in DocType 'Document Chat Message'
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 msgid "assistant"
-msgstr ""
+msgstr "asistente"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:171
 msgid "documents"
-msgstr ""
+msgstr "documentos"
 
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:126
 #: document_management/frappe_document_management/doctype/document_management_settings/document_management_settings.js:147
 msgid "endpoint required"
-msgstr ""
+msgstr "endpoint requerido"
 
 #: document_management/frappe_document_management/page/document_management_console/document_management_console.js:186
 msgid "selected"
-msgstr ""
+msgstr "seleccionado"
 
 #. Option for the 'Role' (Select) field in DocType 'Document Chat Message'
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 msgid "system"
-msgstr ""
+msgstr "sistema"
 
 #. Option for the 'Role' (Select) field in DocType 'Document Chat Message'
 #: document_management/frappe_document_management/doctype/document_chat_message/document_chat_message.json
 msgid "user"
-msgstr ""
-
+msgstr "usuario"

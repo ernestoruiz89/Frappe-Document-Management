@@ -229,6 +229,18 @@
         height: 100%;
         margin: 0;
         contain: content;
+        object-fit: contain;
+    }
+
+    .shared-document-viewer .loan-pdf-container .loan-pdf-page-fallback {
+        position: absolute;
+        z-index: 1;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        pointer-events: none;
     }
 
     .shared-document-viewer .loan-pdf-container .textLayer {

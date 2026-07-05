@@ -369,7 +369,7 @@ class DocumentChatController {
             return;
         }
         frappe.require(
-            "/assets/document_management/js/pdf_search_viewer.v5_7_284_8.js",
+            "/assets/document_management/js/pdf_search_viewer.v5_7_284_9.js",
             () => callback()
         );
     }

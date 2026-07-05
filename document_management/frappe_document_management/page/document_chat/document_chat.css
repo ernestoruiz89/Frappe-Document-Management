@@ -433,7 +433,7 @@
     height: 100%;
     margin: 0;
     contain: content;
-    object-fit: contain;
+    object-fit: fill;
 }
 
 .loan-pdf-container .loan-pdf-page-fallback {
@@ -443,7 +443,7 @@
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: fill;
     pointer-events: none;
 }
 
@@ -554,4 +554,3 @@
     background: var(--card-bg);
     color: var(--text-muted);
 }
-

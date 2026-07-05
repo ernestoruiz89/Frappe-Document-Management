@@ -12,7 +12,7 @@ import {
 } from "pdfjs-dist/web/pdf_viewer.mjs";
 
 
-const VIEWER_VERSION = "5.7.284-8";
+const VIEWER_VERSION = "5.7.284-9";
 
 // Keep the worker implementation in this bundle so deployments do not depend
 // on web-server MIME configuration for PDF.js module workers.
@@ -29,7 +29,9 @@ class PdfSearchViewer {
         this.pdf = null;
         this.lastFindKey = null;
         this.fallbackPages = new Set();
+        this.fallbackImageCache = new Map();
         this.fallbackTimers = new Map();
+        this.usesServerFallback = false;
         this.prefetchTimer = null;
         this.resizeTimer = null;
 
@@ -68,11 +70,18 @@ class PdfSearchViewer {
             this.scheduleNeighborPrefetch(this.viewer.currentPageNumber);
         };
         this.onPageRendered = ({pageNumber}) => {
-            this.scheduleFallbackCheck(pageNumber);
+            if (this.usesServerFallback) {
+                this.renderFallbackPage(pageNumber);
+            } else {
+                this.scheduleFallbackCheck(pageNumber);
+            }
         };
         this.onPageChanging = ({pageNumber}) => {
             options.onPageChange?.(pageNumber, this.viewer.pagesCount);
             this.scheduleNeighborPrefetch(pageNumber);
+            if (this.usesServerFallback) {
+                window.setTimeout(() => this.renderFallbackPage(pageNumber), 0);
+            }
         };
         this.onMatchesCount = ({matchesCount}) => {
             options.onMatchesChange?.(
@@ -140,10 +149,17 @@ class PdfSearchViewer {
             fallback.searchParams.set("document", documentName);
             fallback.searchParams.set("file_version", fileVersion);
             fallback.searchParams.set("page", pageNumber);
+            fallback.searchParams.set("dpi", this.fallbackDpi());
             return fallback.toString();
         } catch {
             return "";
         }
+    }
+
+    fallbackDpi() {
+        const scale = Number(this.viewer?.currentScale) || 1;
+        const pixelRatio = Math.min(Number(window.devicePixelRatio) || 1, 2);
+        return Math.min(Math.max(Math.ceil(72 * scale * pixelRatio), 144), 300);
     }
 
     isCanvasBlank(canvas) {
@@ -179,16 +195,57 @@ class PdfSearchViewer {
         if (!fallbackUrl) {
             return;
         }
-        const schedule = window.requestIdleCallback
-            || ((callback) => window.setTimeout(callback, 80));
-        const timer = schedule(
+        const timer = window.setTimeout(
             () => {
                 this.fallbackTimers.delete(pageNumber);
                 this.renderFallbackIfBlank(pageNumber, fallbackUrl);
             },
-            {timeout: 700},
+            20,
         );
         this.fallbackTimers.set(pageNumber, timer);
+    }
+
+    prefetchFallbackPages(pageNumber) {
+        if (!this.viewer.pagesCount) {
+            return;
+        }
+        [
+            Number(pageNumber),
+            Number(pageNumber) + 1,
+            Number(pageNumber) - 1,
+        ]
+            .filter((page) => page >= 1 && page <= this.viewer.pagesCount)
+            .forEach((page) => {
+                const url = this.getFallbackUrl(page);
+                if (!url || this.fallbackImageCache.has(url)) {
+                    return;
+                }
+                const image = new Image();
+                image.decoding = "async";
+                image.src = url;
+                this.fallbackImageCache.set(url, image);
+            });
+    }
+
+    renderFallbackPage(pageNumber) {
+        const fallbackUrl = this.getFallbackUrl(pageNumber);
+        if (!fallbackUrl || this.fallbackPages.has(pageNumber)) {
+            return;
+        }
+        const page = this.viewerElement.querySelector(
+            `.page[data-page-number="${pageNumber}"]`,
+        );
+        const wrapper = page?.querySelector(".canvasWrapper");
+        if (!wrapper) {
+            return;
+        }
+        this.fallbackPages.add(pageNumber);
+        const cached = this.fallbackImageCache.get(fallbackUrl);
+        const image = cached?.cloneNode(false) || document.createElement("img");
+        image.className = "loan-pdf-page-fallback";
+        image.alt = "";
+        image.src = fallbackUrl;
+        wrapper.append(image);
     }
 
     renderFallbackIfBlank(pageNumber, fallbackUrl) {
@@ -202,13 +259,9 @@ class PdfSearchViewer {
         if (this.fallbackPages.has(pageNumber)) {
             return;
         }
-        this.fallbackPages.add(pageNumber);
-        const image = document.createElement("img");
-        image.className = "loan-pdf-page-fallback";
-        image.alt = "";
-        image.src = fallbackUrl;
-        const wrapper = page.querySelector(".canvasWrapper");
-        wrapper?.append(image);
+        this.usesServerFallback = true;
+        this.prefetchFallbackPages(pageNumber);
+        this.renderFallbackPage(pageNumber);
     }
 
     scheduleNeighborPrefetch(pageNumber) {
@@ -224,6 +277,9 @@ class PdfSearchViewer {
             pages.forEach((page) => {
                 this.pdf.getPage(page).catch(() => null);
             });
+            if (this.usesServerFallback) {
+                this.prefetchFallbackPages(pageNumber);
+            }
         }, 160);
     }
 
@@ -319,9 +375,9 @@ class PdfSearchViewer {
     destroy() {
         window.clearTimeout(this.resizeTimer);
         window.clearTimeout(this.prefetchTimer);
-        const cancelIdle = window.cancelIdleCallback || window.clearTimeout;
-        this.fallbackTimers.forEach((timer) => cancelIdle(timer));
+        this.fallbackTimers.forEach((timer) => window.clearTimeout(timer));
         this.fallbackTimers.clear();
+        this.fallbackImageCache.clear();
         this.resizeObserver?.disconnect();
         this.eventBus.off("pagesinit", this.onPagesInit);
         this.eventBus.off("pagerendered", this.onPageRendered);

@@ -53,7 +53,7 @@ class DocumentManagementConsole {
     }
 
     load_pdf_viewer() {
-        const viewer_version = "5.7.284-8";
+        const viewer_version = "5.7.284-9";
         const load_marked = () => {
             if (window.marked) {
                 this.init_vue();
@@ -67,7 +67,7 @@ class DocumentManagementConsole {
             return;
         }
         frappe.require(
-            "/assets/document_management/js/pdf_search_viewer.v5_7_284_8.js",
+            "/assets/document_management/js/pdf_search_viewer.v5_7_284_9.js",
             () => load_marked(),
         );
     }
@@ -345,7 +345,8 @@ class DocumentManagementConsole {
                                         :src="selected_doc.document_download || selected_doc.document_file"
                                         :query="filters.search"
                                         :terms="selected_doc.search_terms || []"
-                                        :page="selected_doc.search_page || 1">
+                                        :page="selected_doc.search_page || 1"
+                                        :max-scale="1.75">
                                     </loan-pdf-viewer>
                                 </div>
                                 <img v-else-if="is_img(selected_doc.document_file)" :src="selected_doc.document_download || selected_doc.document_file" />
@@ -402,7 +403,8 @@ class DocumentManagementConsole {
                                                 :src="selected_doc.document_download || selected_doc.document_file"
                                                 :query="filters.search"
                                                 :terms="selected_doc.search_terms || []"
-                                                :page="selected_doc.search_page || 1">
+                                                :page="selected_doc.search_page || 1"
+                                                :max-scale="3">
                                             </loan-pdf-viewer>
                                         </div>
                                         <img v-else-if="is_img(selected_doc.document_file)" :src="selected_doc.document_download || selected_doc.document_file" />

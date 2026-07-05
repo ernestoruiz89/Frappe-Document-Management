@@ -225,7 +225,7 @@ def download_document_file(document, file_version="Original", attachment=0):
 
 
 @frappe.whitelist()
-def render_document_pdf_page(document, page=1, file_version="Searchable PDF"):
+def render_document_pdf_page(document, page=1, file_version="Searchable PDF", dpi=144):
     doc = frappe.get_doc("Document", document)
     doc.check_permission("read")
     version = doc.get_current_version()
@@ -245,6 +245,10 @@ def render_document_pdf_page(document, page=1, file_version="Searchable PDF"):
         page_number = max(1, int(page or 1))
     except (TypeError, ValueError):
         page_number = 1
+    try:
+        render_dpi = min(max(int(dpi or 144), 96), 300)
+    except (TypeError, ValueError):
+        render_dpi = 144
 
     pdftoppm = shutil.which("pdftoppm")
     if not pdftoppm:
@@ -262,7 +266,7 @@ def render_document_pdf_page(document, page=1, file_version="Searchable PDF"):
                     str(page_number),
                     "-png",
                     "-r",
-                    "144",
+                    str(render_dpi),
                     pdf_path,
                     output_prefix,
                 ],

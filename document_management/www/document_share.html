@@ -229,7 +229,7 @@
         height: 100%;
         margin: 0;
         contain: content;
-        object-fit: contain;
+        object-fit: fill;
     }
 
     .shared-document-viewer .loan-pdf-container .loan-pdf-page-fallback {
@@ -239,7 +239,7 @@
         display: block;
         width: 100%;
         height: 100%;
-        object-fit: contain;
+        object-fit: fill;
         pointer-events: none;
     }
 
@@ -574,7 +574,7 @@
                 loaders.push(loadScript('https://unpkg.com/vue@3/dist/vue.global.prod.js'));
             }
             if (window.LoanManagerPdfSearchViewer?.version !== viewerVersion) {
-                loaders.push(loadScript('/assets/document_management/js/pdf_search_viewer.v5_7_284_8.js'));
+                loaders.push(loadScript('/assets/document_management/js/pdf_search_viewer.v5_7_284_9.js'));
             }
             Promise.all(loaders).then(start).catch((error) => {
                 viewer.innerHTML = '<div class="shared-document-empty">No se pudo cargar el visor PDF.</div>';

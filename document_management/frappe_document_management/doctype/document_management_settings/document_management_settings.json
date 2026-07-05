@@ -1,6 +1,6 @@
 {
  "actions": [],
- "creation": "2026-06-12 00:00:00.000000",
+ "creation": "2026-06-12 00:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -71,12 +71,12 @@
   },
   {
    "default": "Local (sentence-transformers)",
-   "hidden": 1,
+   "depends_on": "eval:doc.enable_semantic_search",
    "fieldname": "semantic_model_type",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Semantic Model Execution",
-   "options": "Local (sentence-transformers)\nOpenAI API",
-   "depends_on": "eval:doc.enable_semantic_search"
+   "options": "Local (sentence-transformers)\nOpenAI API"
   },
   {
    "fieldname": "provider_guide_section",
@@ -138,27 +138,27 @@
   },
   {
    "default": "text-embedding-3-small",
-   "hidden": 1,
+   "depends_on": "eval:doc.semantic_model_type=='OpenAI API'",
    "fieldname": "openai_model",
    "fieldtype": "Data",
-   "label": "OpenAI Embedding Model",
-   "depends_on": "eval:doc.semantic_model_type=='OpenAI API'"
+   "hidden": 1,
+   "label": "OpenAI Embedding Model"
   },
   {
    "default": "gpt-5-mini",
+   "depends_on": "eval:doc.enable_openai_for_ocr",
    "description": "Used only when OpenAI Vision OCR fallback is enabled and local OCR leaves a page without text.",
    "fieldname": "openai_ocr_model",
    "fieldtype": "Data",
-   "label": "OpenAI Vision Model",
-   "depends_on": "eval:doc.enable_openai_for_ocr"
+   "label": "OpenAI Vision Model"
   },
   {
    "default": "gpt-5-mini",
+   "depends_on": "eval:doc.chat_provider",
    "description": "Model used to rewrite follow-up questions and generate Document Chat answers. For LM Studio use an identifier returned by /v1/models.",
    "fieldname": "rag_model",
    "fieldtype": "Data",
-   "label": "RAG Chat Model",
-   "depends_on": "eval:doc.chat_provider"
+   "label": "RAG Chat Model"
   },
   {
    "fieldname": "chat_section",
@@ -174,11 +174,11 @@
    "options": "OpenAI\nOpenAI Compatible\nOllama\nLM Studio"
   },
   {
+   "depends_on": "eval:doc.chat_provider=='Ollama' || doc.chat_provider=='OpenAI Compatible' || doc.chat_provider=='LM Studio'",
    "description": "OpenAI-compatible base URL, Ollama server URL, or LM Studio URL. LM Studio defaults to http://localhost:1234/v1.",
    "fieldname": "chat_endpoint",
    "fieldtype": "Data",
-   "label": "Chat Endpoint",
-   "depends_on": "eval:doc.chat_provider=='Ollama' || doc.chat_provider=='OpenAI Compatible' || doc.chat_provider=='LM Studio'"
+   "label": "Chat Endpoint"
   },
   {
    "fieldname": "embedding_section",
@@ -194,11 +194,11 @@
    "options": "Local (sentence-transformers)\nOpenAI\nOpenAI Compatible\nLM Studio"
   },
   {
+   "depends_on": "eval:doc.embedding_provider=='OpenAI Compatible' || doc.embedding_provider=='LM Studio'",
    "description": "Base URL for the embeddings API. Required for OpenAI Compatible. LM Studio defaults to http://localhost:1234/v1.",
    "fieldname": "embedding_endpoint",
    "fieldtype": "Data",
-   "label": "Embedding Endpoint",
-   "depends_on": "eval:doc.embedding_provider=='OpenAI Compatible' || doc.embedding_provider=='LM Studio'"
+   "label": "Embedding Endpoint"
   },
   {
    "default": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
@@ -251,18 +251,18 @@
    "label": "3. API Credentials and Network"
   },
   {
+   "depends_on": "eval:doc.embedding_provider=='OpenAI' || doc.chat_provider=='OpenAI' || doc.enable_openai_for_ocr",
    "description": "Required when chat, embeddings, or OCR fallback uses official OpenAI services.",
    "fieldname": "openai_api_key",
    "fieldtype": "Password",
-   "label": "OpenAI API Key",
-   "depends_on": "eval:doc.embedding_provider=='OpenAI' || doc.chat_provider=='OpenAI' || doc.enable_openai_for_ocr"
+   "label": "OpenAI API Key"
   },
   {
+   "depends_on": "eval:doc.embedding_provider=='OpenAI Compatible' || doc.chat_provider=='OpenAI Compatible'",
    "description": "Required when chat or embeddings use an OpenAI Compatible provider with authentication.",
    "fieldname": "openai_compatible_api_key",
    "fieldtype": "Password",
-   "label": "OpenAI Compatible API Key",
-   "depends_on": "eval:doc.embedding_provider=='OpenAI Compatible' || doc.chat_provider=='OpenAI Compatible'"
+   "label": "OpenAI Compatible API Key"
   },
   {
    "default": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
@@ -393,7 +393,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-06-12 00:00:00.000000",
+ "modified": "2026-06-29 08:48:40.187546",
  "modified_by": "Administrator",
  "module": "Frappe Document Management",
  "name": "Document Management Settings",
@@ -408,8 +408,19 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

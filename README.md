@@ -4,12 +4,24 @@ Document Management is a standalone app for the Frappe Framework, designed to ar
 
 **Inspiration:** This project is heavily inspired by **Paperless-ngx**, bringing robust document organization, optical character recognition (OCR), and full-text/semantic search directly into the Frappe ecosystem.
 
+<img width="1189" height="839" alt="GD 1" src="https://github.com/user-attachments/assets/73fd80cc-90c1-4f51-ba54-663808d98ae2" />
+
+
 ## Features
 
 - **Document Categorization:** Organize documents with categories, tags, and customizable views.
 - **OCR Integration:** Automatically extract text from scanned documents and images using OCRmyPDF.
 - **Advanced Search:** Full-text indexing powered by Tantivy and semantic search using local or remote embeddings.
 - **Document Chat:** Ask questions about your documents using an integrated RAG (Retrieval-Augmented Generation) system.
+
+
+<img width="1327" height="841" alt="GD 4" src="https://github.com/user-attachments/assets/e816c0e2-9ef2-440d-bb14-b735611f9779" />
+
+<img width="1198" height="813" alt="GD 3" src="https://github.com/user-attachments/assets/977886f1-489a-4cdc-adca-cce5b068a4fc" />
+
+<img width="1351" height="858" alt="GD 5" src="https://github.com/user-attachments/assets/6bd37be0-ca71-4b91-9525-0ef3db60c76e" />
+
+
 
 ## Installation
 

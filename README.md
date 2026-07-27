@@ -17,7 +17,11 @@ Document Management is a standalone app for the Frappe Framework, designed to ar
 
 <img width="1327" height="841" alt="GD 4" src="https://github.com/user-attachments/assets/e816c0e2-9ef2-440d-bb14-b735611f9779" />
 
+
+
 <img width="1198" height="813" alt="GD 3" src="https://github.com/user-attachments/assets/977886f1-489a-4cdc-adca-cce5b068a4fc" />
+
+
 
 <img width="1351" height="858" alt="GD 5" src="https://github.com/user-attachments/assets/6bd37be0-ca71-4b91-9525-0ef3db60c76e" />
 

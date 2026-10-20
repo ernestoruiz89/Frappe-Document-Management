@@ -96,6 +96,8 @@ def get_allowed_documents(filters, user):
             "Document permission checks must run as the requesting user.",
             frappe.PermissionError,
         )
+    if not frappe.has_permission("Document", "read", user=user):
+        return set()
 
     db_filters = {}
     metadata_keys = ["category", "party_type", "party_name"]

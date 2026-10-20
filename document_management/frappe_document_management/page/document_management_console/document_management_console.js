@@ -1298,7 +1298,7 @@ class DocumentManagementConsole {
                 const copy_link = (doc) => {
                     if (!doc) return;
                     const pageSuffix = doc.search_page ? `&page=${doc.search_page}` : '';
-                    const link = `${window.location.origin}/app/document-management-console?Doc=${encodeURIComponent(doc.name)}${pageSuffix}`;
+                    const link = `${window.location.origin}/desk/document-management-console?Doc=${encodeURIComponent(doc.name)}${pageSuffix}`;
                     
                     navigator.clipboard.writeText(link).then(() => {
                         frappe.show_alert({message: __('Link copied to clipboard!'), indicator: 'green'});

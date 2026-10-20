@@ -1,0 +1,73 @@
+{
+ "app": "document_management",
+ "creation": "2026-10-20 00:00:00",
+ "docstatus": 0,
+ "doctype": "Sidebar",
+ "header_icon": "folder",
+ "idx": 0,
+ "items": [
+  {
+   "icon": "house",
+   "label": "Home",
+   "link_to": "Document Management",
+   "link_type": "Workspace",
+   "type": "Link"
+  },
+  {
+   "icon": "panel-top",
+   "label": "Document Management Console",
+   "link_to": "document-management-console",
+   "link_type": "Page",
+   "type": "Link"
+  },
+  {
+   "icon": "file-text",
+   "label": "Document",
+   "link_to": "Document",
+   "link_type": "DocType",
+   "type": "Link"
+  },
+  {
+   "icon": "folder",
+   "label": "Document Category",
+   "link_to": "Document Category",
+   "link_type": "DocType",
+   "type": "Link"
+  },
+  {
+   "icon": "tags",
+   "label": "Document Tag",
+   "link_to": "Document Tag",
+   "link_type": "DocType",
+   "type": "Link"
+  },
+  {
+   "icon": "search",
+   "label": "Indexed DocTypes Search",
+   "link_to": "indexed-doctypes-search",
+   "link_type": "Page",
+   "type": "Link"
+  },
+  {
+   "icon": "message-circle",
+   "label": "Document Chat",
+   "link_to": "document-chat",
+   "link_type": "Page",
+   "type": "Link"
+  },
+  {
+   "icon": "settings",
+   "label": "Document Management Settings",
+   "link_to": "Document Management Settings",
+   "link_type": "DocType",
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-10-20 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Frappe Document Management",
+ "name": "Frappe Document Management",
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "Frappe Document Management"
+}

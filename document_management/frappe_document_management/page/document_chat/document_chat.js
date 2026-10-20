@@ -258,7 +258,7 @@ class DocumentChatController {
         container.append($('<div class="sources-title"></div>').text(__('Sources')));
         references.forEach((source) => {
             const card = $('<a class="source-card" target="_blank" rel="noopener"></a>');
-            card.attr('href', `/app/document/${encodeURIComponent(source.document)}`);
+            card.attr('href', `/desk/document/${encodeURIComponent(source.document)}`);
             card.attr('data-document', source.document);
             card.attr('data-page', source.page || 1);
             card.attr('data-title', source.title || '');

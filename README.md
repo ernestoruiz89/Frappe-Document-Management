@@ -31,7 +31,9 @@ Document Management is a standalone app for the Frappe Framework, designed to ar
 
 ### 1. Prerequisites
 
-Ensure you have a working Frappe bench (version 15+). 
+Use a Frappe Framework v16 bench with Python 3.14+ and Node.js 24+.
+The `main` branch targets v16; the `v15` branch preserves the previous release
+for Frappe v15 sites.
 You may also need to install system dependencies for OCR and document preview generation (like LibreOffice for converting office documents to PDF):
 ```bash
 # Ubuntu/Debian example for OCRmyPDF and LibreOffice
@@ -57,6 +59,18 @@ Install the app onto your Frappe site:
 ```bash
 bench --site [your-site-name] install-app document_management
 ```
+
+For an existing v16 installation, back up the site and apply app updates with:
+
+```bash
+bench --site [your-site-name] backup
+bench --site [your-site-name] migrate
+bench build --app document_management
+```
+
+The app appears on the v16 apps screen as **Document Management**. Its Dock
+opens the **Frappe Document Management** module, whose Sidebar contains the
+console, document lists, search, chat, and settings.
 
 ### 4. Install Python Dependencies
 

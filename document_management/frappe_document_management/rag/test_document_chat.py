@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from unittest.mock import MagicMock, patch
 
 from document_management.frappe_document_management.page.document_chat.document_chat import (
@@ -46,7 +46,7 @@ from document_management.frappe_document_management.doctype.document_saved_view.
 from document_management.search.indexer import search as global_search
 
 
-class TestDocumentChatSecurity(FrappeTestCase):
+class TestDocumentChatSecurity(IntegrationTestCase):
     def setUp(self):
         frappe.set_user("Administrator")
         self.session = frappe.get_doc(
@@ -139,7 +139,7 @@ class TestDocumentChatSecurity(FrappeTestCase):
             parsed,
             {
                 "search": "contracts",
-                "status": "Published",
+                "statuses": ["Published"],
                 "trash": 1,
             },
         )
@@ -434,6 +434,10 @@ class TestDocumentChatSecurity(FrappeTestCase):
                         modified="2026-06-14 10:00:00",
                     )
                 ],
+            ),
+            patch(
+                "document_management.search.indexer.frappe.get_hooks",
+                return_value={},
             ),
         ):
             results = global_search("contract", limit=10)

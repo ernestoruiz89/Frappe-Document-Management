@@ -254,7 +254,7 @@ class IndexedDocTypesSearchController {
         if (row.page) {
             params.set('page', row.page);
         }
-        return `/app/document-management-console?${params.toString()}`;
+        return `/desk/document-management-console?${params.toString()}`;
     }
 
     highlightText(value) {

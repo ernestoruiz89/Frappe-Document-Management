@@ -1,5 +1,6 @@
 import json
 import os
+from urllib.parse import quote
 from html import unescape
 from html.parser import HTMLParser
 
@@ -315,8 +316,8 @@ def _record_result(hit, metadata):
         "coverage": float(hit.get("coverage") or 0),
         "modified": str(metadata.get("modified") or ""),
         "route": (
-            f"/app/{hit['doc_type'].lower().replace(' ', '-')}/"
-            f"{hit['doc_name']}"
+            f"/desk/{hit['doc_type'].lower().replace(' ', '-')}/"
+            f"{quote(str(hit['doc_name']), safe='')}"
         ),
     }
 

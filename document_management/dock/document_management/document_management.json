@@ -1,0 +1,23 @@
+{
+ "app": "document_management",
+ "creation": "2026-10-20 00:00:00",
+ "docstatus": 0,
+ "doctype": "Dock",
+ "idx": 0,
+ "items": [
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "folder",
+   "link_to": "Frappe Document Management",
+   "link_type": "Sidebar",
+   "title": "Document Management"
+  }
+ ],
+ "modified": "2026-10-20 00:00:00",
+ "modified_by": "Administrator",
+ "name": "document_management",
+ "owner": "Administrator",
+ "standard": 1,
+ "user": ""
+}

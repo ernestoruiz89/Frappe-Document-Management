@@ -5,6 +5,16 @@ app_description = "Standalone Document Management module for Frappe"
 app_email = "eruiz@wbapps.com"
 app_license = "mit"
 
+add_to_apps_screen = [
+    {
+        "name": "document_management",
+        "logo": "/assets/document_management/images/logo.svg",
+        "title": "Document Management",
+        "route": "/desk/frappe-document-management",
+        "has_permission": "document_management.frappe_document_management.utils.auth.can_access_app",
+    }
+]
+
 after_install = "document_management.install.ensure_document_management_settings"
 after_migrate = "document_management.install.ensure_document_management_settings"
 

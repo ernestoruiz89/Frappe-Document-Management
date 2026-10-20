@@ -231,7 +231,10 @@ class DocumentManagementConsole {
                                  :data-type="get_file_type(doc)"
                                  @click="select_doc(doc)">
                                 <div class="doc-icon-wrapper" :class="get_icon_class(doc)">
-                                    <i class="fa" :class="get_icon(doc)"></i>
+                                    <svg class="doc-type-icon" viewBox="0 0 32 38" aria-hidden="true" focusable="false">
+                                        <path d="M5 1.5h15l7 7v28H5z M20 1.5v7h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                                        <text x="16" y="26" text-anchor="middle">{{ get_icon(doc) }}</text>
+                                    </svg>
                                 </div>
                                 <div class="doc-title">{{ doc.document_name }} <small class="text-muted" style="font-weight: normal;">({{ doc.name }})</small></div>
                                 <div style="font-size: 10px; color: var(--pc-primary); margin-top: 2px;" v-if="doc.ocr_status === 'Pending' || doc.ocr_status === 'Processing'">
@@ -259,7 +262,10 @@ class DocumentManagementConsole {
                                  @click="select_doc(doc)">
                                 <input class="document-selector inline" type="checkbox" :checked="is_selected(doc.name)" @click.stop="toggle_selection(doc.name)" />
                                 <div class="doc-icon-wrapper" :class="get_icon_class(doc)">
-                                    <i class="fa" :class="get_icon(doc)"></i>
+                                    <svg class="doc-type-icon" viewBox="0 0 32 38" aria-hidden="true" focusable="false">
+                                        <path d="M5 1.5h15l7 7v28H5z M20 1.5v7h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                                        <text x="16" y="26" text-anchor="middle">{{ get_icon(doc) }}</text>
+                                    </svg>
                                 </div>
                                 <div class="large-card-body">
                                     <div class="doc-title">{{ doc.document_name }} <small class="text-muted" style="font-weight: normal;">({{ doc.name }})</small></div>
@@ -299,7 +305,7 @@ class DocumentManagementConsole {
                                         :class="{active: selected_doc && selected_doc.name === doc.name, selected: is_selected(doc.name)}"
                                         @click="select_doc(doc)">
                                         <td><input type="checkbox" :checked="is_selected(doc.name)" @click.stop="toggle_selection(doc.name)" /></td>
-                                        <td><span class="list-icon" :class="get_icon_class(doc)"><i class="fa" :class="get_icon(doc)"></i></span></td>
+                                        <td><span class="list-icon" :class="get_icon_class(doc)"><svg class="doc-type-icon" viewBox="0 0 32 38" aria-hidden="true" focusable="false"><path d="M5 1.5h15l7 7v28H5z M20 1.5v7h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" /><text x="16" y="26" text-anchor="middle">{{ get_icon(doc) }}</text></svg></span></td>
                                         <td>
                                             <strong>{{ doc.document_name }} <small class="text-muted" style="font-weight: normal;">({{ doc.name }})</small></strong>
                                             <span v-if="doc.ocr_status === 'Pending' || doc.ocr_status === 'Processing'" style="display: block; font-size: 11px; margin-top: 2px; color: var(--pc-primary);"><i class="fa fa-spinner fa-spin"></i> ${__('Processing OCR')}</span>
@@ -1257,16 +1263,10 @@ class DocumentManagementConsole {
                 };
 
                 const get_icon = (doc) => {
-                    const file_path = doc.original_file || doc.document_file;
-                    if (is_pdf(file_path)) return 'fa-file-pdf-o';
-                    if (is_img(file_path)) return 'fa-file-image-o';
-                    if (is_txt(file_path)) return 'fa-file-text-o';
-                    if (is_md(file_path, doc)) return 'fa-file-text-o';
-                    if (file_path && file_path.match(/\.(doc|docx)$/i)) return 'fa-file-word-o';
-                    if (file_path && file_path.match(/\.(xls|xlsx)$/i)) return 'fa-file-excel-o';
-                    if (file_path && file_path.match(/\.(ppt|pptx)$/i)) return 'fa-file-powerpoint-o';
-                    if (file_path) return 'fa-file-o';
-                    return 'fa-ban';
+                    return {
+                        pdf: 'PDF', image: 'IMG', text: 'TXT', markdown: 'MD',
+                        word: 'DOC', excel: 'XLS', ppt: 'PPT', generic: 'FILE'
+                    }[get_file_type(doc)];
                 };
 
                 const get_contrast_color = (hex) => {

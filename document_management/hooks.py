@@ -5,6 +5,10 @@ app_description = "Standalone Document Management module for Frappe"
 app_email = "eruiz@wbapps.com"
 app_license = "mit"
 
+# The app's console, PDF viewer, chat, and document forms still use Font
+# Awesome 4 icons. Frappe v16 ships the font but no longer loads it in Desk.
+app_include_css = ["/assets/frappe/css/fonts/fontawesome/font-awesome.min.css"]
+
 add_to_apps_screen = [
     {
         "name": "document_management",

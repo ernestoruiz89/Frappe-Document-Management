@@ -569,12 +569,12 @@
             };
 
             const loaders = [];
-            const viewerVersion = '5.7.284-8';
+            const viewerVersion = '5.7.284-10';
             if (typeof Vue === 'undefined') {
                 loaders.push(loadScript('https://unpkg.com/vue@3/dist/vue.global.prod.js'));
             }
             if (window.LoanManagerPdfSearchViewer?.version !== viewerVersion) {
-                loaders.push(loadScript('/assets/document_management/js/pdf_search_viewer.v5_7_284_9.js'));
+                loaders.push(loadScript('/assets/document_management/js/pdf_search_viewer.v5_7_284_10.js'));
             }
             Promise.all(loaders).then(start).catch((error) => {
                 viewer.innerHTML = '<div class="shared-document-empty">No se pudo cargar el visor PDF.</div>';

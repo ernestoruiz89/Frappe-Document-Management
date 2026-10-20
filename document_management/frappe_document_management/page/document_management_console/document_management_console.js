@@ -53,7 +53,7 @@ class DocumentManagementConsole {
     }
 
     load_pdf_viewer() {
-        const viewer_version = "5.7.284-9";
+        const viewer_version = "5.7.284-10";
         const load_marked = () => {
             if (window.marked) {
                 this.init_vue();
@@ -67,7 +67,7 @@ class DocumentManagementConsole {
             return;
         }
         frappe.require(
-            "/assets/document_management/js/pdf_search_viewer.v5_7_284_9.js",
+            "/assets/document_management/js/pdf_search_viewer.v5_7_284_10.js",
             () => load_marked(),
         );
     }
@@ -348,6 +348,7 @@ class DocumentManagementConsole {
                                         <strong>${__('Preview Notice:')}</strong> ${__('You are viewing an automatically generated preview from an Office file. Some complex formatting or design elements might not display with 100% accuracy. For perfect fidelity, we recommend downloading the original file from the sidebar.')}
                                     </div>
                                     <loan-pdf-viewer
+                                        :key="selected_doc.name + ':' + selected_doc.document_file"
                                         :src="selected_doc.document_download || selected_doc.document_file"
                                         :query="filters.search"
                                         :terms="selected_doc.search_terms || []"
@@ -406,6 +407,7 @@ class DocumentManagementConsole {
                                                 <strong>${__('Preview Notice:')}</strong> ${__('You are viewing an automatically generated preview from an Office file. Some complex formatting or design elements might not display with 100% accuracy. For perfect fidelity, we recommend downloading the original file from the sidebar.')}
                                             </div>
                                             <loan-pdf-viewer
+                                                :key="selected_doc.name + ':' + selected_doc.document_file"
                                                 :src="selected_doc.document_download || selected_doc.document_file"
                                                 :query="filters.search"
                                                 :terms="selected_doc.search_terms || []"

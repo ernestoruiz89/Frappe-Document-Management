@@ -12,7 +12,7 @@ import {
 } from "pdfjs-dist/web/pdf_viewer.mjs";
 
 
-const VIEWER_VERSION = "5.7.284-9";
+const VIEWER_VERSION = "5.7.284-10";
 
 // Keep the worker implementation in this bundle so deployments do not depend
 // on web-server MIME configuration for PDF.js module workers.
@@ -34,6 +34,7 @@ class PdfSearchViewer {
         this.usesServerFallback = false;
         this.prefetchTimer = null;
         this.resizeTimer = null;
+        this.fitToWidth = false;
 
         this.maxScale = Number(options.maxScale) || 1.5;
 
@@ -60,8 +61,8 @@ class PdfSearchViewer {
         this.linkService.setViewer(this.viewer);
 
         this.onPagesInit = () => {
+            this.viewer.currentScale = 1;
             this.goToPage(this.initialPage);
-            this.fitWidthToContainer();
             options.onPageChange?.(
                 this.viewer.currentPageNumber,
                 this.viewer.pagesCount,
@@ -100,6 +101,9 @@ class PdfSearchViewer {
         this.eventBus.on("scalechanging", this.onScaleChanging);
 
         this.resizeObserver = new ResizeObserver(() => {
+            if (!this.fitToWidth) {
+                return;
+            }
             window.clearTimeout(this.resizeTimer);
             this.resizeTimer = window.setTimeout(
                 () => this.fitWidthToContainer(),
@@ -316,14 +320,17 @@ class PdfSearchViewer {
     }
 
     zoomIn() {
+        this.fitToWidth = false;
         this.viewer.increaseScale({steps: 1});
     }
 
     zoomOut() {
+        this.fitToWidth = false;
         this.viewer.decreaseScale({steps: 1});
     }
 
     fitWidth() {
+        this.fitToWidth = true;
         this.fitWidthToContainer();
     }
 

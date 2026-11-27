@@ -5,4 +5,4 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestDocumentManagementSettings(IntegrationTestCase):
-	pass
+    pass

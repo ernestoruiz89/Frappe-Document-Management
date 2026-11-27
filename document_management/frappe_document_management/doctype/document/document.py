@@ -172,7 +172,6 @@ class Document(FrappeDocument):
 
     def force_attachments_private(self):
         # Find all files attached to this document or its child versions
-        doc_names = [self.name]
         version_names = [v.name for v in self.get("versions", []) if v.name]
 
         all_refs = [("Document", self.name)]

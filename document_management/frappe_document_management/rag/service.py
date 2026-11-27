@@ -36,16 +36,6 @@ def parse_filters(raw_filters):
             frappe.throw("Invalid chat filters.")
     if not isinstance(raw_filters, dict):
         frappe.throw("Invalid chat filters.")
-    allowed = {
-        "category",
-        "department",
-        "party_type",
-        "party_name",
-        "date_from",
-        "date_to",
-        "tags",
-        "documents",
-    }
     parsed = {}
     metadata_keys = ["category", "party_type", "party_name"]
     if department_doctype_exists():

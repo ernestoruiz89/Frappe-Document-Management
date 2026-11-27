@@ -115,7 +115,7 @@ def get_rag_config():
         _positive_int(settings.get("rag_chunk_overlap"), 120, 0),
         chunk_size - 1,
     )
-    
+
     chat_api_key = None
     if provider == "OpenAI":
         chat_api_key = _password(settings, "openai_api_key")

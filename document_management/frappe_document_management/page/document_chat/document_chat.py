@@ -5,7 +5,7 @@ from frappe.utils import add_to_date, get_datetime, now_datetime
 
 from document_management.frappe_document_management.rag.config import get_rag_config
 from document_management.frappe_document_management.rag.evaluation import get_latest_report
-from document_management.frappe_document_management.rag.index import index_status, rebuild_index
+from document_management.frappe_document_management.rag.index import index_status
 from document_management.frappe_document_management.rag.service import (
     enforce_rate_limit,
     get_owned_session,

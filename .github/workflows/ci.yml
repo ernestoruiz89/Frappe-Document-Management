@@ -62,7 +62,7 @@ jobs:
 
       - name: Run standalone Python unit tests
         run: |
-          pytest \
+          python -m pytest \
             document_management/frappe_document_management/utils/test_improvements.py \
             document_management/frappe_document_management/rag/test_chunking.py \
             document_management/frappe_document_management/rag/test_providers.py \

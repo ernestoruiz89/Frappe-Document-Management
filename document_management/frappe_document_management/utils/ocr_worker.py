@@ -724,7 +724,7 @@ def process_ocr(doc_name):
             _apply_tags(doc, text_content)
             publish_document_change(doc)
             frappe.db.commit()
-            
+
             frappe.enqueue(
                 "document_management.search.indexer.run_indexing_background",
                 doc_type="Document",

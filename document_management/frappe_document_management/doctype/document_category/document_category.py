@@ -8,7 +8,7 @@ from document_management.frappe_document_management.utils.document_access import
 )
 
 class DocumentCategory(Document):
-	pass
+    pass
 
 def has_permission(doc, ptype="read", user=None):
     if not user:

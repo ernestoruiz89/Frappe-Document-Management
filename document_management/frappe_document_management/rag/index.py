@@ -784,7 +784,7 @@ def rebuild_index():
         total_chunks = 0
         pending_batch = []
 
-        def _flush_batch(batch):
+        def _flush_batch(batch, index_writer):
             nonlocal faiss_index, dimension, total_chunks
             if not batch:
                 return
@@ -798,7 +798,7 @@ def rebuild_index():
             for row in batch:
                 title = titles_by_doc.get(row["document"], "")
                 row["name"] = row["content_hash"] + f"-{row['vector_id']}"
-                _add_tantivy_document(writer, row, title)
+                _add_tantivy_document(index_writer, row, title)
                 s = _serializable_chunk(row)
                 sqlite_params.append(
                     (
@@ -832,10 +832,10 @@ def rebuild_index():
                 for row in doc_rows:
                     pending_batch.append(row)
                     if len(pending_batch) >= 128:
-                        _flush_batch(pending_batch)
+                        _flush_batch(pending_batch, writer)
                         pending_batch = []
             if pending_batch:
-                _flush_batch(pending_batch)
+                _flush_batch(pending_batch, writer)
                 pending_batch = []
             if faiss_index is None:
                 probe = embed_texts(["dimension probe"])

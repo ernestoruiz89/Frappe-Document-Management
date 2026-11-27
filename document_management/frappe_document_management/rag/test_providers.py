@@ -66,9 +66,11 @@ def test_ollama_chat_stream():
 
 
 def test_openai_compatible_chat_stream():
-    event = lambda content: SimpleNamespace(
-        choices=[SimpleNamespace(delta=SimpleNamespace(content=content))]
-    )
+    def event(content):
+        return SimpleNamespace(
+            choices=[SimpleNamespace(delta=SimpleNamespace(content=content))]
+        )
+
     create = MagicMock(return_value=[event("hello"), event(" world")])
     client = MagicMock()
     client.chat.completions.create = create
@@ -85,9 +87,11 @@ def test_openai_compatible_chat_stream():
 
 
 def test_chat_uses_chat_endpoint():
-    event = lambda content: SimpleNamespace(
-        choices=[SimpleNamespace(delta=SimpleNamespace(content=content))]
-    )
+    def event(content):
+        return SimpleNamespace(
+            choices=[SimpleNamespace(delta=SimpleNamespace(content=content))]
+        )
+
     client = MagicMock()
     client.chat.completions.create.return_value = [event("ok")]
     openai_constructor = MagicMock(return_value=client)
@@ -145,9 +149,11 @@ def test_embeddings_use_embedding_endpoint():
 
 
 def test_lm_studio_chat_allows_local_endpoint_without_api_key():
-    event = lambda content: SimpleNamespace(
-        choices=[SimpleNamespace(delta=SimpleNamespace(content=content))]
-    )
+    def event(content):
+        return SimpleNamespace(
+            choices=[SimpleNamespace(delta=SimpleNamespace(content=content))]
+        )
+
     client = MagicMock()
     client.chat.completions.create.return_value = [event("ok")]
     openai_constructor = MagicMock(return_value=client)

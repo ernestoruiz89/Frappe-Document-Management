@@ -945,7 +945,7 @@ class TestPhase7To9Improvements(TestCase):
                 / "document_management.json"
             ).read_text(encoding="utf-8")
         )
-        card = next(l for l in ws["links"] if l.get("type") == "Card Break")
+        card = next(link for link in ws["links"] if link.get("type") == "Card Break")
         self.assertEqual(card["link_count"], 7)
 
         doc_json = json.loads(
